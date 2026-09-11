@@ -242,7 +242,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
           <div style="display:flex; align-items:center; gap:0.5rem;">
             <button class="btn btn-secondary" onclick="changeWeek(-1)">❮</button>
-            <span style="font-weight:bold; font-size:0.9rem; color:var(--accent-orange);">Week 37 (Sep 2026)</span>
+            <span id="sch-week-label" style="font-weight:bold; font-size:0.9rem; color:var(--accent-orange);">Week 37 (Sep 2026)</span>
             <button class="btn btn-secondary" onclick="changeWeek(1)">❯</button>
           </div>
         </div>
@@ -766,6 +766,12 @@
     };
 
     let activeBillingFilter = 'All';
+        let currentWeekOffset = 0;
+
+    function changeWeek(dir) {
+      currentWeekOffset += dir;
+      renderScheduleGrid();
+    }
     let timeSlots = [
       "08:00 - 08:45", "09:00 - 09:45", "10:00 - 10:45", "11:00 - 11:45",
       "12:00 - 12:45", "13:00 - 13:45", "13:45 - 14:45", "15:00 - 15:45",
@@ -1421,7 +1427,30 @@
       const grid = document.getElementById('sch-week-grid');
       if (!grid) return;
 
-      const days = ['SUN 30', 'MON 31', 'TUE 1', 'WED 2', 'THU 3', 'FRI 4', 'SAT 5'];
+      // Calculate dates dynamically based on currentWeekOffset
+      const baseDate = new Date(2026, 8, 11); // Sep 11, 2026 reference
+      baseDate.setDate(baseDate.getDate() + (currentWeekOffset * 7));
+      
+      // Find Sunday of this week
+      const sunday = new Date(baseDate);
+      sunday.setDate(baseDate.getDate() - baseDate.getDay());
+
+      const days = [];
+      const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      for(let i=0; i<7; i++) {
+        const d = new Date(sunday);
+        d.setDate(sunday.getDate() + i);
+        days.push(`${dayNames[d.getDay()]} ${d.getDate()} ${monthNames[d.getMonth()]}`);
+      }
+
+      // Update week label text
+      const weekLabelEl = document.getElementById('sch-week-label');
+      if (weekLabelEl) {
+        const weekNum = 37 + currentWeekOffset;
+        weekLabelEl.innerText = `Week ${weekNum} (${monthNames[sunday.getMonth()]} 2026)`;
+      }
       let html = `<div class="sch-header-cell">Time</div>`;
       days.forEach(d => { html += `<div class="sch-header-cell">${d}</div>`; });
 
