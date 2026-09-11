@@ -8,11 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    /* =========================================================
-       THEME & COLOR VARIABLE ENGINE (15 PRESET THEMES + LIGHT/DARK)
-       ========================================================= */
     :root {
-      /* Default Theme: Orange Slate */
       --bg-dark: #0f172a;
       --panel-dark: #1e293b;
       --border-dark: #334155;
@@ -27,7 +23,6 @@
       --input-border: #334155;
     }
 
-    /* Light Mode Override */
     [data-mode="light"] {
       --bg-dark: #f8fafc;
       --panel-dark: #ffffff;
@@ -40,7 +35,6 @@
       --input-border: #cbd5e1;
     }
 
-    /* 15 COLOR THEME PRESETS */
     [data-theme="default-orange"] { --accent-orange: #ea580c; }
     [data-theme="emerald"] { --accent-orange: #10b981; }
     [data-theme="royal-blue"] { --accent-orange: #2563eb; }
@@ -74,7 +68,6 @@
     .module-section.active { display: block; }
     .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
 
-    /* TOP THEME CONTROL BAR */
     .theme-bar { display: flex; gap: 0.5rem; align-items: center; background: var(--panel-dark); border: 1px solid var(--border-dark); padding: 0.4rem 0.75rem; border-radius: 8px; margin-bottom: 1.25rem; }
     .theme-bar select, .theme-bar button { padding: 0.3rem 0.6rem; border-radius: 6px; border: 1px solid var(--border-dark); background: var(--bg-dark); color: var(--text-main); font-size: 0.75rem; cursor: pointer; }
 
@@ -110,7 +103,6 @@
     .badge-sufficient { background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.7rem; }
     .badge-low { background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.7rem; }
 
-    /* SCHEDULE MODULE STYLES */
     .sch-grid { display: grid; grid-template-columns: 95px repeat(7, 1fr); border: 1px solid var(--border-dark); border-radius: 8px; overflow: hidden; background: var(--panel-dark); }
     .sch-header-cell { padding: 0.6rem; text-align: center; background: var(--bg-dark); border-bottom: 1px solid var(--border-dark); border-right: 1px solid var(--border-dark); font-size: 0.75rem; font-weight: bold; color: var(--text-muted); }
     .sch-time-cell { padding: 0.75rem 0.2rem; text-align: center; background: var(--bg-dark); border-bottom: 1px solid var(--border-dark); border-right: 1px solid var(--border-dark); font-size: 0.7rem; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; justify-content: center; }
@@ -119,7 +111,6 @@
     .sch-lunch-cell { background: rgba(239, 68, 68, 0.12); cursor: not-allowed; display: flex; align-items: center; justify-content: center; color: #f87171; font-size: 0.7rem; font-weight: bold; }
     .sch-booking-card { background: var(--accent-orange); color: white; padding: 0.35rem 0.5rem; border-radius: 6px; font-size: 0.7rem; font-weight: bold; }
 
-    /* PRE-PRINTED LETTERHEAD PRINT SHEET (NO PRICES) */
     #print-rx-sheet { display: none; }
     @media print {
       @page { size: A4; margin: 0; }
@@ -166,7 +157,6 @@
 
   <div id="main-content">
     
-    <!-- TOP CONTROL BAR FOR LIGHT/DARK MODE & 15 COLOR THEMES -->
     <div class="theme-bar">
       <span style="font-size:0.75rem; font-weight:bold; color:var(--text-muted);">🎨 SYSTEM THEME & ENGINE:</span>
       <select id="theme-selector" onchange="changeTheme(this.value)">
@@ -186,7 +176,6 @@
         <option value="copper-bronze">14. Copper Bronze</option>
         <option value="mint-fresh">15. Fresh Mint</option>
       </select>
-
       <button id="mode-toggle-btn" onclick="toggleLightDarkMode()">☀️ Light Mode</button>
     </div>
 
@@ -307,12 +296,12 @@
       </div>
     </div>
 
-    <!-- MODULE 5: AUSHADHI NIRMAN (AYURVEDIC MANUFACTURING ENGINE) -->
+    <!-- MODULE 5: AUSHADHI NIRMAN (WITH FULL EDIT & DELETE ACTIONS FOR BOTH TABLES) -->
     <div id="mod-aushadhi" class="module-section">
       <div style="background:var(--panel-dark); border:1px solid var(--border-dark); border-radius:8px; padding:1.25rem; margin-bottom:1.5rem;">
         <div class="section-header" style="margin-bottom:0.75rem;">
           <h3 style="color:var(--accent-orange); font-size:1.1rem;">🌱 RAW MATERIALS INVENTORY (KACHA DRAVYA)</h3>
-          <button class="btn btn-orange" onclick="openModal('md-raw-mat')">+ Add Raw Material</button>
+          <button class="btn btn-orange" onclick="openRawMaterialModal()">+ Add Raw Material</button>
         </div>
         <table class="data-table">
           <thead>
@@ -323,6 +312,7 @@
               <th>Available Stock</th>
               <th>Reorder Limit</th>
               <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody id="tbl-raw-mat"></tbody>
@@ -332,7 +322,10 @@
       <div style="background:var(--panel-dark); border:1px solid var(--border-dark); border-radius:8px; padding:1.25rem;">
         <div class="section-header" style="margin-bottom:0.75rem;">
           <h3 style="color:var(--accent-orange); font-size:1.1rem;">🏺 MASTER RECIPES & EXECUTIVE PRODUCTION ENGINE</h3>
-          <button class="btn btn-blue" onclick="openModal('md-batch-prod')">⚙️ Execute Batch Production</button>
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn btn-orange" onclick="openRecipeModal()">+ Add Master Recipe</button>
+            <button class="btn btn-blue" onclick="openModal('md-batch-prod')">⚙️ Execute Batch Production</button>
+          </div>
         </div>
         <table class="data-table">
           <thead>
@@ -341,6 +334,7 @@
               <th>Output Medicine Name</th>
               <th>Barcode</th>
               <th>Required Ingredients (per unit)</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody id="tbl-recipes"></tbody>
@@ -348,7 +342,7 @@
       </div>
     </div>
 
-    <!-- MODULE 6: HERBAL PHARMACY (AUTOMATICALLY SYNCED FROM PRODUCTION) -->
+    <!-- MODULE 6: HERBAL PHARMACY -->
     <div id="mod-pharmacy" class="module-section">
       <div class="section-header">
         <h2>💊 Herbal Pharmacy Inventory & Retail Ready Stock</h2>
@@ -407,14 +401,15 @@
 
   </div>
 
-  <!-- MODAL 1: ADD RAW MATERIAL -->
+  <!-- MODAL: ADD/EDIT RAW MATERIAL -->
   <div id="md-raw-mat" class="modal-overlay">
     <div class="modal-container" style="max-width: 550px;">
       <div class="modal-header">
-        <h3>+ Register Raw Material Stock</h3>
+        <h3 id="title-raw-mat">+ Register Raw Material Stock</h3>
         <button class="modal-close" onclick="closeModal('md-raw-mat')">✕</button>
       </div>
       <form onsubmit="saveRawMaterial(event)">
+        <input type="hidden" id="rm-id" />
         <div class="form-group" style="margin-bottom:0.75rem;">
           <label>MATERIAL NAME *</label>
           <input type="text" id="rm-name" class="form-control" placeholder="e.g. Til Taila (Sesame Base)" required />
@@ -441,7 +436,7 @@
         </div>
         <div class="form-grid grid-2" style="margin-bottom:1.25rem;">
           <div class="form-group">
-            <label>INITIAL STOCK *</label>
+            <label>AVAILABLE STOCK *</label>
             <input type="number" step="0.01" id="rm-stock" class="form-control" required />
           </div>
           <div class="form-group">
@@ -449,12 +444,44 @@
             <input type="number" step="0.01" id="rm-reorder" class="form-control" required />
           </div>
         </div>
-        <button type="submit" class="btn btn-orange" style="width:100%; justify-content:center;">Save Raw Material</button>
+        <button type="submit" class="btn btn-orange" style="width:100%; justify-content:center;">Save Raw Material Record</button>
       </form>
     </div>
   </div>
 
-  <!-- MODAL 2: EXECUTE BATCH PRODUCTION -->
+  <!-- MODAL: ADD/EDIT MASTER RECIPE -->
+  <div id="md-recipe" class="modal-overlay">
+    <div class="modal-container" style="max-width: 550px;">
+      <div class="modal-header">
+        <h3 id="title-recipe">+ Register Master Recipe</h3>
+        <button class="modal-close" onclick="closeModal('md-recipe')">✕</button>
+      </div>
+      <form onsubmit="saveMasterRecipe(event)">
+        <input type="hidden" id="rc-id" />
+        <div class="form-group" style="margin-bottom:0.75rem;">
+          <label>OUTPUT MEDICINE NAME *</label>
+          <input type="text" id="rc-name" class="form-control" placeholder="e.g. Mahanarayana Thailam (500ml)" required />
+        </div>
+        <div class="form-grid grid-2" style="margin-bottom:0.75rem;">
+          <div class="form-group">
+            <label>BARCODE *</label>
+            <input type="text" id="rc-barcode" class="form-control" placeholder="e.g. 8901001" required />
+          </div>
+          <div class="form-group">
+            <label>PRIMARY RAW INGREDIENT *</label>
+            <select id="rc-raw-req-id" class="form-control" required></select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:1.25rem;">
+          <label>REQUIRED INGREDIENT QTY PER UNIT *</label>
+          <input type="number" step="0.01" id="rc-qty-per-unit" class="form-control" placeholder="e.g. 0.5" required />
+        </div>
+        <button type="submit" class="btn btn-orange" style="width:100%; justify-content:center;">Save Recipe</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EXECUTE BATCH PRODUCTION -->
   <div id="md-batch-prod" class="modal-overlay">
     <div class="modal-container" style="max-width: 580px;">
       <div class="modal-header">
@@ -744,7 +771,6 @@
       "16:00 - 16:45", "17:00 - 17:45", "18:00 - 18:45", "19:00 - 19:45"
     ];
 
-    /* THEME CONTROLLER (15 THEMES + LIGHT/DARK MODE) */
     function toggleLightDarkMode() {
       const html = document.documentElement;
       const curMode = html.getAttribute('data-mode') || 'dark';
@@ -812,9 +838,9 @@
       document.getElementById('st-dues').innerText = '₹' + totalDues;
     }
 
-    /* AUSHADHI NIRMAN & PHARMACY AUTOMATIC STOCK INTEGRATION */
+    /* AUSHADHI NIRMAN WITH COMPLETE EDIT & DELETE ACTIONS */
     function renderAushadhiNirman() {
-      // 1. Raw Materials Table
+      // 1. Raw Materials Table with Actions
       const rawTbl = document.getElementById('tbl-raw-mat');
       if (rawTbl) {
         rawTbl.innerHTML = db.rawMaterials.map(r => {
@@ -828,12 +854,16 @@
               <td><b>${r.stock.toFixed(2)} ${r.unit}</b></td>
               <td>${r.reorder} ${r.unit}</td>
               <td>${badge}</td>
+              <td>
+                <button class="btn btn-blue" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="editRawMaterial('${r.id}')">Edit</button>
+                <button class="btn btn-danger" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="delRawMaterial('${r.id}')">Delete</button>
+              </td>
             </tr>
           `;
-        }).join('');
+        }).join('') || '<tr><td colSpan="7">No raw materials registered.</td></tr>';
       }
 
-      // 2. Master Recipes Table
+      // 2. Master Recipes Table with Actions
       const recTbl = document.getElementById('tbl-recipes');
       if (recTbl) {
         recTbl.innerHTML = db.recipes.map(rc => {
@@ -845,25 +875,117 @@
               <td><b>${rc.name}</b></td>
               <td><code>${rc.barcode}</code></td>
               <td>${ingredientStr}</td>
+              <td>
+                <button class="btn btn-blue" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="editMasterRecipe('${rc.id}')">Edit</button>
+                <button class="btn btn-danger" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="delMasterRecipe('${rc.id}')">Delete</button>
+              </td>
             </tr>
           `;
-        }).join('');
+        }).join('') || '<tr><td colSpan="5">No master recipes registered.</td></tr>';
       }
+    }
+
+    function openRawMaterialModal() {
+      document.getElementById('rm-id').value = '';
+      document.getElementById('rm-name').value = '';
+      document.getElementById('rm-stock').value = '';
+      document.getElementById('rm-reorder').value = '';
+      document.getElementById('title-raw-mat').innerText = '+ Register Raw Material Stock';
+      openModal('md-raw-mat');
+    }
+
+    function editRawMaterial(id) {
+      const rm = db.rawMaterials.find(r => r.id === id); if (!rm) return;
+      document.getElementById('rm-id').value = rm.id;
+      document.getElementById('rm-name').value = rm.name;
+      document.getElementById('rm-category').value = rm.category;
+      document.getElementById('rm-unit').value = rm.unit;
+      document.getElementById('rm-stock').value = rm.stock;
+      document.getElementById('rm-reorder').value = rm.reorder;
+      document.getElementById('title-raw-mat').innerText = '✏️ Edit Raw Material Stock';
+      openModal('md-raw-mat');
     }
 
     function saveRawMaterial(e) {
       e.preventDefault();
+      const id = document.getElementById('rm-id').value;
       const name = document.getElementById('rm-name').value;
       const category = document.getElementById('rm-category').value;
       const unit = document.getElementById('rm-unit').value;
       const stock = Number(document.getElementById('rm-stock').value) || 0;
       const reorder = Number(document.getElementById('rm-reorder').value) || 0;
 
-      const id = 'RAW-0' + (db.rawMaterials.length + 1);
-      db.rawMaterials.push({ id, name, category, unit, stock, reorder });
+      if (id) {
+        const idx = db.rawMaterials.findIndex(r => r.id === id);
+        if (idx !== -1) db.rawMaterials[idx] = { id, name, category, unit, stock, reorder };
+      } else {
+        const newId = 'RAW-0' + (db.rawMaterials.length + 1);
+        db.rawMaterials.push({ id: newId, name, category, unit, stock, reorder });
+      }
 
-      alert('Raw Material Registered!');
+      alert('Raw Material Record Saved Successfully!');
       closeModal('md-raw-mat');
+      renderAushadhiNirman();
+    }
+
+    function delRawMaterial(id) {
+      if (!confirm('Are you sure you want to delete this raw material item?')) return;
+      db.rawMaterials = db.rawMaterials.filter(r => r.id !== id);
+      renderAushadhiNirman();
+    }
+
+    function openRecipeModal() {
+      document.getElementById('rc-id').value = '';
+      document.getElementById('rc-name').value = '';
+      document.getElementById('rc-barcode').value = '';
+      document.getElementById('rc-qty-per-unit').value = '';
+
+      const sel = document.getElementById('rc-raw-req-id');
+      sel.innerHTML = db.rawMaterials.map(r => `<option value="${r.id}">${r.id} - ${r.name}</option>`).join('');
+
+      document.getElementById('title-recipe').innerText = '+ Register Master Recipe';
+      openModal('md-recipe');
+    }
+
+    function editMasterRecipe(id) {
+      const rc = db.recipes.find(r => r.id === id); if (!rc) return;
+      document.getElementById('rc-id').value = rc.id;
+      document.getElementById('rc-name').value = rc.name;
+      document.getElementById('rc-barcode').value = rc.barcode;
+      document.getElementById('rc-qty-per-unit').value = rc.req_qty_per_unit;
+
+      const sel = document.getElementById('rc-raw-req-id');
+      sel.innerHTML = db.rawMaterials.map(r => `<option value="${r.id}">${r.id} - ${r.name}</option>`).join('');
+      sel.value = rc.raw_req_id;
+
+      document.getElementById('title-recipe').innerText = '✏️ Edit Master Recipe';
+      openModal('md-recipe');
+    }
+
+    function saveMasterRecipe(e) {
+      e.preventDefault();
+      const id = document.getElementById('rc-id').value;
+      const name = document.getElementById('rc-name').value;
+      const barcode = document.getElementById('rc-barcode').value;
+      const raw_req_id = document.getElementById('rc-raw-req-id').value;
+      const req_qty_per_unit = Number(document.getElementById('rc-qty-per-unit').value) || 0;
+
+      if (id) {
+        const idx = db.recipes.findIndex(r => r.id === id);
+        if (idx !== -1) db.recipes[idx] = { id, name, barcode, raw_req_id, req_qty_per_unit };
+      } else {
+        const newId = 'REC-0' + (db.recipes.length + 1);
+        db.recipes.push({ id: newId, name, barcode, raw_req_id, req_qty_per_unit });
+      }
+
+      alert('Master Recipe Saved Successfully!');
+      closeModal('md-recipe');
+      renderAushadhiNirman();
+    }
+
+    function delMasterRecipe(id) {
+      if (!confirm('Are you sure you want to delete this master recipe?')) return;
+      db.recipes = db.recipes.filter(r => r.id !== id);
       renderAushadhiNirman();
     }
 
@@ -877,7 +999,6 @@
       const expiry = document.getElementById('bp-expiry').value;
       const price = Number(document.getElementById('bp-price').value) || 0;
 
-      // Check Raw material deduction
       const raw = db.rawMaterials.find(x => x.id === recipe.raw_req_id);
       if (raw) {
         const requiredTotal = recipe.req_qty_per_unit * units;
@@ -887,7 +1008,6 @@
         raw.stock -= requiredTotal;
       }
 
-      // Sync into Pharmacy Inventory Stock!
       const existingMed = db.pharmacy.find(p => p.barcode === recipe.barcode && p.batch_code === batchCode);
       if (existingMed) {
         existingMed.stock += units;
@@ -1138,7 +1258,6 @@
       }
     }
 
-    /* PRINT PRESCRIPTION - PURE MEDICAL SHEET (NO FEES) */
     function printPrescription() {
       const pId = document.getElementById('rx-patient-id').value;
       const pat = db.patients.find(p => p.id === pId); if (!pat) return alert('Select patient');
