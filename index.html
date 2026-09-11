@@ -902,14 +902,27 @@
       const recTbl = document.getElementById('tbl-recipes');
       if (recTbl) {
         recTbl.innerHTML = db.recipes.map(rc => {
-          const raw = db.rawMaterials.find(x => x.id === rc.raw_req_id);
-          const ingredientStr = raw ? `${raw.id} (${rc.req_qty_per_unit}${raw.unit})` : `${rc.raw_req_id || 'Raw Ingredients'}`;
+          let ingredientStr = '';
+          let ingList = [];
+          try {
+            ingList = typeof rc.ingredients === 'string' ? JSON.parse(rc.ingredients) : (rc.ingredients || []);
+          } catch(e) { ingList = []; }
+
+          if (ingList.length > 0) {
+            ingredientStr = ingList.map(i => `${i.raw_id} (${i.qty_per_unit} ${i.unit || ''})`).join(', ');
+          } else if (rc.raw_req_id) {
+            const raw = db.rawMaterials.find(x => x.id === rc.raw_req_id);
+            ingredientStr = raw ? `${raw.id} (${rc.req_qty_per_unit}${raw.unit})` : `${rc.raw_req_id} (${rc.req_qty_per_unit})`;
+          } else {
+            ingredientStr = 'None';
+          }
+
           return `
             <tr>
               <td><b>${rc.id}</b></td>
               <td><b>${rc.name}</b></td>
-              <td><code>${rc.barcode}</code></td>
-              <td>${ingredientStr}</td>
+              <td><code>${rc.barcode || 'N/A'}</code></td>
+              <td><b>${ingredientStr}</b></td>
               <td>
                 <button class="btn btn-blue" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="editMasterRecipe('${rc.id}')">Edit</button>
                 <button class="btn btn-danger" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="delMasterRecipe('${rc.id}')">Delete</button>
