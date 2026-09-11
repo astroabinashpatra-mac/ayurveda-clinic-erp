@@ -82,12 +82,26 @@
     .mini-cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-weight: bold; color: var(--accent-orange); font-size: 0.85rem; }
     .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 0.25rem; font-size: 0.75rem; }
 
-    /* PRINT LAYOUT FOR PRESCRIPTION */
+    /* PRE-PRINTED LETTERHEAD PRINT LAYOUT (EXACT 50mm TOP MARGIN) */
     #print-rx-sheet { display: none; }
     @media print {
+      @page { size: A4; margin: 0; }
       body * { visibility: hidden; }
       #print-rx-sheet, #print-rx-sheet * { visibility: visible; }
-      #print-rx-sheet { display: block !important; position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important; padding: 2rem; font-family: serif; }
+      #print-rx-sheet {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        color: #000 !important;
+        background: #fff !important;
+        padding-top: 50mm !important; /* STRICT 50mm TOP CLEARANCE FOR LETTERHEAD */
+        padding-left: 15mm !important;
+        padding-right: 15mm !important;
+        font-family: Arial, sans-serif;
+      }
+      #pr-header-logo { display: none !important; } /* HIDE DIGITAL HEADER TO AVOID OVERLAPPING PRE-PRINTED PAPER */
       #sidebar, #main-content, .modal-overlay { display: none !important; }
     }
   </style>
@@ -347,7 +361,6 @@
         <div class="form-group"><label>VAIDYA CONSULTATION FEE (₹) *</label><input type="number" id="rx-consult-fee" value="300" class="form-control" onkeyup="renderRxItemsTable()" /></div>
       </div>
 
-      <!-- ADD MEDICINE / TEST / THERAPY -->
       <div style="background: #fdfbf7; border: 1px solid #e7e5e4; padding: 0.85rem; border-radius: 8px; margin-bottom: 0.75rem;">
         <span style="font-size: 0.75rem; font-weight: bold; color: #44403c; display: block; margin-bottom: 0.5rem;">Add Prescribed Medicine, Diagnostic Test, or Therapy</span>
         <div class="form-grid grid-5">
@@ -382,7 +395,6 @@
         </table>
       </div>
 
-      <!-- SPECIAL INSTRUCTIONS / PATHYA-APATHYA -->
       <div class="form-group" style="margin-bottom: 1rem;">
         <label>SPECIAL INSTRUCTIONS / DIETARY GUIDELINES (PATHYA & APATHYA)</label>
         <textarea id="rx-instructions" class="form-control" rows="2" placeholder="e.g. Avoid cold/sour foods, take warm water, gentle morning walk..."></textarea>
@@ -398,9 +410,9 @@
     </div>
   </div>
 
-  <!-- PRINTABLE SHEET -->
+  <!-- PRINTABLE SHEET FOR PRE-PRINTED LETTERHEAD -->
   <div id="print-rx-sheet">
-    <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 0.5rem; margin-bottom: 1rem;">
+    <div id="pr-header-logo" style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 0.5rem; margin-bottom: 1rem;">
       <h1 style="font-size: 1.8rem; margin-bottom: 0.2rem;">AASU AROGYAM AYURVEDIC HOSPITAL</h1>
       <p style="font-size: 0.9rem;">Center for Panchakarma & Holistic Healing | Phone: +91 7992616555</p>
     </div>
@@ -420,19 +432,19 @@
       <p><b>Attending Vaidya:</b> <span id="pr-doctor"></span></p>
       <p><b>Diagnosis (Nidan):</b> <span id="pr-diag"></span></p>
     </div>
-    <h3>Prescribed Medicines, Therapies & Diagnostic Tests</h3>
+    <h3 style="margin-bottom:0.5rem; font-size:1rem;">Prescribed Medicines, Therapies & Diagnostic Tests</h3>
     <table style="width: 100%; border-collapse: collapse; margin-top: 0.5rem; margin-bottom: 1rem;">
       <thead>
-        <tr style="border-bottom: 1px solid #000; text-align: left;">
+        <tr style="border-bottom: 1px solid #000; text-align: left; font-size:0.85rem;">
           <th style="padding: 4px;">Type</th>
           <th style="padding: 4px;">Item / Formulation / Test</th>
           <th style="padding: 4px;">Dosage / Instructions</th>
           <th style="padding: 4px;">Qty/Sessions</th>
         </tr>
       </thead>
-      <tbody id="pr-tbl-body"></tbody>
+      <tbody id="pr-tbl-body" style="font-size:0.85rem;"></tbody>
     </table>
-    <div style="margin-top: 1rem; border-top: 1px dashed #666; padding-top: 0.5rem;">
+    <div style="margin-top: 1rem; border-top: 1px dashed #666; padding-top: 0.5rem; font-size:0.85rem;">
       <p><b>Dietary & Lifestyle Guidelines (Pathya & Apathya):</b></p>
       <p id="pr-instructions" style="font-style: italic; margin-top: 0.25rem;"></p>
     </div>
@@ -655,7 +667,7 @@
       init();
     }
 
-    /* ENHANCED PRESCRIPTION LOGIC */
+    /* PRESCRIPTION LOGIC */
     function renderRxDataList() {
       const dl = document.getElementById('dl-patients');
       if (dl) {
