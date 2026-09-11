@@ -63,15 +63,19 @@
     .form-group label { font-size: 0.65rem; font-weight: bold; color: #475569; text-transform: uppercase; }
     .form-control { padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.825rem; width: 100%; }
 
-    /* SCHEDULE MODULE SPECIFIC DARK STYLES */
+    .vitals-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; }
+    .vitals-card label { color: #64748b; font-size: 0.625rem; font-weight: bold; text-transform: uppercase; }
+    .vitals-card input { background: #ffffff; font-weight: 600; color: #0f172a; }
+
+    /* SCHEDULE MODULE SPECIFIC STYLES */
     .sch-grid { display: grid; grid-template-columns: 95px repeat(7, 1fr); border: 1px solid var(--border-dark); border-radius: 8px; overflow: hidden; background: var(--panel-dark); }
     .sch-header-cell { padding: 0.6rem; text-align: center; background: #0f172a; border-bottom: 1px solid var(--border-dark); border-right: 1px solid var(--border-dark); font-size: 0.75rem; font-weight: bold; color: var(--text-muted); }
     .sch-time-cell { padding: 0.75rem 0.2rem; text-align: center; background: #0f172a; border-bottom: 1px solid var(--border-dark); border-right: 1px solid var(--border-dark); font-size: 0.7rem; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; justify-content: center; }
     .sch-slot-cell { border-bottom: 1px solid var(--border-dark); border-right: 1px solid var(--border-dark); min-height: 48px; padding: 0.25rem; position: relative; cursor: pointer; transition: 0.2s; }
     .sch-slot-cell:hover { background: rgba(234, 88, 12, 0.08); }
-    .sch-lunch-cell { background: rgba(239, 68, 68, 0.12); cursor: not-allowed; display: flex; align-items: center; justify-content: center; color: #f87171; font-size: 0.7rem; font-weight: bold; letter-spacing: 0.5px; }
+    .sch-lunch-cell { background: rgba(239, 68, 68, 0.12); cursor: not-allowed; display: flex; align-items: center; justify-content: center; color: #f87171; font-size: 0.7rem; font-weight: bold; }
 
-    .sch-booking-card { background: var(--accent-orange); color: white; padding: 0.35rem 0.5rem; border-radius: 6px; font-size: 0.7rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .sch-booking-card { background: var(--accent-orange); color: white; padding: 0.35rem 0.5rem; border-radius: 6px; font-size: 0.7rem; font-weight: bold; }
 
     .mini-cal { background: var(--panel-dark); border: 1px solid var(--border-dark); border-radius: 8px; padding: 1rem; }
     .mini-cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-weight: bold; color: var(--accent-orange); font-size: 0.85rem; }
@@ -159,7 +163,7 @@
       </table>
     </div>
 
-    <!-- MODULE 4: SCHEDULE (8:00 AM TO 8:00 PM) -->
+    <!-- MODULE 4: SCHEDULE -->
     <div id="mod-schedule" class="module-section">
       <div class="section-header">
         <div>
@@ -167,37 +171,31 @@
           <span style="font-size:0.75rem; color:var(--text-muted)">Click on an available spot to create a new reservation. Click on any reservation to edit or modify it.</span>
         </div>
         <div style="display:flex; gap:0.5rem;">
-          <button class="tab-btn active" id="btn-sch-use" onclick="switchSchSubView('use', this)">Use</button>
-          <button class="tab-btn" id="btn-sch-supervise" onclick="switchSchSubView('supervise', this)">Supervise</button>
-          <button class="tab-btn" id="btn-sch-configure" onclick="switchSchSubView('configure', this)">Configure</button>
+          <button class="tab-btn active" onclick="switchSchSubView('use', this)">Use</button>
+          <button class="tab-btn" onclick="switchSchSubView('supervise', this)">Supervise</button>
+          <button class="tab-btn" onclick="switchSchSubView('configure', this)">Configure</button>
         </div>
       </div>
 
-      <!-- VIEW 1: USE (GRID VIEW + MINI CALENDAR) -->
       <div id="sch-view-use">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
           <div style="display:flex; align-items:center; gap:0.5rem;">
             <button class="btn btn-secondary" onclick="changeWeek(-1)">❮</button>
-            <span id="sch-week-label" style="font-weight:bold; font-size:0.9rem; color:var(--accent-orange);">Week 37 (Sep 2026)</span>
+            <span style="font-weight:bold; font-size:0.9rem; color:var(--accent-orange);">Week 37 (Sep 2026)</span>
             <button class="btn btn-secondary" onclick="changeWeek(1)">❯</button>
           </div>
-          <div style="display:flex; align-items:center; gap:0.5rem;" id="room-filter-pills">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
             <span style="font-size:0.75rem; color:var(--text-muted);">Rooms:</span>
             <button class="btn btn-orange" style="padding:0.25rem 0.6rem; font-size:0.75rem;">All</button>
           </div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 280px; gap: 1.25rem;">
-          <!-- WEEK GRID -->
           <div class="sch-grid" id="sch-week-grid"></div>
-
-          <!-- SIDEBAR MINI CALENDAR & ROOM CHECKBOXES -->
           <div>
             <div class="mini-cal">
-              <div class="mini-cal-header">
-                <span>SEPTEMBER 2026</span>
-              </div>
-              <div class="mini-cal-grid" id="mini-cal-days">
+              <div class="mini-cal-header"><span>SEPTEMBER 2026</span></div>
+              <div class="mini-cal-grid">
                 <div style="color:var(--text-muted); font-weight:bold;">SUN</div>
                 <div style="color:var(--text-muted); font-weight:bold;">MON</div>
                 <div style="color:var(--text-muted); font-weight:bold;">TUE</div>
@@ -207,7 +205,6 @@
                 <div style="color:var(--text-muted); font-weight:bold;">SAT</div>
               </div>
             </div>
-
             <div style="background:var(--panel-dark); border:1px solid var(--border-dark); border-radius:8px; padding:1rem; margin-top:1rem;">
               <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.5rem;">FILTER ROOMS</span>
               <div id="room-checkbox-list" style="display:flex; flex-direction:column; gap:0.5rem; font-size:0.8rem;"></div>
@@ -216,7 +213,6 @@
         </div>
       </div>
 
-      <!-- VIEW 2: SUPERVISE (TABLE VIEW) -->
       <div id="sch-view-supervise" style="display:none;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
           <h3>SUPERVISE ALL RESERVATIONS</h3>
@@ -228,7 +224,6 @@
         </table>
       </div>
 
-      <!-- VIEW 3: CONFIGURE ROOMS -->
       <div id="sch-view-configure" style="display:none;">
         <div style="background:var(--panel-dark); border:1px solid var(--border-dark); padding:1.25rem; border-radius:8px; margin-bottom:1.5rem;">
           <h4 style="color:var(--accent-orange); margin-bottom:0.75rem;">+ Add New Room / Resource</h4>
@@ -237,7 +232,6 @@
             <button class="btn btn-orange" onclick="addScheduleRoom()">Add Room</button>
           </div>
         </div>
-
         <h3>Existing Schedule Rooms</h3>
         <table class="data-table">
           <thead><tr><th>Room ID</th><th>Room Name</th><th>Action</th></tr></thead>
@@ -262,10 +256,7 @@
       </table>
     </div>
 
-    <!-- OTHER MODULE PLACEHOLDERS -->
-    <div id="mod-aushadhi" class="module-section"><div class="section-header"><h2>🌿 Aushadhi Manufacturing</h2></div></div>
-    <div id="mod-pharmacy" class="module-section"><div class="section-header"><h2>💊 Herbal Pharmacy Stock</h2></div></div>
-    <div id="mod-therapy" class="module-section"><div class="section-header"><h2>✨ Therapy Master Directory</h2></div></div>
+    <!-- MODULE 9: HRMS -->
     <div id="mod-hrms" class="module-section">
       <div class="section-header">
         <h2>👥 Employee HRMS Directory</h2>
@@ -276,6 +267,10 @@
         <tbody id="tbl-emp"></tbody>
       </table>
     </div>
+
+    <div id="mod-aushadhi" class="module-section"><div class="section-header"><h2>🌿 Aushadhi Manufacturing</h2></div></div>
+    <div id="mod-pharmacy" class="module-section"><div class="section-header"><h2>💊 Herbal Pharmacy Stock</h2></div></div>
+    <div id="mod-therapy" class="module-section"><div class="section-header"><h2>✨ Therapy Master Directory</h2></div></div>
     <div id="mod-payroll" class="module-section"><div class="section-header"><h2>💵 Payroll & Commissions</h2></div></div>
     <div id="mod-accounts" class="module-section"><div class="section-header"><h2>🏛️ Accounts & Vendors</h2></div></div>
     <div id="mod-documents" class="module-section"><div class="section-header"><h2>📂 Clinic Documents</h2></div></div>
@@ -284,7 +279,7 @@
 
   </div>
 
-  <!-- MODAL 1: REGISTER PATIENT -->
+  <!-- MODAL: REGISTER PATIENT -->
   <div id="md-patient" class="modal-overlay">
     <div class="modal-container">
       <div class="modal-header"><h3>Register Patient Account</h3><button class="modal-close" onclick="closeModal('md-patient')">✕</button></div>
@@ -310,17 +305,13 @@
     </div>
   </div>
 
-  <!-- MODAL 2: E-PRESCRIPTION BUILDER -->
+  <!-- MODAL: E-PRESCRIPTION BUILDER -->
   <div id="md-rx" class="modal-overlay">
     <div class="modal-container" id="print-area">
-      <div class="modal-header">
-        <h3>Create Ayurvedic E-Prescription</h3>
-        <button class="modal-close" onclick="closeModal('md-rx')">✕</button>
-      </div>
-
+      <div class="modal-header"><h3>Create Ayurvedic E-Prescription</h3><button class="modal-close" onclick="closeModal('md-rx')">✕</button></div>
       <div class="form-grid grid-3">
         <div class="form-group">
-          <label>SELECT PATIENT (AUTO-COMPLETE SEARCH) *</label>
+          <label>SELECT PATIENT (AUTO-COMPLETE) *</label>
           <input type="text" id="rx-p-search" list="dl-patients" class="form-control" placeholder="Type Name or Mobile No..." oninput="onRxPatientSelect()" required />
           <datalist id="dl-patients"></datalist>
           <input type="hidden" id="rx-patient-id" />
@@ -332,9 +323,22 @@
         </div>
       </div>
 
+      <div class="vitals-card">
+        <span style="font-size: 0.65rem; font-weight: bold; color: var(--accent-orange); display: block; margin-bottom: 0.4rem;">PATIENT EMR VITALS (AUTO-FILLED)</span>
+        <div class="form-grid grid-7">
+          <div><label>MOBILE NO</label><input type="text" id="rx-v-mobile" class="form-control" readonly /></div>
+          <div><label>AGE *</label><input type="text" id="rx-v-age" class="form-control" readonly /></div>
+          <div><label>GENDER *</label><input type="text" id="rx-v-gender" class="form-control" readonly /></div>
+          <div><label>PRAKRITI *</label><input type="text" id="rx-v-prakriti" class="form-control" readonly /></div>
+          <div><label>WEIGHT (KG)</label><input type="text" id="rx-v-weight" class="form-control" readonly /></div>
+          <div><label>B.P. (mmHg)</label><input type="text" id="rx-v-bp" class="form-control" readonly /></div>
+          <div><label>PULSE (/MIN)</label><input type="text" id="rx-v-pulse" class="form-control" readonly /></div>
+        </div>
+      </div>
+
       <div class="form-grid grid-2">
         <div class="form-group"><label>DIAGNOSIS / NIDAN</label><input type="text" id="rx-diag" placeholder="e.g. Sandhivata" class="form-control" /></div>
-        <div class="form-group"><label>VAIDYA CONSULTATION FEE (₹) *</label><input type="number" id="rx-consult-fee" value="300" class="form-control" /></div>
+        <div class="form-group"><label>VAIDYA CONSULTATION FEE (₹) *</label><input type="number" id="rx-consult-fee" value="300" class="form-control" onkeyup="renderRxItemsTable()" /></div>
       </div>
 
       <div style="background: #fdfbf7; border: 1px solid #e7e5e4; padding: 0.85rem; border-radius: 8px; margin-bottom: 0.75rem;">
@@ -358,13 +362,10 @@
     </div>
   </div>
 
-  <!-- MODAL 3: NEW RESERVATION MODAL -->
+  <!-- MODAL: NEW RESERVATION -->
   <div id="md-res" class="modal-overlay">
     <div class="modal-container" style="max-width: 520px;">
-      <div class="modal-header">
-        <h3>📅 NEW RESERVATION</h3>
-        <button class="modal-close" onclick="closeModal('md-res')">✕</button>
-      </div>
+      <div class="modal-header"><h3>📅 NEW RESERVATION</h3><button class="modal-close" onclick="closeModal('md-res')">✕</button></div>
       <form onsubmit="saveReservation(event)">
         <div class="form-group" style="margin-bottom:0.75rem;">
           <label>🕒 TIME RANGE (45 MIN THERAPY + 15 MIN REST)</label>
@@ -374,33 +375,18 @@
             <input type="text" id="res-end-time" class="form-control" placeholder="2026-09-11 08:45" required />
           </div>
         </div>
-        <div class="form-group" style="margin-bottom:0.75rem;">
-          <label>👤 PATIENT NAME</label>
-          <input type="text" id="res-patient-name" class="form-control" placeholder="Abinash Patra" required />
-        </div>
-        <div class="form-group" style="margin-bottom:0.75rem;">
-          <label>📱 MOBILE NUMBER</label>
-          <input type="text" id="res-mobile" maxlength="10" class="form-control" placeholder="10-digit mobile" required />
-        </div>
-        <div class="form-group" style="margin-bottom:1.25rem;">
-          <label>🌿 THERAPY / ROOM</label>
-          <select id="res-room-select" class="form-control" required></select>
-        </div>
-        <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
-          <button type="button" class="btn btn-secondary" onclick="closeModal('md-res')">Cancel</button>
-          <button type="submit" class="btn btn-orange">Create Reservation</button>
-        </div>
+        <div class="form-group" style="margin-bottom:0.75rem;"><label>👤 PATIENT NAME</label><input type="text" id="res-patient-name" class="form-control" placeholder="Abinash Patra" required /></div>
+        <div class="form-group" style="margin-bottom:0.75rem;"><label>📱 MOBILE NUMBER</label><input type="text" id="res-mobile" maxlength="10" class="form-control" placeholder="10-digit mobile" required /></div>
+        <div class="form-group" style="margin-bottom:1.25rem;"><label>🌿 THERAPY / ROOM</label><select id="res-room-select" class="form-control" required></select></div>
+        <div style="display:flex; justify-content:flex-end; gap:0.5rem;"><button type="button" class="btn btn-secondary" onclick="closeModal('md-res')">Cancel</button><button type="submit" class="btn btn-orange">Create Reservation</button></div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL 4: PAYMENT COLLECTOR -->
+  <!-- MODAL: PAYMENT COLLECTOR -->
   <div id="md-pay" class="modal-overlay">
     <div class="modal-container" style="max-width: 500px;">
-      <div class="modal-header">
-        <h3>💰 Collect Invoice Payment</h3>
-        <button class="modal-close" onclick="closeModal('md-pay')">✕</button>
-      </div>
+      <div class="modal-header"><h3>💰 Collect Invoice Payment</h3><button class="modal-close" onclick="closeModal('md-pay')">✕</button></div>
       <form onsubmit="savePayment(event)">
         <input type="hidden" id="pay-bill-id" />
         <div class="form-group" style="margin-bottom:0.5rem;"><label>BILL NO</label><input type="text" id="pay-bill-no" class="form-control" readonly /></div>
@@ -419,7 +405,7 @@
     </div>
   </div>
 
-  <!-- MODAL 5: HRMS -->
+  <!-- MODAL: HRMS -->
   <div id="md-emp" class="modal-overlay">
     <div class="modal-container">
       <div class="modal-header"><h3>Onboard New Employee</h3><button class="modal-close" onclick="closeModal('md-emp')">✕</button></div>
@@ -456,24 +442,16 @@
         { id: 'ROOM-03', name: 'Room 3 (Consultation)' }
       ],
       reservations: [
-        { id: 'APP-201', patient_name: 'Abinash Patra', mobile: '8112136555', start_time: '2026-08-30 10:00', end_time: '2026-08-30 10:45', room_name: 'Room 3 (Consultation)', status: 'CONFIRMED', day_idx: 0, time_slot: '10:00 - 10:45' }
+        { id: 'APP-201', patient_name: 'Abinash Patra', mobile: '8112136555', start_time: '2026-09-11 10:00', end_time: '2026-09-11 10:45', room_name: 'Room 3 (Consultation)', status: 'CONFIRMED', day_idx: 0, time_slot: '10:00 - 10:45' }
       ]
     };
 
-    // SCHEDULE SLOTS: 8:00 AM TO 8:00 PM WITH 1:45 PM - 2:45 PM LUNCH BREAK
+    let activeBillingFilter = 'All';
+
     let timeSlots = [
-      "08:00 - 08:45",
-      "09:00 - 09:45",
-      "10:00 - 10:45",
-      "11:00 - 11:45",
-      "12:00 - 12:45",
-      "13:00 - 13:45",
-      "13:45 - 14:45", // LUNCH BREAK (1:45 PM - 2:45 PM)
-      "15:00 - 15:45",
-      "16:00 - 16:45",
-      "17:00 - 17:45",
-      "18:00 - 18:45",
-      "19:00 - 19:45"
+      "08:00 - 08:45", "09:00 - 09:45", "10:00 - 10:45", "11:00 - 11:45",
+      "12:00 - 12:45", "13:00 - 13:45", "13:45 - 14:45", "15:00 - 15:45",
+      "16:00 - 16:45", "17:00 - 17:45", "18:00 - 18:45", "19:00 - 19:45"
     ];
 
     function switchTab(id, el) {
@@ -484,10 +462,30 @@
       if (el) el.classList.add('active');
     }
 
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function openModal(id) {
+      document.getElementById(id).style.display = 'flex';
+      if (id === 'md-rx') {
+        document.getElementById('rx-date').value = new Date().toISOString().split('T')[0];
+        renderRxDataList();
+        renderRxItemsTable();
+      }
+    }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     async function init() {
+      if (sbClient) {
+        try {
+          const { data: p } = await sbClient.from('patients').select('*').order('created_at', { ascending: false });
+          if (p) db.patients = p;
+          const { data: rx } = await sbClient.from('prescriptions').select('*').order('created_at', { ascending: false });
+          if (rx) db.rx = rx;
+          const { data: emp } = await sbClient.from('employees').select('*').order('created_at', { ascending: false });
+          if (emp) db.emp = emp;
+          const { data: b } = await sbClient.from('billing').select('*').order('created_at', { ascending: false });
+          if (b) db.billing = b;
+        } catch(err) {}
+      }
+
       renderPatients();
       renderRx();
       renderEmployees();
@@ -506,12 +504,264 @@
       document.getElementById('st-dues').innerText = '₹' + totalDues;
     }
 
+    /* FULL PATIENT LOGIC */
+    function renderPatients() {
+      const q = (document.getElementById('p-search')?.value || '').toLowerCase();
+      const filtered = db.patients.filter(p => (p.full_name || '').toLowerCase().includes(q) || (p.mobile_no || '').includes(q) || (p.uhid || '').toLowerCase().includes(q));
+      const tbl = document.getElementById('tbl-patients');
+      if (tbl) {
+        tbl.innerHTML = filtered.map(p => `
+          <tr>
+            <td><b>${p.uhid || 'AA-P-101'}</b></td>
+            <td><b>${p.full_name}</b></td>
+            <td>${p.mobile_no}</td>
+            <td>${p.age}Y / ${p.gender}</td>
+            <td>${p.prakriti}</td>
+            <td>${p.weight || 0}kg | ${p.bp || 'N/A'} | ${p.pulse || 'N/A'} bpm</td>
+            <td>
+              <button class="btn btn-blue" onclick="editPatient('${p.id}')">Edit</button>
+              <button class="btn btn-danger" onclick="delPatient('${p.id}')">Delete</button>
+            </td>
+          </tr>
+        `).join('') || '<tr><td colSpan="7">No patients found. Click "+ Register New Patient" to add.</td></tr>';
+      }
+      renderRxDataList();
+    }
+
+    async function savePatient(e) {
+      e.preventDefault();
+      const id = document.getElementById('p-id').value;
+      const payload = {
+        full_name: document.getElementById('p-name').value,
+        mobile_no: document.getElementById('p-mobile').value,
+        age: Number(document.getElementById('p-age').value),
+        gender: document.getElementById('p-gender').value,
+        prakriti: document.getElementById('p-prakriti').value,
+        weight: Number(document.getElementById('p-weight').value) || 0,
+        bp: document.getElementById('p-bp').value,
+        pulse: document.getElementById('p-pulse').value,
+        address: document.getElementById('p-address').value
+      };
+
+      if (!id) payload.uhid = 'AA-P-' + Math.floor(10000 + Math.random() * 90000);
+
+      if (sbClient) {
+        if (id) await sbClient.from('patients').update(payload).eq('id', id);
+        else await sbClient.from('patients').insert([payload]);
+      } else {
+        if (id) {
+          const idx = db.patients.findIndex(p => p.id === id);
+          if (idx !== -1) db.patients[idx] = { ...db.patients[idx], ...payload };
+        } else {
+          db.patients.unshift({ id: 'p-' + Date.now(), ...payload });
+        }
+      }
+
+      alert('Patient Registered Successfully!');
+      closeModal('md-patient');
+      document.getElementById('form-patient').reset();
+      document.getElementById('p-id').value = '';
+      init();
+    }
+
+    function editPatient(id) {
+      const p = db.patients.find(x => x.id === id); if (!p) return;
+      document.getElementById('p-id').value = p.id;
+      document.getElementById('p-name').value = p.full_name;
+      document.getElementById('p-mobile').value = p.mobile_no;
+      document.getElementById('p-age').value = p.age;
+      document.getElementById('p-gender').value = p.gender;
+      document.getElementById('p-prakriti').value = p.prakriti;
+      document.getElementById('p-weight').value = p.weight;
+      document.getElementById('p-bp').value = p.bp;
+      document.getElementById('p-pulse').value = p.pulse;
+      document.getElementById('p-address').value = p.address || '';
+      openModal('md-patient');
+    }
+
+    async function delPatient(id) {
+      if (!confirm('Delete patient permanently?')) return;
+      if (sbClient) await sbClient.from('patients').delete().eq('id', id);
+      else db.patients = db.patients.filter(p => p.id !== id);
+      init();
+    }
+
+    /* PRESCRIPTION AUTO-COMPLETE & VITALS AUTO-FILL */
+    function renderRxDataList() {
+      const dl = document.getElementById('dl-patients');
+      if (dl) {
+        dl.innerHTML = db.patients.map(p => `<option value="${p.full_name} (${p.mobile_no})">${p.uhid} | Age: ${p.age} | ${p.prakriti}</option>`).join('');
+      }
+    }
+
+    function onRxPatientSelect() {
+      const val = document.getElementById('rx-p-search').value.toLowerCase();
+      const pat = db.patients.find(p => `${p.full_name} (${p.mobile_no})`.toLowerCase() === val || p.mobile_no === val || p.full_name.toLowerCase() === val);
+
+      if (pat) {
+        document.getElementById('rx-patient-id').value = pat.id;
+        document.getElementById('rx-v-mobile').value = pat.mobile_no || '';
+        document.getElementById('rx-v-age').value = pat.age || '';
+        document.getElementById('rx-v-gender').value = pat.gender || '';
+        document.getElementById('rx-v-prakriti').value = pat.prakriti || '';
+        document.getElementById('rx-v-weight').value = pat.weight || '';
+        document.getElementById('rx-v-bp').value = pat.bp || '';
+        document.getElementById('rx-v-pulse').value = pat.pulse || '';
+      } else {
+        document.getElementById('rx-patient-id').value = '';
+        document.getElementById('rx-v-mobile').value = '';
+        document.getElementById('rx-v-age').value = '';
+        document.getElementById('rx-v-gender').value = '';
+        document.getElementById('rx-v-prakriti').value = '';
+        document.getElementById('rx-v-weight').value = '';
+        document.getElementById('rx-v-bp').value = '';
+        document.getElementById('rx-v-pulse').value = '';
+      }
+    }
+
+    function addRxItem() {
+      const item = document.getElementById('rx-item').value;
+      const dose = document.getElementById('rx-dose').value;
+      const price = Number(document.getElementById('rx-price').value) || 0;
+      const qty = Number(document.getElementById('rx-qty').value) || 1;
+      if (!item) return alert('Enter formulation or therapy name');
+      db.rxItems.push({ item, dose, price, qty, total: price * qty });
+      renderRxItemsTable();
+      document.getElementById('rx-item').value = '';
+    }
+
+    function renderRxItemsTable() {
+      const consultFee = Number(document.getElementById('rx-consult-fee')?.value) || 0;
+      let html = `
+        <tr style="background:#f1f5f9;">
+          <td><b>Vaidya Consultation Fee</b></td>
+          <td>Doctor OPD Charge</td>
+          <td>₹${consultFee}</td>
+          <td>1</td>
+          <td><b>₹${consultFee}</b></td>
+          <td><i>Fixed</i></td>
+        </tr>
+      `;
+
+      html += db.rxItems.map((i, idx) => `
+        <tr><td><b>${i.item}</b></td><td>${i.dose}</td><td>₹${i.price}</td><td>${i.qty}</td><td><b>₹${i.total}</b></td><td><button onclick="db.rxItems.splice(${idx},1);renderRxItemsTable();" style="color:red;border:none;background:none;cursor:pointer;">✕</button></td></tr>
+      `).join('');
+
+      document.getElementById('tbl-rx-items').innerHTML = html;
+    }
+
+    async function savePrescription() {
+      const pId = document.getElementById('rx-patient-id').value;
+      const pat = db.patients.find(p => p.id === pId); 
+      if (!pat) return alert('Select a valid patient from auto-complete list');
+
+      const consultFee = Number(document.getElementById('rx-consult-fee').value) || 0;
+      const itemsTotal = db.rxItems.reduce((a,c) => a + c.total, 0);
+      const total = consultFee + itemsTotal;
+      const rxDate = document.getElementById('rx-date').value || new Date().toISOString().split('T')[0];
+      const rxNo = 'RX-P' + Math.floor(100 + Math.random() * 900);
+      const allItems = [{ item: 'Vaidya Consultation Fee', dose: 'OPD', price: consultFee, qty: 1, total: consultFee }, ...db.rxItems];
+
+      if (sbClient) {
+        const { data } = await sbClient.from('prescriptions').insert([{
+          patient_id: pId, patient_name: pat.full_name, mobile_no: pat.mobile_no, rx_date: rxDate,
+          attending_doctor: document.getElementById('rx-doctor').value, diagnosis: document.getElementById('rx-diag').value, items: allItems, grand_total: total
+        }]).select();
+
+        await sbClient.from('billing').insert([{
+          patient_id: pId, rx_no: data ? data[0].rx_no : rxNo, patient_name: pat.full_name, mobile_no: pat.mobile_no,
+          bill_type: 'OPD', total_amount: total, paid_amount: 0, balance_due: total, payment_status: 'Unpaid', items: allItems
+        }]);
+      } else {
+        db.rx.unshift({ id: 'rx-' + Date.now(), rx_no: rxNo, patient_name: pat.full_name, mobile_no: pat.mobile_no, rx_date: rxDate, attending_doctor: document.getElementById('rx-doctor').value, diagnosis: document.getElementById('rx-diag').value, grand_total: total });
+        db.billing.unshift({ id: 'b-' + Date.now(), bill_no: 'BILL-' + Math.floor(1000 + Math.random() * 9000), rx_no: rxNo, patient_name: pat.full_name, total_amount: total, paid_amount: 0, balance_due: total, payment_status: 'Unpaid' });
+      }
+
+      alert('Prescription Saved & Synced to Central Billing Counter!');
+      closeModal('md-rx'); db.rxItems = []; init();
+    }
+
+    function renderRx() {
+      const tbl = document.getElementById('tbl-rx');
+      if (tbl) {
+        tbl.innerHTML = db.rx.map(r => `
+          <tr><td><b>${r.rx_no}</b></td><td>${r.rx_date}</td><td><b>${r.patient_name}</b></td><td>${r.attending_doctor}</td><td>${r.diagnosis || 'N/A'}</td><td><b>₹${r.grand_total}</b></td><td><button class="btn btn-green" onclick="window.open('https://api.whatsapp.com/send?phone=91${r.mobile_no}&text=AASU%20AROGYAM%20Rx:%20${r.rx_no}%20Total:%20₹${r.grand_total}')">💬 WhatsApp</button></td></tr>
+        `).join('') || '<tr><td colSpan="7">No prescriptions recorded.</td></tr>';
+      }
+    }
+
+    /* BILLING & PARTIAL PAYMENTS */
+    function filterBilling(status, btn) {
+      activeBillingFilter = status;
+      document.querySelectorAll('#mod-billing .tab-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderBilling();
+    }
+
+    function renderBilling() {
+      const tbl = document.getElementById('tbl-billing');
+      if (!tbl) return;
+
+      let filtered = db.billing;
+      if (activeBillingFilter === 'Pending') filtered = db.billing.filter(b => Number(b.balance_due) > 0);
+      else if (activeBillingFilter === 'Paid') filtered = db.billing.filter(b => Number(b.balance_due) === 0);
+
+      tbl.innerHTML = filtered.map(b => {
+        const isPaid = Number(b.balance_due) === 0;
+        const statusBadge = isPaid ? `<span style="color:#10b981;font-weight:bold">Paid</span>` : (Number(b.paid_amount) > 0 ? `<span style="color:#f59e0b;font-weight:bold">Partial</span>` : `<span style="color:#ef4444;font-weight:bold">Unpaid</span>`);
+        
+        return `
+          <tr>
+            <td><b>${b.bill_no}</b></td>
+            <td>${b.rx_no || 'N/A'}</td>
+            <td><b>${b.patient_name}</b></td>
+            <td>₹${b.total_amount}</td>
+            <td>₹${b.paid_amount || 0}</td>
+            <td><b style="color:var(--accent-orange)">₹${b.balance_due}</b></td>
+            <td>${statusBadge}</td>
+            <td>${isPaid ? '✅ Settled' : `<button class="btn btn-green" onclick="openPaymentModal('${b.id}')">💳 Collect Payment</button>`}</td>
+          </tr>
+        `;
+      }).join('') || '<tr><td colSpan="8">No invoices found.</td></tr>';
+    }
+
+    function openPaymentModal(id) {
+      const b = db.billing.find(x => x.id === id); if (!b) return;
+      document.getElementById('pay-bill-id').value = b.id;
+      document.getElementById('pay-bill-no').value = b.bill_no;
+      document.getElementById('pay-patient-name').value = b.patient_name;
+      document.getElementById('pay-total-amt').value = b.total_amount;
+      document.getElementById('pay-already-paid').value = b.paid_amount || 0;
+      document.getElementById('pay-due-amt').value = b.balance_due;
+      document.getElementById('pay-collect-amt').value = b.balance_due;
+      openModal('md-pay');
+    }
+
+    async function savePayment(e) {
+      e.preventDefault();
+      const id = document.getElementById('pay-bill-id').value;
+      const b = db.billing.find(x => x.id === id); if (!b) return;
+
+      const collectAmt = Number(document.getElementById('pay-collect-amt').value) || 0;
+      const newPaid = (Number(b.paid_amount) || 0) + collectAmt;
+      const newDue = Math.max(0, Number(b.total_amount) - newPaid);
+      const newStatus = newDue === 0 ? 'Paid' : (newPaid > 0 ? 'Partial' : 'Unpaid');
+
+      if (sbClient) {
+        await sbClient.from('billing').update({ paid_amount: newPaid, balance_due: newDue, payment_status: newStatus }).eq('id', id);
+      } else {
+        b.paid_amount = newPaid; b.balance_due = newDue; b.payment_status = newStatus;
+      }
+
+      alert(`Payment of ₹${collectAmt} recorded! Remaining Balance: ₹${newDue}`);
+      closeModal('md-pay'); init();
+    }
+
     /* SCHEDULE MODULE FUNCTIONS */
     function switchSchSubView(view, btn) {
       document.getElementById('sch-view-use').style.display = view === 'use' ? 'block' : 'none';
       document.getElementById('sch-view-supervise').style.display = view === 'supervise' ? 'block' : 'none';
       document.getElementById('sch-view-configure').style.display = view === 'configure' ? 'block' : 'none';
-      
       document.querySelectorAll('#mod-schedule .tab-btn').forEach(b => b.classList.remove('active'));
       if (btn) btn.classList.add('active');
     }
@@ -534,14 +784,7 @@
           } else {
             const res = db.reservations.find(r => r.day_idx === dayIdx && r.time_slot === slot);
             if (res) {
-              html += `
-                <div class="sch-slot-cell" onclick="openReservationModal('${slot}', ${dayIdx})">
-                  <div class="sch-booking-card">
-                    <div>${res.patient_name}</div>
-                    <div style="font-size:0.6rem; opacity:0.8;">${res.room_name}</div>
-                  </div>
-                </div>
-              `;
+              html += `<div class="sch-slot-cell" onclick="openReservationModal('${slot}', ${dayIdx})"><div class="sch-booking-card"><div>${res.patient_name}</div><div style="font-size:0.6rem; opacity:0.8;">${res.room_name}</div></div></div>`;
             } else {
               html += `<div class="sch-slot-cell" onclick="openReservationModal('${slot}', ${dayIdx})"></div>`;
             }
@@ -551,30 +794,19 @@
 
       grid.innerHTML = html;
 
-      // Update room checkbox list
       const roomBox = document.getElementById('room-checkbox-list');
       if (roomBox) {
-        roomBox.innerHTML = `
-          <label style="display:flex; gap:0.5rem; align-items:center;"><input type="checkbox" checked /> All Rooms</label>
-          ` + db.rooms.map(r => `
-          <label style="display:flex; gap:0.5rem; align-items:center;"><input type="checkbox" checked /> ${r.name}</label>
-        `).join('');
+        roomBox.innerHTML = `<label style="display:flex; gap:0.5rem; align-items:center;"><input type="checkbox" checked /> All Rooms</label>` + db.rooms.map(r => `<label style="display:flex; gap:0.5rem; align-items:center;"><input type="checkbox" checked /> ${r.name}</label>`).join('');
       }
 
-      // Update Room select dropdown in Modal
       const rSelect = document.getElementById('res-room-select');
-      if (rSelect) {
-        rSelect.innerHTML = db.rooms.map(r => `<option>${r.name}</option>`).join('');
-      }
+      if (rSelect) rSelect.innerHTML = db.rooms.map(r => `<option>${r.name}</option>`).join('');
     }
 
     function openReservationModal(slot, dayIdx) {
       if (slot === "13:45 - 14:45") return alert("1:45 PM to 2:45 PM is Lunch Break!");
-      const startTime = `2026-09-${11 + dayIdx} ${slot.split(' - ')[0]}`;
-      const endTime = `2026-09-${11 + dayIdx} ${slot.split(' - ')[1]}`;
-      
-      document.getElementById('res-start-time').value = startTime;
-      document.getElementById('res-end-time').value = endTime;
+      document.getElementById('res-start-time').value = `2026-09-${11 + dayIdx} ${slot.split(' - ')[0]}`;
+      document.getElementById('res-end-time').value = `2026-09-${11 + dayIdx} ${slot.split(' - ')[1]}`;
       openModal('md-res');
     }
 
@@ -586,9 +818,7 @@
       const start = document.getElementById('res-start-time').value;
       const end = document.getElementById('res-end-time').value;
 
-      const apptId = 'APP-' + Math.floor(200 + Math.random() * 800);
-      db.reservations.unshift({ id: apptId, patient_name: pName, mobile: mob, start_time: start, end_time: end, room_name: room, status: 'CONFIRMED', day_idx: 1, time_slot: '10:00 - 10:45' });
-
+      db.reservations.unshift({ id: 'APP-' + Math.floor(200 + Math.random() * 800), patient_name: pName, mobile: mob, start_time: start, end_time: end, room_name: room, status: 'CONFIRMED', day_idx: 1, time_slot: '10:00 - 10:45' });
       alert('Reservation Created Successfully!');
       closeModal('md-res');
       renderScheduleGrid();
@@ -597,20 +827,9 @@
 
     function renderSuperviseTable() {
       const tbl = document.getElementById('tbl-supervise-res');
-      if (!tbl) return;
-
-      tbl.innerHTML = db.reservations.map(r => `
-        <tr>
-          <td><b>${r.id}</b></td>
-          <td><b>${r.patient_name}</b></td>
-          <td>${r.mobile}</td>
-          <td>${r.start_time}</td>
-          <td>${r.end_time}</td>
-          <td>${r.room_name}</td>
-          <td><span style="color:#10b981; font-weight:bold;">${r.status}</span></td>
-          <td><button class="btn btn-danger" onclick="delRes('${r.id}')">Delete</button></td>
-        </tr>
-      `).join('') || '<tr><td colSpan="8">No reservations recorded.</td></tr>';
+      if (tbl) {
+        tbl.innerHTML = db.reservations.map(r => `<tr><td><b>${r.id}</b></td><td><b>${r.patient_name}</b></td><td>${r.mobile}</td><td>${r.start_time}</td><td>${r.end_time}</td><td>${r.room_name}</td><td><span style="color:#10b981; font-weight:bold;">${r.status}</span></td><td><button class="btn btn-danger" onclick="delRes('${r.id}')">Delete</button></td></tr>`).join('') || '<tr><td colSpan="8">No reservations recorded.</td></tr>';
+      }
     }
 
     function delRes(id) {
@@ -622,22 +841,14 @@
 
     function renderConfigureRooms() {
       const tbl = document.getElementById('tbl-cfg-rooms');
-      if (!tbl) return;
-
-      tbl.innerHTML = db.rooms.map(r => `
-        <tr>
-          <td><b>${r.id}</b></td>
-          <td><b>${r.name}</b></td>
-          <td><button class="btn btn-danger" onclick="delRoom('${r.id}')">Delete Room</button></td>
-        </tr>
-      `).join('');
+      if (tbl) {
+        tbl.innerHTML = db.rooms.map(r => `<tr><td><b>${r.id}</b></td><td><b>${r.name}</b></td><td><button class="btn btn-danger" onclick="delRoom('${r.id}')">Delete Room</button></td></tr>`).join('');
+      }
     }
 
     function addScheduleRoom() {
-      const name = document.getElementById('cfg-room-name').value;
-      if (!name) return alert('Enter room name');
-      const id = 'ROOM-0' + (db.rooms.length + 1);
-      db.rooms.push({ id, name });
+      const name = document.getElementById('cfg-room-name').value; if (!name) return alert('Enter room name');
+      db.rooms.push({ id: 'ROOM-0' + (db.rooms.length + 1), name });
       document.getElementById('cfg-room-name').value = '';
       renderScheduleGrid();
       renderConfigureRooms();
@@ -649,17 +860,43 @@
       renderConfigureRooms();
     }
 
-    /* EXISTING MODULE HELPERS */
-    function renderPatients() {}
-    function renderRx() {}
-    function renderEmployees() {}
-    function renderBilling() {}
-    function savePatient(e) { e.preventDefault(); closeModal('md-patient'); }
-    function savePrescription() { closeModal('md-rx'); }
-    function savePayment(e) { e.preventDefault(); closeModal('md-pay'); }
-    function saveEmployee(e) { e.preventDefault(); closeModal('md-emp'); }
-    function filterBilling() {}
-    function addRxItem() {}
+    /* HRMS FUNCTIONS */
+    function renderEmployees() {
+      const tbl = document.getElementById('tbl-emp');
+      if (tbl) {
+        tbl.innerHTML = db.emp.map(e => `<tr><td><b>${e.emp_id || 'EMP-101'}</b></td><td><b>${e.first_name} ${e.last_name}</b></td><td>${e.system_role} / ${e.department}</td><td>${e.personal_mobile}</td><td>₹${e.monthly_base_salary}</td><td><span style="color:#10b981;font-weight:bold;">${e.status || 'Active'}</span></td><td><button class="btn btn-secondary" onclick="deboardEmp('${e.id}')">De-board</button> <button class="btn btn-danger" onclick="delEmp('${e.id}')">Delete</button></td></tr>`).join('') || '<tr><td colSpan="7">No employees found.</td></tr>';
+      }
+    }
+
+    async function saveEmployee(e) {
+      e.preventDefault();
+      const payload = {
+        first_name: document.getElementById('e-fname').value, middle_name: document.getElementById('e-mname').value, last_name: document.getElementById('e-lname').value,
+        dob: '1995-01-01', govt_id_type: 'Aadhaar', tax_id_pan: 'PAN123', gender: 'Male', marital_status: 'Single', personal_mobile: document.getElementById('e-mobile').value,
+        personal_email: 'emp@aasuarogyam.com', current_address: 'Addr', permanent_address: 'Addr', job_title: document.getElementById('e-title').value, department: 'Clinical', joining_date: new Date().toISOString().split('T')[0],
+        work_email: document.getElementById('e-fname').value.toLowerCase() + '@aasuarogyam.com', system_role: 'Doctor', shift_timing: 'Morning Shift', bank_name: 'Bank', account_number: '123', ifsc_code: 'IFSC',
+        monthly_base_salary: Number(document.getElementById('e-salary').value), portal_password: 'Pass', status: 'Active'
+      };
+
+      if (sbClient) await sbClient.from('employees').insert([payload]);
+      else db.emp.unshift({ id: 'e-' + Date.now(), emp_id: 'EMP-' + Math.floor(1000 + Math.random() * 9000), ...payload });
+
+      closeModal('md-emp'); document.getElementById('form-emp').reset(); init();
+    }
+
+    async function deboardEmp(id) {
+      if (!confirm('De-board employee?')) return;
+      if (sbClient) await sbClient.from('employees').update({ status: 'De-boarded' }).eq('id', id);
+      else { const idx = db.emp.findIndex(e => e.id === id); if (idx !== -1) db.emp[idx].status = 'De-boarded'; }
+      init();
+    }
+
+    async function delEmp(id) {
+      if (!confirm('Delete employee record?')) return;
+      if (sbClient) await sbClient.from('employees').delete().eq('id', id);
+      else db.emp = db.emp.filter(e => e.id !== id);
+      init();
+    }
 
     window.onload = init;
   </script>
