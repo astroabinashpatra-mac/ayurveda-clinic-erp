@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="12" fill="#ffffff"/>
+  <!-- Blue Human Figure / Swirl -->
+  <circle cx="26" cy="18" r="3.5" fill="#0284c7"/>
+  <path d="M26 24 C20 30 18 42 27 52 C21 44 21 34 27 26 Z" fill="#0284c7"/>
+  <!-- Green Leaf Element -->
+  <path d="M29 52 C38 42 45 28 36 16 C38 28 34 42 29 52 Z" fill="#65a30d"/>
+  <path d="M30 48 C37 38 42 28 36 18 C38 28 34 38 30 48 Z" fill="#84cc16"/>
+</svg>
