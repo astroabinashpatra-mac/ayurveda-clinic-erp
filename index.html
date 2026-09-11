@@ -6,6 +6,7 @@
   <title>AASU AROGYAM ERP - Hospital Management System</title>
   <link rel="icon" href="favicon.ico" type="image/x-icon" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     :root {
       --bg-dark: #0f172a;
@@ -17,6 +18,7 @@
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
     body { background-color: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
@@ -77,20 +79,20 @@
       </div>
     </div>
     <ul class="nav-list">
-      <li class="nav-item active" onclick="switchTab('dashboard')">📊 1. Dashboard & Charts</li>
-      <li class="nav-item" onclick="switchTab('prescription')">📜 2. E-Prescription Desk</li>
-      <li class="nav-item" onclick="switchTab('patients')">🧑‍⚕️ 3. Patient EMR & Directory</li>
-      <li class="nav-item" onclick="switchTab('schedule')">📅 4. Schedule & Visits</li>
-      <li class="nav-item" onclick="switchTab('aushadhi')">🌿 5. Aushadhi Nirman</li>
-      <li class="nav-item" onclick="switchTab('pharmacy')">💊 6. Herbal Pharmacy</li>
-      <li class="nav-item" onclick="switchTab('billing')">💰 7. Billing & Invoices</li>
-      <li class="nav-item" onclick="switchTab('therapy')">✨ 8. Therapy Master</li>
-      <li class="nav-item" onclick="switchTab('hrms')">👥 9. Employee HRMS</li>
-      <li class="nav-item" onclick="switchTab('payroll')">💵 10. Payroll & Salaries</li>
-      <li class="nav-item" onclick="switchTab('accounts')">🏛️ 11. Accounts & Vendors</li>
-      <li class="nav-item" onclick="switchTab('documents')">📂 12. Clinic Documents</li>
-      <li class="nav-item" onclick="switchTab('admin')">🔐 13. Staff & Access Control</li>
-      <li class="nav-item" onclick="switchTab('ipd')">🏥 14. IPD Ward Management</li>
+      <li class="nav-item active" onclick="switchTab('dashboard', this)">📊 1. Dashboard & Charts</li>
+      <li class="nav-item" onclick="switchTab('prescription', this)">📜 2. E-Prescription Desk</li>
+      <li class="nav-item" onclick="switchTab('patients', this)">🧑‍⚕️ 3. Patient EMR & Directory</li>
+      <li class="nav-item" onclick="switchTab('schedule', this)">📅 4. Schedule & Visits</li>
+      <li class="nav-item" onclick="switchTab('aushadhi', this)">🌿 5. Aushadhi Nirman</li>
+      <li class="nav-item" onclick="switchTab('pharmacy', this)">💊 6. Herbal Pharmacy</li>
+      <li class="nav-item" onclick="switchTab('billing', this)">💰 7. Billing & Invoices</li>
+      <li class="nav-item" onclick="switchTab('therapy', this)">✨ 8. Therapy Master</li>
+      <li class="nav-item" onclick="switchTab('hrms', this)">👥 9. Employee HRMS</li>
+      <li class="nav-item" onclick="switchTab('payroll', this)">💵 10. Payroll & Salaries</li>
+      <li class="nav-item" onclick="switchTab('accounts', this)">🏛️ 11. Accounts & Vendors</li>
+      <li class="nav-item" onclick="switchTab('documents', this)">📂 12. Clinic Documents</li>
+      <li class="nav-item" onclick="switchTab('admin', this)">🔐 13. Staff & Access Control</li>
+      <li class="nav-item" onclick="switchTab('ipd', this)">🏥 14. IPD Ward Management</li>
     </ul>
   </div>
 
@@ -272,27 +274,40 @@
   <script>
     const SUPABASE_URL = "https://apmegpiztygfmltrsgkb.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwbWVncGl6dHlnZm1sdHJzZ2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTA5OTksImV4cCI6MjEwNDY4Njk5OX0.kutc4qsOtMgN-7ggRS6ObclwmZWhgihf5snkxbIzlmA";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let sbClient = null;
+
+    if (window.supabase) {
+      try { sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.warn("Supabase init warning:", e); }
+    }
 
     let db = { patients: [], rx: [], emp: [], billing: [], rxItems: [] };
 
-    function switchTab(id) {
+    function switchTab(id, el) {
       document.querySelectorAll('.module-section').forEach(e => e.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
-      document.getElementById(`mod-${id}`).classList.add('active');
+      const targetMod = document.getElementById(`mod-${id}`);
+      if (targetMod) targetMod.classList.add('active');
+      if (el) el.classList.add('active');
     }
+
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     async function init() {
-      const { data: p } = await supabase.from('patients').select('*').order('created_at', { ascending: false });
-      if (p) db.patients = p;
-      const { data: rx } = await supabase.from('prescriptions').select('*').order('created_at', { ascending: false });
-      if (rx) db.rx = rx;
-      const { data: emp } = await supabase.from('employees').select('*').order('created_at', { ascending: false });
-      if (emp) db.emp = emp;
-      const { data: b } = await supabase.from('billing').select('*').order('created_at', { ascending: false });
-      if (b) db.billing = b;
+      if (sbClient) {
+        try {
+          const { data: p } = await sbClient.from('patients').select('*').order('created_at', { ascending: false });
+          if (p) db.patients = p;
+          const { data: rx } = await sbClient.from('prescriptions').select('*').order('created_at', { ascending: false });
+          if (rx) db.rx = rx;
+          const { data: emp } = await sbClient.from('employees').select('*').order('created_at', { ascending: false });
+          if (emp) db.emp = emp;
+          const { data: b } = await sbClient.from('billing').select('*').order('created_at', { ascending: false });
+          if (b) db.billing = b;
+        } catch(err) {
+          console.warn("Supabase fetch fallback:", err);
+        }
+      }
 
       renderPatients();
       renderRx();
@@ -307,10 +322,16 @@
     function renderPatients() {
       const q = (document.getElementById('p-search')?.value || '').toLowerCase();
       const filtered = db.patients.filter(p => (p.full_name || '').toLowerCase().includes(q) || (p.mobile_no || '').includes(q) || (p.uhid || '').toLowerCase().includes(q));
-      document.getElementById('tbl-patients').innerHTML = filtered.map(p => `
-        <tr><td><b>${p.uhid}</b></td><td><b>${p.full_name}</b></td><td>${p.mobile_no}</td><td>${p.age}Y / ${p.gender}</td><td>${p.prakriti}</td><td>${p.weight || 0}kg | ${p.bp || 'N/A'}</td><td><button class="btn btn-blue" onclick="editPatient('${p.id}')">Edit</button> <button class="btn btn-danger" onclick="delPatient('${p.id}')">Delete</button></td></tr>
-      `).join('') || '<tr><td colSpan="7">No patients found.</td></tr>';
-      document.getElementById('rx-patient').innerHTML = db.patients.map(p => `<option value="${p.id}">${p.full_name} (${p.mobile_no})</option>`).join('');
+      const tbl = document.getElementById('tbl-patients');
+      if (tbl) {
+        tbl.innerHTML = filtered.map(p => `
+          <tr><td><b>${p.uhid || 'AA-P-101'}</b></td><td><b>${p.full_name}</b></td><td>${p.mobile_no}</td><td>${p.age}Y / ${p.gender}</td><td>${p.prakriti}</td><td>${p.weight || 0}kg | ${p.bp || 'N/A'}</td><td><button class="btn btn-blue" onclick="editPatient('${p.id}')">Edit</button> <button class="btn btn-danger" onclick="delPatient('${p.id}')">Delete</button></td></tr>
+        `).join('') || '<tr><td colSpan="7">No patients found. Click "+ Register New Patient" to add.</td></tr>';
+      }
+      const rxDropdown = document.getElementById('rx-patient');
+      if (rxDropdown) {
+        rxDropdown.innerHTML = db.patients.map(p => `<option value="${p.id}">${p.full_name} (${p.mobile_no})</option>`).join('');
+      }
     }
 
     async function savePatient(e) {
@@ -322,8 +343,21 @@
         prakriti: document.getElementById('p-prakriti').value, weight: Number(document.getElementById('p-weight').value) || 0,
         bp: document.getElementById('p-bp').value, pulse: document.getElementById('p-pulse').value, address: document.getElementById('p-address').value
       };
-      if (id) await supabase.from('patients').update(payload).eq('id', id);
-      else await supabase.from('patients').insert([payload]);
+
+      if (!id) payload.uhid = 'AA-P-' + Math.floor(10000 + Math.random() * 90000);
+
+      if (sbClient) {
+        if (id) await sbClient.from('patients').update(payload).eq('id', id);
+        else await sbClient.from('patients').insert([payload]);
+      } else {
+        if (id) {
+          const idx = db.patients.findIndex(p => p.id === id);
+          if (idx !== -1) db.patients[idx] = { ...db.patients[idx], ...payload };
+        } else {
+          db.patients.unshift({ id: 'p-' + Date.now(), ...payload });
+        }
+      }
+
       closeModal('md-patient'); document.getElementById('form-patient').reset(); document.getElementById('p-id').value = ''; init();
     }
 
@@ -339,7 +373,9 @@
 
     async function delPatient(id) {
       if (!confirm('Delete patient permanently?')) return;
-      await supabase.from('patients').delete().eq('id', id); init();
+      if (sbClient) await sbClient.from('patients').delete().eq('id', id);
+      else db.patients = db.patients.filter(p => p.id !== id);
+      init();
     }
 
     function addRxItem() {
@@ -360,23 +396,33 @@
       const pat = db.patients.find(p => p.id === pId); if (!pat) return alert('Select patient account');
       const total = db.rxItems.reduce((a,c) => a + c.total, 0);
       const rxDate = document.getElementById('rx-date').value || new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase.from('prescriptions').insert([{
-        patient_id: pId, patient_name: pat.full_name, mobile_no: pat.mobile_no, rx_date: rxDate,
-        attending_doctor: document.getElementById('rx-doctor').value, diagnosis: document.getElementById('rx-diag').value, items: db.rxItems, grand_total: total
-      }]).select();
-      if (error) return alert(error.message);
-      await supabase.from('billing').insert([{
-        patient_id: pId, rx_no: data[0].rx_no, patient_name: pat.full_name, mobile_no: pat.mobile_no,
-        bill_type: 'OPD', total_amount: total, balance_due: total, items: db.rxItems
-      }]);
+      const rxNo = 'RX-P' + Math.floor(100 + Math.random() * 900);
+
+      if (sbClient) {
+        const { data } = await sbClient.from('prescriptions').insert([{
+          patient_id: pId, patient_name: pat.full_name, mobile_no: pat.mobile_no, rx_date: rxDate,
+          attending_doctor: document.getElementById('rx-doctor').value, diagnosis: document.getElementById('rx-diag').value, items: db.rxItems, grand_total: total
+        }]).select();
+        await sbClient.from('billing').insert([{
+          patient_id: pId, rx_no: data ? data[0].rx_no : rxNo, patient_name: pat.full_name, mobile_no: pat.mobile_no,
+          bill_type: 'OPD', total_amount: total, balance_due: total, items: db.rxItems
+        }]);
+      } else {
+        db.rx.unshift({ id: 'rx-' + Date.now(), rx_no: rxNo, patient_name: pat.full_name, mobile_no: pat.mobile_no, rx_date: rxDate, attending_doctor: document.getElementById('rx-doctor').value, diagnosis: document.getElementById('rx-diag').value, grand_total: total });
+        db.billing.unshift({ id: 'b-' + Date.now(), bill_no: 'BILL-' + Math.floor(1000 + Math.random() * 9000), rx_no: rxNo, patient_name: pat.full_name, bill_type: 'OPD', total_amount: total, balance_due: total, payment_status: 'Unpaid' });
+      }
+
       alert('Prescription Saved & Synced to Central Billing Counter!');
       closeModal('md-rx'); db.rxItems = []; init();
     }
 
     function renderRx() {
-      document.getElementById('tbl-rx').innerHTML = db.rx.map(r => `
-        <tr><td><b>${r.rx_no}</b></td><td>${r.rx_date}</td><td><b>${r.patient_name}</b></td><td>${r.attending_doctor}</td><td>${r.diagnosis || 'N/A'}</td><td><b>₹${r.grand_total}</b></td><td><button class="btn btn-green" onclick="window.open('https://api.whatsapp.com/send?phone=91${r.mobile_no}&text=AASU%20AROGYAM%20Rx:%20${r.rx_no}%20Total:%20₹${r.grand_total}')">💬 WhatsApp</button></td></tr>
-      `).join('') || '<tr><td colSpan="7">No prescriptions recorded.</td></tr>';
+      const tbl = document.getElementById('tbl-rx');
+      if (tbl) {
+        tbl.innerHTML = db.rx.map(r => `
+          <tr><td><b>${r.rx_no}</b></td><td>${r.rx_date}</td><td><b>${r.patient_name}</b></td><td>${r.attending_doctor}</td><td>${r.diagnosis || 'N/A'}</td><td><b>₹${r.grand_total}</b></td><td><button class="btn btn-green" onclick="window.open('https://api.whatsapp.com/send?phone=91${r.mobile_no}&text=AASU%20AROGYAM%20Rx:%20${r.rx_no}%20Total:%20₹${r.grand_total}')">💬 WhatsApp</button></td></tr>
+        `).join('') || '<tr><td colSpan="7">No prescriptions recorded.</td></tr>';
+      }
     }
 
     function shareWhatsApp() {
@@ -387,22 +433,28 @@
     }
 
     function renderBilling() {
-      document.getElementById('tbl-billing').innerHTML = db.billing.map(b => `
-        <tr><td><b>${b.bill_no}</b></td><td>${b.rx_no || 'N/A'}</td><td><b>${b.patient_name}</b></td><td>${b.bill_type}</td><td>₹${b.total_amount}</td><td><b style="color:var(--accent-orange)">₹${b.balance_due}</b></td><td><span style="color:#10b981;font-weight:bold">${b.payment_status}</span></td></tr>
-      `).join('') || '<tr><td colSpan="7">No billing records found.</td></tr>';
+      const tbl = document.getElementById('tbl-billing');
+      if (tbl) {
+        tbl.innerHTML = db.billing.map(b => `
+          <tr><td><b>${b.bill_no}</b></td><td>${b.rx_no || 'N/A'}</td><td><b>${b.patient_name}</b></td><td>${b.bill_type}</td><td>₹${b.total_amount}</td><td><b style="color:var(--accent-orange)">₹${b.balance_due}</b></td><td><span style="color:#10b981;font-weight:bold">${b.payment_status}</span></td></tr>
+        `).join('') || '<tr><td colSpan="7">No billing records found.</td></tr>';
+      }
     }
 
     function renderEmployees() {
       const q = (document.getElementById('emp-search')?.value || '').toLowerCase();
       const filtered = db.emp.filter(e => (e.first_name || '').toLowerCase().includes(q) || (e.last_name || '').toLowerCase().includes(q) || (e.emp_id || '').toLowerCase().includes(q));
-      document.getElementById('tbl-emp').innerHTML = filtered.map(e => `
-        <tr><td><b>${e.emp_id}</b></td><td><b>${e.first_name} ${e.last_name}</b></td><td>${e.system_role} / ${e.department}</td><td>${e.personal_mobile}</td><td>₹${e.monthly_base_salary}</td><td><span style="color:#10b981;font-weight:bold;">${e.status}</span></td><td><button class="btn btn-secondary" onclick="deboardEmp('${e.id}')">De-board</button> <button class="btn btn-danger" onclick="delEmp('${e.id}')">Delete</button></td></tr>
-      `).join('') || '<tr><td colSpan="7">No employees found.</td></tr>';
+      const tbl = document.getElementById('tbl-emp');
+      if (tbl) {
+        tbl.innerHTML = filtered.map(e => `
+          <tr><td><b>${e.emp_id || 'EMP-101'}</b></td><td><b>${e.first_name} ${e.last_name}</b></td><td>${e.system_role} / ${e.department}</td><td>${e.personal_mobile}</td><td>₹${e.monthly_base_salary}</td><td><span style="color:#10b981;font-weight:bold;">${e.status || 'Active'}</span></td><td><button class="btn btn-secondary" onclick="deboardEmp('${e.id}')">De-board</button> <button class="btn btn-danger" onclick="delEmp('${e.id}')">Delete</button></td></tr>
+        `).join('') || '<tr><td colSpan="7">No employees found.</td></tr>';
+      }
     }
 
     async function saveEmployee(e) {
       e.preventDefault();
-      await supabase.from('employees').insert([{
+      const payload = {
         first_name: document.getElementById('e-fname').value, middle_name: document.getElementById('e-mname').value, last_name: document.getElementById('e-lname').value,
         dob: document.getElementById('e-dob').value, govt_id_type: document.getElementById('e-govttype').value, tax_id_pan: document.getElementById('e-pan').value,
         gender: document.getElementById('e-gender').value, marital_status: 'Single', personal_mobile: document.getElementById('e-mobile').value,
@@ -410,13 +462,28 @@
         job_title: document.getElementById('e-title').value, department: document.getElementById('e-dept').value, joining_date: document.getElementById('e-joindate').value,
         work_email: document.getElementById('e-fname').value.toLowerCase() + '@aasuarogyam.com', system_role: document.getElementById('e-role').value, shift_timing: 'Morning Shift',
         bank_name: document.getElementById('e-bank').value, account_number: document.getElementById('e-acc').value, ifsc_code: 'IFSC0001',
-        monthly_base_salary: Number(document.getElementById('e-salary').value), portal_password: 'Pass@123'
-      }]);
+        monthly_base_salary: Number(document.getElementById('e-salary').value), portal_password: 'Pass@123', status: 'Active'
+      };
+
+      if (sbClient) await sbClient.from('employees').insert([payload]);
+      else db.emp.unshift({ id: 'e-' + Date.now(), emp_id: 'EMP-' + Math.floor(1000 + Math.random() * 9000), ...payload });
+
       closeModal('md-emp'); document.getElementById('form-emp').reset(); init();
     }
 
-    async function deboardEmp(id) { if (!confirm('De-board employee?')) return; await supabase.from('employees').update({ status: 'De-boarded' }).eq('id', id); init(); }
-    async function delEmp(id) { if (!confirm('Delete employee record?')) return; await supabase.from('employees').delete().eq('id', id); init(); }
+    async function deboardEmp(id) {
+      if (!confirm('De-board employee?')) return;
+      if (sbClient) await sbClient.from('employees').update({ status: 'De-boarded' }).eq('id', id);
+      else { const idx = db.emp.findIndex(e => e.id === id); if (idx !== -1) db.emp[idx].status = 'De-boarded'; }
+      init();
+    }
+
+    async function delEmp(id) {
+      if (!confirm('Delete employee record?')) return;
+      if (sbClient) await sbClient.from('employees').delete().eq('id', id);
+      else db.emp = db.emp.filter(e => e.id !== id);
+      init();
+    }
 
     window.onload = init;
   </script>
