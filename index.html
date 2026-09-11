@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AASU AROGYAM ERP - Hospital Management System</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --panel-dark: #1e293b;
+      --border-dark: #334155;
+      --accent-orange: #ea580c;
+      --accent-green: #059669;
+      --accent-blue: #2563eb;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+    #sidebar { width: 280px; background-color: var(--panel-dark); border-right: 1px solid var(--border-dark); display: flex; flex-direction: column; }
+    .brand-header { padding: 1.25rem; border-bottom: 1px solid var(--border-dark); display: flex; align-items: center; gap: 0.75rem; }
+    .brand-logo { width: 40px; height: 40px; background-color: var(--accent-orange); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; color: #fff; }
+    .brand-title { font-size: 1rem; font-weight: bold; color: var(--text-main); }
+    .nav-list { list-style: none; padding: 0.5rem 0; overflow-y: auto; flex: 1; }
+    .nav-item { padding: 0.65rem 1.25rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-muted); cursor: pointer; font-size: 0.825rem; transition: 0.2s; }
+    .nav-item:hover, .nav-item.active { background-color: rgba(234, 88, 12, 0.15); color: var(--accent-orange); font-weight: bold; border-left: 4px solid var(--accent-orange); }
+
+    #main-content { flex: 1; padding: 1.75rem; overflow-y: auto; }
+    .module-section { display: none; }
+    .module-section.active { display: block; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+
+    .btn { padding: 0.55rem 1.1rem; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; }
+    .btn-orange { background-color: var(--accent-orange); color: white; }
+    .btn-green { background-color: var(--accent-green); color: white; }
+    .btn-blue { background-color: var(--accent-blue); color: white; }
+    .btn-secondary { background-color: #475569; color: white; }
+    .btn-danger { background-color: #dc2626; color: white; }
+
+    .data-table { width: 100%; border-collapse: collapse; background-color: var(--panel-dark); border: 1px solid var(--border-dark); border-radius: 8px; overflow: hidden; font-size: 0.825rem; margin-top: 1rem; }
+    .data-table th, .data-table td { padding: 0.7rem 0.85rem; text-align: left; border-bottom: 1px solid var(--border-dark); }
+    .data-table th { color: var(--text-muted); font-weight: 600; background-color: #0f172a; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 1rem; }
+    .modal-container { background: white; color: #0f172a; width: 100%; max-width: 900px; max-height: 92vh; border-radius: 12px; overflow-y: auto; padding: 1.5rem; position: relative; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+    .modal-close { background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #64748b; }
+
+    .form-grid { display: grid; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .form-group { display: flex; flex-direction: column; gap: 0.2rem; }
+    .form-group label { font-size: 0.65rem; font-weight: bold; color: #475569; text-transform: uppercase; }
+    .form-control { padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.825rem; width: 100%; }
+    .form-section-title { font-size: 0.8rem; font-weight: bold; color: var(--accent-orange); border-bottom: 1px solid #e2e8f0; padding-bottom: 0.25rem; margin-top: 1rem; margin-bottom: 0.75rem; }
+
+    @media print {
+      body * { visibility: hidden; }
+      #print-area, #print-area * { visibility: visible; color: #000 !important; background: transparent !important; }
+      #print-area { position: absolute; left: 0; top: 160px; width: 100%; }
+      #sidebar, .btn, .modal-close { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="sidebar">
+    <div class="brand-header">
+      <div class="brand-logo">AA</div>
+      <div>
+        <div class="brand-title">AASU AROGYAM</div>
+        <div style="font-size: 0.65rem; color: var(--text-muted);">AYURVEDIC HOSPITAL ERP</div>
+      </div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" onclick="switchTab('dashboard')">📊 1. Dashboard & Charts</li>
+      <li class="nav-item" onclick="switchTab('prescription')">📜 2. E-Prescription Desk</li>
+      <li class="nav-item" onclick="switchTab('patients')">🧑‍⚕️ 3. Patient EMR & Directory</li>
+      <li class="nav-item" onclick="switchTab('schedule')">📅 4. Schedule & Visits</li>
+      <li class="nav-item" onclick="switchTab('aushadhi')">🌿 5. Aushadhi Nirman</li>
+      <li class="nav-item" onclick="switchTab('pharmacy')">💊 6. Herbal Pharmacy</li>
+      <li class="nav-item" onclick="switchTab('billing')">💰 7. Billing & Invoices</li>
+      <li class="nav-item" onclick="switchTab('therapy')">✨ 8. Therapy Master</li>
+      <li class="nav-item" onclick="switchTab('hrms')">👥 9. Employee HRMS</li>
+      <li class="nav-item" onclick="switchTab('payroll')">💵 10. Payroll & Salaries</li>
+      <li class="nav-item" onclick="switchTab('accounts')">🏛️ 11. Accounts & Vendors</li>
+      <li class="nav-item" onclick="switchTab('documents')">📂 12. Clinic Documents</li>
+      <li class="nav-item" onclick="switchTab('admin')">🔐 13. Staff & Access Control</li>
+      <li class="nav-item" onclick="switchTab('ipd')">🏥 14. IPD Ward Management</li>
+    </ul>
+  </div>
+
+  <div id="main-content">
+    <div id="mod-dashboard" class="module-section active">
+      <div class="section-header"><h2>📊 Hospital Operations Dashboard</h2></div>
+      <div class="form-grid grid-4">
+        <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
+          <span style="font-size: 0.7rem; color: var(--text-muted);">TOTAL PATIENTS</span><h3 id="st-patients" style="margin-top: 0.3rem;">0</h3>
+        </div>
+        <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
+          <span style="font-size: 0.7rem; color: var(--text-muted);">PRESCRIPTIONS</span><h3 id="st-rx" style="margin-top: 0.3rem;">0</h3>
+        </div>
+        <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
+          <span style="font-size: 0.7rem; color: var(--text-muted);">ACTIVE EMPLOYEES</span><h3 id="st-emp" style="margin-top: 0.3rem;">0</h3>
+        </div>
+        <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
+          <span style="font-size: 0.7rem; color: var(--text-muted);">PENDING BILL DUES</span><h3 id="st-dues" style="color: var(--accent-orange); margin-top: 0.3rem;">₹0</h3>
+        </div>
+      </div>
+    </div>
+
+    <div id="mod-prescription" class="module-section">
+      <div class="section-header">
+        <h2>📜 Digital Ayurvedic E-Prescription Desk</h2>
+        <button class="btn btn-orange" onclick="openModal('md-rx')">+ Write E-Prescription</button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>RX NO</th><th>DATE</th><th>PATIENT NAME</th><th>ATTENDING DOCTOR</th><th>DIAGNOSIS (NIDAN)</th><th>TOTAL (₹)</th><th>ACTIONS</th></tr></thead>
+        <tbody id="tbl-rx"></tbody>
+      </table>
+    </div>
+
+    <div id="mod-patients" class="module-section">
+      <div class="section-header">
+        <h2>🧑‍⚕️ Patient Directory & EMR Ledger</h2>
+        <button class="btn btn-orange" onclick="openModal('md-patient')">+ Register New Patient</button>
+      </div>
+      <input type="text" id="p-search" class="form-control" placeholder="Search patient by Name, 10-digit Mobile No, or UHID..." style="background: var(--panel-dark); color: white; border-color: var(--border-dark); margin-bottom: 1rem;" onkeyup="renderPatients()" />
+      <table class="data-table">
+        <thead><tr><th>UHID</th><th>FULL NAME</th><th>MOBILE NO</th><th>AGE / GENDER</th><th>PRAKRITI</th><th>WEIGHT / BP / PULSE</th><th>ACTIONS</th></tr></thead>
+        <tbody id="tbl-patients"></tbody>
+      </table>
+    </div>
+
+    <div id="mod-schedule" class="module-section"><div class="section-header"><h2>📅 Appointment Schedule & Visits</h2></div><p style="color: var(--text-muted);">Active patient consultation slots and queue management ledger.</p></div>
+    <div id="mod-aushadhi" class="module-section"><div class="section-header"><h2>🌿 Aushadhi Manufacturing & Formulations</h2></div><p style="color: var(--text-muted);">In-house medicine manufacturing, raw batch processing, and expiry tracking.</p></div>
+    <div id="mod-pharmacy" class="module-section"><div class="section-header"><h2>💊 Herbal Pharmacy Stock & POS</h2></div><p style="color: var(--text-muted);">Over-the-counter medicine POS sales and inventory ledger.</p></div>
+
+    <div id="mod-billing" class="module-section">
+      <div class="section-header"><h2>💰 Central Integrated Billing Counter</h2></div>
+      <table class="data-table">
+        <thead><tr><th>BILL NO</th><th>RX / IPD NO</th><th>PATIENT NAME</th><th>MODULE</th><th>TOTAL (₹)</th><th>BALANCE DUE (₹)</th><th>STATUS</th></tr></thead>
+        <tbody id="tbl-billing"></tbody>
+      </table>
+    </div>
+
+    <div id="mod-therapy" class="module-section"><div class="section-header"><h2>✨ Panchakarma Therapy Master Directory</h2></div><p style="color: var(--text-muted);">Master pricing for Shirodhara, Abhyanga, Basti, Vamana, and Nasyam therapies.</p></div>
+
+    <div id="mod-hrms" class="module-section">
+      <div class="section-header">
+        <h2>👥 Employee HRMS Directory</h2>
+        <button class="btn btn-orange" onclick="openModal('md-emp')">+ Onboard New Employee</button>
+      </div>
+      <input type="text" id="emp-search" class="form-control" placeholder="Search employee by name, role, or ID..." style="background: var(--panel-dark); color: white; border-color: var(--border-dark); margin-bottom: 1rem;" onkeyup="renderEmployees()" />
+      <table class="data-table">
+        <thead><tr><th>EMP ID</th><th>NAME</th><th>ROLE / DEPT</th><th>MOBILE NO</th><th>BASE SALARY (₹)</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+        <tbody id="tbl-emp"></tbody>
+      </table>
+    </div>
+
+    <div id="mod-payroll" class="module-section"><div class="section-header"><h2>💵 Payroll & Therapist Commissions</h2></div><p style="color: var(--text-muted);">Monthly salary computation, attendance, and Panchakarma commission disbursal.</p></div>
+    <div id="mod-accounts" class="module-section"><div class="section-header"><h2>🏛️ Accounts & Herb Vendor Directory</h2></div><p style="color: var(--text-muted);">Raw herb suppliers, vendor payables, and clinic expense accounts.</p></div>
+    <div id="mod-documents" class="module-section"><div class="section-header"><h2>📂 Clinic Documents & Accreditation</h2></div><p style="color: var(--text-muted);">Legal certificates, NABH compliance documents, and medical licenses repository.</p></div>
+    <div id="mod-admin" class="module-section"><div class="section-header"><h2>🔐 Staff Credentials & Access Control</h2></div><p style="color: var(--text-muted);">Role-based locks for Super-Admin, Admin, Vaidya, Therapist, and Receptionist.</p></div>
+    <div id="mod-ipd" class="module-section"><div class="section-header"><h2>🏥 IPD Ward Admissions & Bed Ledger</h2></div><p style="color: var(--text-muted);">In-patient ward bed allocation, advance deposit, and daily treatment ledger.</p></div>
+  </div>
+
+  <!-- MODALS -->
+  <div id="md-patient" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header"><h3>Register Patient Account</h3><button class="modal-close" onclick="closeModal('md-patient')">✕</button></div>
+      <form id="form-patient" onsubmit="savePatient(event)">
+        <input type="hidden" id="p-id" />
+        <div class="form-grid grid-3">
+          <div class="form-group"><label>FULL NAME *</label><input type="text" id="p-name" class="form-control" required /></div>
+          <div class="form-group"><label>MOBILE NO (10 DIGIT MANDATORY) *</label><input type="text" id="p-mobile" maxlength="10" pattern="\d{10}" class="form-control" required /></div>
+          <div class="form-group"><label>AGE *</label><input type="number" id="p-age" class="form-control" required /></div>
+        </div>
+        <div class="form-grid grid-3">
+          <div class="form-group"><label>GENDER *</label><select id="p-gender" class="form-control" required><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+          <div class="form-group"><label>PRAKRITI *</label><select id="p-prakriti" class="form-control" required><option value="Vata">Vata</option><option value="Pitta">Pitta</option><option value="Kapha">Kapha</option><option value="Vata-Pitta">Vata-Pitta</option><option value="Tridoshaja">Tridoshaja</option></select></div>
+          <div class="form-group"><label>WEIGHT (KG)</label><input type="number" step="0.1" id="p-weight" class="form-control" /></div>
+        </div>
+        <div class="form-grid grid-3">
+          <div class="form-group"><label>B.P. (mmHg)</label><input type="text" id="p-bp" placeholder="120/80" class="form-control" /></div>
+          <div class="form-group"><label>PULSE (/MIN)</label><input type="text" id="p-pulse" placeholder="72" class="form-control" /></div>
+          <div class="form-group"><label>RESIDENTIAL ADDRESS</label><input type="text" id="p-address" class="form-control" /></div>
+        </div>
+        <div style="text-align: right; margin-top: 1rem;"><button type="submit" class="btn btn-orange">Save Patient Record</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div id="md-rx" class="modal-overlay">
+    <div class="modal-container" style="max-width: 900px;" id="print-area">
+      <div class="modal-header"><h3>Create Ayurvedic E-Prescription</h3><button class="modal-close" onclick="closeModal('md-rx')">✕</button></div>
+      <div class="form-grid grid-3">
+        <div class="form-group"><label>SELECT PATIENT ACCOUNT</label><select id="rx-patient" class="form-control" required></select></div>
+        <div class="form-group"><label>PRESCRIPTION DATE</label><input type="date" id="rx-date" class="form-control" required /></div>
+        <div class="form-group"><label>ATTENDING DOCTOR (VAIDYA)</label><select id="rx-doctor" class="form-control"><option>Dr. Pruthweeraj Singh (Chief Ayurvedic Vaidya)</option><option>Dr. Abinash Patra (Vaidya)</option></select></div>
+      </div>
+      <div class="form-group" style="margin-bottom: 0.75rem;"><label>DIAGNOSIS / NIDAN</label><input type="text" id="rx-diag" placeholder="e.g. Sandhivata" class="form-control" /></div>
+
+      <div style="background: #fdfbf7; border: 1px solid #e7e5e4; padding: 0.85rem; border-radius: 8px; margin-bottom: 0.75rem;">
+        <span style="font-size: 0.75rem; font-weight: bold; color: #44403c; display: block; margin-bottom: 0.5rem;">Add Prescribed Medicines & Therapies (Auto Entries to Billing)</span>
+        <div class="form-grid grid-4">
+          <div class="form-group"><label>SEARCH THERAPY / MEDICINE</label><input type="text" id="rx-item" placeholder="Type formulation..." class="form-control" /></div>
+          <div class="form-group"><label>DOSAGE / USAGE</label><input type="text" id="rx-dose" placeholder="20ml BD after food" class="form-control" /></div>
+          <div class="form-group"><label>PRICE (₹)</label><input type="number" id="rx-price" value="150" class="form-control" /></div>
+          <div class="form-group"><label>QTY</label><input type="number" id="rx-qty" value="1" class="form-control" /></div>
+        </div>
+        <button type="button" class="btn btn-orange" onclick="addRxItem()" style="margin-top: 0.3rem;">+ Add Item</button>
+        <table class="data-table" style="background: white; color: black; margin-top: 0.5rem;">
+          <thead><tr style="background: #fefce8; color: #854d0e;"><th>Medicine / Therapy</th><th>Dosage / Frequency</th><th>Price (₹)</th><th>Qty</th><th>Total (₹)</th><th>Action</th></tr></thead>
+          <tbody id="tbl-rx-items"></tbody>
+        </table>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+        <button class="btn btn-secondary" onclick="window.print()">🖨️ Print Prescription</button>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-green" onclick="shareWhatsApp()">💬 Share via WhatsApp</button>
+          <button class="btn btn-orange" onclick="savePrescription()">Save Prescription & Sync to Billing</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="md-emp" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header"><h3>Onboard New Employee</h3><button class="modal-close" onclick="closeModal('md-emp')">✕</button></div>
+      <form id="form-emp" onsubmit="saveEmployee(event)">
+        <div class="form-section-title">1. Personal Information</div>
+        <div class="form-grid grid-3">
+          <div class="form-group"><label>FIRST NAME *</label><input type="text" id="e-fname" class="form-control" required /></div>
+          <div class="form-group"><label>MIDDLE NAME</label><input type="text" id="e-mname" class="form-control" /></div>
+          <div class="form-group"><label>LAST NAME *</label><input type="text" id="e-lname" class="form-control" required /></div>
+        </div>
+        <div class="form-grid grid-4">
+          <div class="form-group"><label>DATE OF BIRTH *</label><input type="date" id="e-dob" class="form-control" required /></div>
+          <div class="form-group"><label>GOVT ID TYPE *</label><input type="text" id="e-govttype" class="form-control" required /></div>
+          <div class="form-group"><label>PAN *</label><input type="text" id="e-pan" class="form-control" required /></div>
+          <div class="form-group"><label>GENDER *</label><select id="e-gender" class="form-control"><option>Male</option><option>Female</option></select></div>
+        </div>
+        <div class="form-section-title">2. Contact Details</div>
+        <div class="form-grid grid-2">
+          <div class="form-group"><label>PERSONAL MOBILE NUMBER *</label><input type="text" maxlength="10" id="e-mobile" class="form-control" required /></div>
+          <div class="form-group"><label>PERSONAL EMAIL *</label><input type="email" id="e-email" class="form-control" required /></div>
+        </div>
+        <div class="form-section-title">3. Employment & Job Details</div>
+        <div class="form-grid grid-4">
+          <div class="form-group"><label>JOB TITLE *</label><input type="text" id="e-title" class="form-control" required /></div>
+          <div class="form-group"><label>DEPARTMENT *</label><input type="text" id="e-dept" class="form-control" required /></div>
+          <div class="form-group"><label>JOINING DATE *</label><input type="date" id="e-joindate" class="form-control" required /></div>
+          <div class="form-group"><label>SYSTEM ROLE ACCESS *</label><select id="e-role" class="form-control"><option>Super-Admin</option><option>Admin</option><option>Doctor</option><option>Therapist</option><option>Receptionist</option></select></div>
+        </div>
+        <div class="form-section-title">4. Payroll & Financials</div>
+        <div class="form-grid grid-3">
+          <div class="form-group"><label>BANK NAME *</label><input type="text" id="e-bank" class="form-control" required /></div>
+          <div class="form-group"><label>ACCOUNT NUMBER *</label><input type="text" id="e-acc" class="form-control" required /></div>
+          <div class="form-group"><label>MONTHLY BASE SALARY (₹) *</label><input type="number" id="e-salary" class="form-control" required /></div>
+        </div>
+        <div style="text-align: right; margin-top: 1rem;"><button type="submit" class="btn btn-orange">Save Employee Record</button></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://apmegpiztygfmltrsgkb.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwbWVncGl6dHlnZm1sdHJzZ2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTA5OTksImV4cCI6MjEwNDY4Njk5OX0.kutc4qsOtMgN-7ggRS6ObclwmZWhgihf5snkxbIzlmA";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let db = { patients: [], rx: [], emp: [], billing: [], rxItems: [] };
+
+    function switchTab(id) {
+      document.querySelectorAll('.module-section').forEach(e => e.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+      document.getElementById(`mod-${id}`).classList.add('active');
+    }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    async function init() {
+      const { data: p } = await supabase.from('patients').select('*').order('created_at', { ascending: false });
+      if (p) db.patients = p;
+      const { data: rx } = await supabase.from('prescriptions').select('*').order('created_at', { ascending: false });
+      if (rx) db.rx = rx;
+      const { data: emp } = await supabase.from('employees').select('*').order('created_at', { ascending: false });
+      if (emp) db.emp = emp;
+      const { data: b } = await supabase.from('billing').select('*').order('created_at', { ascending: false });
+      if (b) db.billing = b;
+
+      renderPatients();
+      renderRx();
+      renderEmployees();
+      renderBilling();
+
+      document.getElementById('st-patients').innerText = db.patients.length;
+      document.getElementById('st-rx').innerText = db.rx.length;
+      document.getElementById('st-emp').innerText = db.emp.length;
+    }
+
+    function renderPatients() {
+      const q = (document.getElementById('p-search')?.value || '').toLowerCase();
+      const filtered = db.patients.filter(p => (p.full_name || '').toLowerCase().includes(q) || (p.mobile_no || '').includes(q) || (p.uhid || '').toLowerCase().includes(q));
+      document.getElementById('tbl-patients').innerHTML = filtered.map(p => `
+        <tr><td><b>${p.uhid}</b></td><td><b>${p.full_name}</b></td><td>${p.mobile_no}</td><td>${p.age}Y / ${p.gender}</td><td>${p.prakriti}</td><td>${p.weight || 0}kg | ${p.bp || 'N/A'}</td><td><button class="btn btn-blue" onclick="editPatient('${p.id}')">Edit</button> <button class="btn btn-danger" onclick="delPatient('${p.id}')">Delete</button></td></tr>
+      `).join('') || '<tr><td colSpan="7">No patients found.</td></tr>';
+      document.getElementById('rx-patient').innerHTML = db.patients.map(p => `<option value="${p.id}">${p.full_name} (${p.mobile_no})</option>`).join('');
+    }
+
+    async function savePatient(e) {
+      e.preventDefault();
+      const id = document.getElementById('p-id').value;
+      const payload = {
+        full_name: document.getElementById('p-name').value, mobile_no: document.getElementById('p-mobile').value,
+        age: Number(document.getElementById('p-age').value), gender: document.getElementById('p-gender').value,
+        prakriti: document.getElementById('p-prakriti').value, weight: Number(document.getElementById('p-weight').value) || 0,
+        bp: document.getElementById('p-bp').value, pulse: document.getElementById('p-pulse').value, address: document.getElementById('p-address').value
+      };
+      if (id) await supabase.from('patients').update(payload).eq('id', id);
+      else await supabase.from('patients').insert([payload]);
+      closeModal('md-patient'); document.getElementById('form-patient').reset(); document.getElementById('p-id').value = ''; init();
+    }
+
+    function editPatient(id) {
+      const p = db.patients.find(x => x.id === id); if (!p) return;
+      document.getElementById('p-id').value = p.id; document.getElementById('p-name').value = p.full_name;
+      document.getElementById('p-mobile').value = p.mobile_no; document.getElementById('p-age').value = p.age;
+      document.getElementById('p-gender').value = p.gender; document.getElementById('p-prakriti').value = p.prakriti;
+      document.getElementById('p-weight').value = p.weight; document.getElementById('p-bp').value = p.bp;
+      document.getElementById('p-pulse').value = p.pulse; document.getElementById('p-address').value = p.address || '';
+      openModal('md-patient');
+    }
+
+    async function delPatient(id) {
+      if (!confirm('Delete patient permanently?')) return;
+      await supabase.from('patients').delete().eq('id', id); init();
+    }
+
+    function addRxItem() {
+      const item = document.getElementById('rx-item').value;
+      const dose = document.getElementById('rx-dose').value;
+      const price = Number(document.getElementById('rx-price').value) || 0;
+      const qty = Number(document.getElementById('rx-qty').value) || 1;
+      if (!item) return alert('Enter formulation name');
+      db.rxItems.push({ item, dose, price, qty, total: price * qty });
+      document.getElementById('tbl-rx-items').innerHTML = db.rxItems.map((i, idx) => `
+        <tr><td><b>${i.item}</b></td><td>${i.dose}</td><td>₹${i.price}</td><td>${i.qty}</td><td><b>₹${i.total}</b></td><td><button onclick="db.rxItems.splice(${idx},1);addRxItem();" style="color:red;border:none;background:none;cursor:pointer;">✕</button></td></tr>
+      `).join('');
+      document.getElementById('rx-item').value = '';
+    }
+
+    async function savePrescription() {
+      const pId = document.getElementById('rx-patient').value;
+      const pat = db.patients.find(p => p.id === pId); if (!pat) return alert('Select patient account');
+      const total = db.rxItems.reduce((a,c) => a + c.total, 0);
+      const rxDate = document.getElementById('rx-date').value || new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase.from('prescriptions').insert([{
+        patient_id: pId, patient_name: pat.full_name, mobile_no: pat.mobile_no, rx_date: rxDate,
+        attending_doctor: document.getElementById('rx-doctor').value, diagnosis: document.getElementById('rx-diag').value, items: db.rxItems, grand_total: total
+      }]).select();
+      if (error) return alert(error.message);
+      await supabase.from('billing').insert([{
+        patient_id: pId, rx_no: data[0].rx_no, patient_name: pat.full_name, mobile_no: pat.mobile_no,
+        bill_type: 'OPD', total_amount: total, balance_due: total, items: db.rxItems
+      }]);
+      alert('Prescription Saved & Synced to Central Billing Counter!');
+      closeModal('md-rx'); db.rxItems = []; init();
+    }
+
+    function renderRx() {
+      document.getElementById('tbl-rx').innerHTML = db.rx.map(r => `
+        <tr><td><b>${r.rx_no}</b></td><td>${r.rx_date}</td><td><b>${r.patient_name}</b></td><td>${r.attending_doctor}</td><td>${r.diagnosis || 'N/A'}</td><td><b>₹${r.grand_total}</b></td><td><button class="btn btn-green" onclick="window.open('https://api.whatsapp.com/send?phone=91${r.mobile_no}&text=AASU%20AROGYAM%20Rx:%20${r.rx_no}%20Total:%20₹${r.grand_total}')">💬 WhatsApp</button></td></tr>
+      `).join('') || '<tr><td colSpan="7">No prescriptions recorded.</td></tr>';
+    }
+
+    function shareWhatsApp() {
+      const pId = document.getElementById('rx-patient').value;
+      const pat = db.patients.find(p => p.id === pId); if (!pat) return alert('Select patient');
+      const total = db.rxItems.reduce((a,c) => a + c.total, 0);
+      window.open(`https://api.whatsapp.com/send?phone=91${pat.mobile_no}&text=🌿%20AASU%20AROGYAM%20AYURVEDIC%20HOSPITAL%20🌿%0ATotal%20Rx%20Amount:%20₹${total}`);
+    }
+
+    function renderBilling() {
+      document.getElementById('tbl-billing').innerHTML = db.billing.map(b => `
+        <tr><td><b>${b.bill_no}</b></td><td>${b.rx_no || 'N/A'}</td><td><b>${b.patient_name}</b></td><td>${b.bill_type}</td><td>₹${b.total_amount}</td><td><b style="color:var(--accent-orange)">₹${b.balance_due}</b></td><td><span style="color:#10b981;font-weight:bold">${b.payment_status}</span></td></tr>
+      `).join('') || '<tr><td colSpan="7">No billing records found.</td></tr>';
+    }
+
+    function renderEmployees() {
+      const q = (document.getElementById('emp-search')?.value || '').toLowerCase();
+      const filtered = db.emp.filter(e => (e.first_name || '').toLowerCase().includes(q) || (e.last_name || '').toLowerCase().includes(q) || (e.emp_id || '').toLowerCase().includes(q));
+      document.getElementById('tbl-emp').innerHTML = filtered.map(e => `
+        <tr><td><b>${e.emp_id}</b></td><td><b>${e.first_name} ${e.last_name}</b></td><td>${e.system_role} / ${e.department}</td><td>${e.personal_mobile}</td><td>₹${e.monthly_base_salary}</td><td><span style="color:#10b981;font-weight:bold;">${e.status}</span></td><td><button class="btn btn-secondary" onclick="deboardEmp('${e.id}')">De-board</button> <button class="btn btn-danger" onclick="delEmp('${e.id}')">Delete</button></td></tr>
+      `).join('') || '<tr><td colSpan="7">No employees found.</td></tr>';
+    }
+
+    async function saveEmployee(e) {
+      e.preventDefault();
+      await supabase.from('employees').insert([{
+        first_name: document.getElementById('e-fname').value, middle_name: document.getElementById('e-mname').value, last_name: document.getElementById('e-lname').value,
+        dob: document.getElementById('e-dob').value, govt_id_type: document.getElementById('e-govttype').value, tax_id_pan: document.getElementById('e-pan').value,
+        gender: document.getElementById('e-gender').value, marital_status: 'Single', personal_mobile: document.getElementById('e-mobile').value,
+        personal_email: document.getElementById('e-email').value, current_address: 'Current Address', permanent_address: 'Permanent Address',
+        job_title: document.getElementById('e-title').value, department: document.getElementById('e-dept').value, joining_date: document.getElementById('e-joindate').value,
+        work_email: document.getElementById('e-fname').value.toLowerCase() + '@aasuarogyam.com', system_role: document.getElementById('e-role').value, shift_timing: 'Morning Shift',
+        bank_name: document.getElementById('e-bank').value, account_number: document.getElementById('e-acc').value, ifsc_code: 'IFSC0001',
+        monthly_base_salary: Number(document.getElementById('e-salary').value), portal_password: 'Pass@123'
+      }]);
+      closeModal('md-emp'); document.getElementById('form-emp').reset(); init();
+    }
+
+    async function deboardEmp(id) { if (!confirm('De-board employee?')) return; await supabase.from('employees').update({ status: 'De-boarded' }).eq('id', id); init(); }
+    async function delEmp(id) { if (!confirm('Delete employee record?')) return; await supabase.from('employees').delete().eq('id', id); init(); }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
