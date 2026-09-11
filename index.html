@@ -82,7 +82,7 @@
     .mini-cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-weight: bold; color: var(--accent-orange); font-size: 0.85rem; }
     .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 0.25rem; font-size: 0.75rem; }
 
-    /* PRE-PRINTED LETTERHEAD PRINT LAYOUT (EXACT 50mm TOP MARGIN) */
+    /* PRE-PRINTED LETTERHEAD PRINT LAYOUT (EXACT 50mm TOP MARGIN - NO PRICES/PARTICULARS) */
     #print-rx-sheet { display: none; }
     @media print {
       @page { size: A4; margin: 0; }
@@ -96,12 +96,12 @@
         width: 100%;
         color: #000 !important;
         background: #fff !important;
-        padding-top: 50mm !important; /* STRICT 50mm TOP CLEARANCE FOR LETTERHEAD */
+        padding-top: 50mm !important; /* 50mm clearance for pre-printed letterhead */
         padding-left: 15mm !important;
         padding-right: 15mm !important;
         font-family: Arial, sans-serif;
       }
-      #pr-header-logo { display: none !important; } /* HIDE DIGITAL HEADER TO AVOID OVERLAPPING PRE-PRINTED PAPER */
+      #pr-header-logo { display: none !important; }
       #sidebar, #main-content, .modal-overlay { display: none !important; }
     }
   </style>
@@ -318,7 +318,7 @@
     </div>
   </div>
 
-  <!-- MODAL: ENHANCED E-PRESCRIPTION BUILDER -->
+  <!-- MODAL: E-PRESCRIPTION BUILDER -->
   <div id="md-rx" class="modal-overlay">
     <div class="modal-container">
       <div class="modal-header">
@@ -410,7 +410,7 @@
     </div>
   </div>
 
-  <!-- PRINTABLE SHEET FOR PRE-PRINTED LETTERHEAD -->
+  <!-- PRINTABLE SHEET FOR PRE-PRINTED LETTERHEAD (PURE CLINICAL PRESCRIPTION - NO FINANCIAL DETAILS) -->
   <div id="print-rx-sheet">
     <div id="pr-header-logo" style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 0.5rem; margin-bottom: 1rem;">
       <h1 style="font-size: 1.8rem; margin-bottom: 0.2rem;">AASU AROGYAM AYURVEDIC HOSPITAL</h1>
@@ -436,10 +436,10 @@
     <table style="width: 100%; border-collapse: collapse; margin-top: 0.5rem; margin-bottom: 1rem;">
       <thead>
         <tr style="border-bottom: 1px solid #000; text-align: left; font-size:0.85rem;">
-          <th style="padding: 4px;">Type</th>
-          <th style="padding: 4px;">Item / Formulation / Test</th>
-          <th style="padding: 4px;">Dosage / Instructions</th>
-          <th style="padding: 4px;">Qty/Sessions</th>
+          <th style="padding: 6px; width:20%;">Category</th>
+          <th style="padding: 6px; width:45%;">Item / Therapy / Test</th>
+          <th style="padding: 6px; width:25%;">Dosage / Instructions</th>
+          <th style="padding: 6px; width:10%;">Qty</th>
         </tr>
       </thead>
       <tbody id="pr-tbl-body" style="font-size:0.85rem;"></tbody>
@@ -753,7 +753,7 @@
       const rxNo = 'RX-P' + Math.floor(100 + Math.random() * 900);
       const instructions = document.getElementById('rx-instructions').value;
 
-      const allItems = [{ type: 'Consultation', item: 'Vaidya Consultation Fee', dose: 'OPD', price: consultFee, qty: 1, total: consultFee }, ...db.rxItems];
+      const allItems = [{ type: 'Consultation', item: 'Vaidya Consultation Fee', dose: 'OPD Charge', price: consultFee, qty: 1, total: consultFee }, ...db.rxItems];
 
       if (sbClient) {
         const { data } = await sbClient.from('prescriptions').insert([{
@@ -792,6 +792,7 @@
       }
     }
 
+    /* PRINT PRESCRIPTION - ONLY MEDICAL INFORMATION (NO CONSULTATION FEE / FINANCIAL DETAILS) */
     function printPrescription() {
       const pId = document.getElementById('rx-patient-id').value;
       const pat = db.patients.find(p => p.id === pId); if (!pat) return alert('Select patient');
@@ -807,11 +808,21 @@
       document.getElementById('pr-diag').innerText = document.getElementById('rx-diag').value || 'N/A';
       document.getElementById('pr-instructions').innerText = document.getElementById('rx-instructions').value || 'None';
 
-      const consultFee = Number(document.getElementById('rx-consult-fee').value) || 0;
-      let html = `<tr><td>Consultation</td><td>Vaidya OPD Fee</td><td>OPD Charge</td><td>1</td></tr>`;
-      html += db.rxItems.map(i => `<tr><td>${i.type}</td><td><b>${i.item}</b></td><td>${i.dose}</td><td>${i.qty}</td></tr>`).join('');
-      document.getElementById('pr-tbl-body').innerHTML = html;
+      // DO NOT PRINT CONSULTATION FEE OR PRICES ON MEDICAL PRESCRIPTION SHEET
+      let html = db.rxItems.map(i => `
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 6px;">${i.type}</td>
+          <td style="padding: 6px;"><b>${i.item}</b></td>
+          <td style="padding: 6px;">${i.dose}</td>
+          <td style="padding: 6px;">${i.qty}</td>
+        </tr>
+      `).join('');
 
+      if (db.rxItems.length === 0) {
+        html = '<tr><td colspan="4" style="padding:10px; text-align:center; color:#666;">No specific medicines/therapies prescribed.</td></tr>';
+      }
+
+      document.getElementById('pr-tbl-body').innerHTML = html;
       window.print();
     }
 
@@ -829,14 +840,12 @@
       msg += `*Patient:* ${pat.full_name} (${pat.age}Y/${pat.gender})%0A`;
       msg += `*Diagnosis:* ${diag}%0A%0A`;
       msg += `*Prescribed Medicines / Therapies / Tests:*%0A`;
-      msg += `• Vaidya Consultation Fee: ₹${consultFee}%0A`;
 
       db.rxItems.forEach(i => {
-        msg += `• [${i.type}] ${i.item} - ${i.dose} (Qty: ${i.qty}) = ₹${i.total}%0A`;
+        msg += `• [${i.type}] ${i.item} - ${i.dose} (Qty: ${i.qty})%0A`;
       });
 
-      msg += `%0A*Dietary & Special Instructions:* ${inst}%0A`;
-      msg += `*Total Bill Amount:* ₹${total}%0A%0A`;
+      msg += `%0A*Dietary & Special Instructions:* ${inst}%0A%0A`;
       msg += `_Please present this message at the Billing & Pharmacy counter._`;
 
       window.open(`https://api.whatsapp.com/send?phone=91${pat.mobile_no}&text=${msg}`);
