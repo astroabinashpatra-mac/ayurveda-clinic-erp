@@ -64,20 +64,18 @@
     .form-control { padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.825rem; width: 100%; }
 
     /* SCHEDULE MODULE SPECIFIC DARK STYLES */
-    .sch-grid { display: grid; grid-template-columns: 80px repeat(7, 1fr); border: 1px solid var(--border-dark); border-radius: 8px; overflow: hidden; background: var(--panel-dark); }
+    .sch-grid { display: grid; grid-template-columns: 95px repeat(7, 1fr); border: 1px solid var(--border-dark); border-radius: 8px; overflow: hidden; background: var(--panel-dark); }
     .sch-header-cell { padding: 0.6rem; text-align: center; background: #0f172a; border-bottom: 1px solid var(--border-dark); border-right: 1px solid var(--border-dark); font-size: 0.75rem; font-weight: bold; color: var(--text-muted); }
-    .sch-time-cell { padding: 0.75rem 0.4rem; text-align: center; background: #0f172a; border-bottom: 1px solid var(--border-dark); border-right: 1px solid var(--border-dark); font-size: 0.7rem; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; justify-content: center; }
+    .sch-time-cell { padding: 0.75rem 0.2rem; text-align: center; background: #0f172a; border-bottom: 1px solid var(--border-dark); border-right: 1px solid var(--border-dark); font-size: 0.7rem; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; justify-content: center; }
     .sch-slot-cell { border-bottom: 1px solid var(--border-dark); border-right: 1px solid var(--border-dark); min-height: 48px; padding: 0.25rem; position: relative; cursor: pointer; transition: 0.2s; }
     .sch-slot-cell:hover { background: rgba(234, 88, 12, 0.08); }
-    .sch-lunch-cell { background: rgba(239, 68, 68, 0.12); cursor: not-allowed; display: flex; align-items: center; justify-content: center; color: #f87171; font-size: 0.75rem; font-weight: bold; letter-spacing: 1px; }
+    .sch-lunch-cell { background: rgba(239, 68, 68, 0.12); cursor: not-allowed; display: flex; align-items: center; justify-content: center; color: #f87171; font-size: 0.7rem; font-weight: bold; letter-spacing: 0.5px; }
 
     .sch-booking-card { background: var(--accent-orange); color: white; padding: 0.35rem 0.5rem; border-radius: 6px; font-size: 0.7rem; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
     .mini-cal { background: var(--panel-dark); border: 1px solid var(--border-dark); border-radius: 8px; padding: 1rem; }
     .mini-cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-weight: bold; color: var(--accent-orange); font-size: 0.85rem; }
     .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 0.25rem; font-size: 0.75rem; }
-    .mini-cal-day { padding: 0.4rem; border-radius: 4px; cursor: pointer; color: var(--text-muted); }
-    .mini-cal-day:hover, .mini-cal-day.active { background: var(--accent-orange); color: white; font-weight: bold; }
 
     @media print {
       body * { visibility: hidden; }
@@ -161,11 +159,11 @@
       </table>
     </div>
 
-    <!-- MODULE 4: SCHEDULE FOR THERAPY & VISITS -->
+    <!-- MODULE 4: SCHEDULE (8:00 AM TO 8:00 PM) -->
     <div id="mod-schedule" class="module-section">
       <div class="section-header">
         <div>
-          <h2>📅 SCHEDULE FOR THERAPY</h2>
+          <h2>📅 SCHEDULE FOR THERAPY (8:00 AM - 8:00 PM)</h2>
           <span style="font-size:0.75rem; color:var(--text-muted)">Click on an available spot to create a new reservation. Click on any reservation to edit or modify it.</span>
         </div>
         <div style="display:flex; gap:0.5rem;">
@@ -371,9 +369,9 @@
         <div class="form-group" style="margin-bottom:0.75rem;">
           <label>🕒 TIME RANGE (45 MIN THERAPY + 15 MIN REST)</label>
           <div style="display:flex; gap:0.5rem; align-items:center;">
-            <input type="text" id="res-start-time" class="form-control" placeholder="2026-09-11 10:00" required />
+            <input type="text" id="res-start-time" class="form-control" placeholder="2026-09-11 08:00" required />
             <span>to</span>
-            <input type="text" id="res-end-time" class="form-control" placeholder="2026-09-11 10:45" required />
+            <input type="text" id="res-end-time" class="form-control" placeholder="2026-09-11 08:45" required />
           </div>
         </div>
         <div class="form-group" style="margin-bottom:0.75rem;">
@@ -462,16 +460,20 @@
       ]
     };
 
+    // SCHEDULE SLOTS: 8:00 AM TO 8:00 PM WITH 1:45 PM - 2:45 PM LUNCH BREAK
     let timeSlots = [
+      "08:00 - 08:45",
+      "09:00 - 09:45",
       "10:00 - 10:45",
       "11:00 - 11:45",
       "12:00 - 12:45",
       "13:00 - 13:45",
-      "13:45 - 14:45", // LUNCH BREAK SLOT
+      "13:45 - 14:45", // LUNCH BREAK (1:45 PM - 2:45 PM)
       "15:00 - 15:45",
       "16:00 - 16:45",
       "17:00 - 17:45",
-      "18:00 - 18:45"
+      "18:00 - 18:45",
+      "19:00 - 19:45"
     ];
 
     function switchTab(id, el) {
@@ -568,8 +570,8 @@
 
     function openReservationModal(slot, dayIdx) {
       if (slot === "13:45 - 14:45") return alert("1:45 PM to 2:45 PM is Lunch Break!");
-      const startTime = `2026-08-${30 + dayIdx} ${slot.split(' - ')[0]}`;
-      const endTime = `2026-08-${30 + dayIdx} ${slot.split(' - ')[1]}`;
+      const startTime = `2026-09-${11 + dayIdx} ${slot.split(' - ')[0]}`;
+      const endTime = `2026-09-${11 + dayIdx} ${slot.split(' - ')[1]}`;
       
       document.getElementById('res-start-time').value = startTime;
       document.getElementById('res-end-time').value = endTime;
