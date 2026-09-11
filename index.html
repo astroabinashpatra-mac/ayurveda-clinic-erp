@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-mode="dark" data-theme="default-orange">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,7 +8,11 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
+    /* =========================================================
+       THEME & COLOR VARIABLE ENGINE (15 PRESET THEMES + LIGHT/DARK)
+       ========================================================= */
     :root {
+      /* Default Theme: Orange Slate */
       --bg-dark: #0f172a;
       --panel-dark: #1e293b;
       --border-dark: #334155;
@@ -17,23 +21,62 @@
       --accent-blue: #2563eb;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
+      --modal-bg: #1e293b;
+      --modal-text: #f8fafc;
+      --input-bg: #0f172a;
+      --input-border: #334155;
     }
 
+    /* Light Mode Override */
+    [data-mode="light"] {
+      --bg-dark: #f8fafc;
+      --panel-dark: #ffffff;
+      --border-dark: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --modal-bg: #ffffff;
+      --modal-text: #0f172a;
+      --input-bg: #ffffff;
+      --input-border: #cbd5e1;
+    }
+
+    /* 15 COLOR THEME PRESETS */
+    [data-theme="default-orange"] { --accent-orange: #ea580c; }
+    [data-theme="emerald"] { --accent-orange: #10b981; }
+    [data-theme="royal-blue"] { --accent-orange: #2563eb; }
+    [data-theme="crimson-red"] { --accent-orange: #dc2626; }
+    [data-theme="purple-haze"] { --accent-orange: #8b5cf6; }
+    [data-theme="amber-gold"] { --accent-orange: #d97706; }
+    [data-theme="teal-ocean"] { --accent-orange: #0d9488; }
+    [data-theme="pink-rose"] { --accent-orange: #e11d48; }
+    [data-theme="cyberpunk"] { --accent-orange: #f43f5e; --accent-blue: #06b6d4; }
+    [data-theme="forest-green"] { --accent-orange: #15803d; }
+    [data-theme="indigo-night"] { --accent-orange: #4f46e5; }
+    [data-theme="warm-coffee"] { --accent-orange: #78350f; }
+    [data-theme="sunset-violet"] { --accent-orange: #c026d3; }
+    [data-theme="copper-bronze"] { --accent-orange: #b45309; }
+    [data-theme="mint-fresh"] { --accent-orange: #059669; }
+
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+    body { background-color: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; transition: background-color 0.3s, color 0.3s; }
 
     #sidebar { width: 280px; background-color: var(--panel-dark); border-right: 1px solid var(--border-dark); display: flex; flex-direction: column; }
-    .brand-header { padding: 1.25rem; border-bottom: 1px solid var(--border-dark); display: flex; align-items: center; gap: 0.75rem; }
-    .brand-logo { width: 40px; height: 40px; background-color: var(--accent-orange); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; color: #fff; }
-    .brand-title { font-size: 1rem; font-weight: bold; color: var(--text-main); }
+    .brand-header { padding: 1.25rem; border-bottom: 1px solid var(--border-dark); display: flex; align-items: center; justify-content: space-between; }
+    .brand-logo { width: 38px; height: 38px; background-color: var(--accent-orange); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; color: #fff; }
+    .brand-title { font-size: 0.95rem; font-weight: bold; color: var(--text-main); }
+    
     .nav-list { list-style: none; padding: 0.5rem 0; overflow-y: auto; flex: 1; }
     .nav-item { padding: 0.65rem 1.25rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-muted); cursor: pointer; font-size: 0.825rem; transition: 0.2s; }
     .nav-item:hover, .nav-item.active { background-color: rgba(234, 88, 12, 0.15); color: var(--accent-orange); font-weight: bold; border-left: 4px solid var(--accent-orange); }
 
-    #main-content { flex: 1; padding: 1.75rem; overflow-y: auto; }
+    #main-content { flex: 1; padding: 1.5rem; overflow-y: auto; }
     .module-section { display: none; }
     .module-section.active { display: block; }
     .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+
+    /* TOP THEME CONTROL BAR */
+    .theme-bar { display: flex; gap: 0.5rem; align-items: center; background: var(--panel-dark); border: 1px solid var(--border-dark); padding: 0.4rem 0.75rem; border-radius: 8px; margin-bottom: 1.25rem; }
+    .theme-bar select, .theme-bar button { padding: 0.3rem 0.6rem; border-radius: 6px; border: 1px solid var(--border-dark); background: var(--bg-dark); color: var(--text-main); font-size: 0.75rem; cursor: pointer; }
 
     .btn { padding: 0.55rem 1.1rem; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem; text-decoration: none; }
     .btn-orange { background-color: var(--accent-orange); color: white; }
@@ -47,12 +90,12 @@
 
     .data-table { width: 100%; border-collapse: collapse; background-color: var(--panel-dark); border: 1px solid var(--border-dark); border-radius: 8px; overflow: hidden; font-size: 0.825rem; margin-top: 1rem; }
     .data-table th, .data-table td { padding: 0.7rem 0.85rem; text-align: left; border-bottom: 1px solid var(--border-dark); }
-    .data-table th { color: var(--text-muted); font-weight: 600; background-color: #0f172a; }
+    .data-table th { color: var(--text-muted); font-weight: 600; background-color: var(--bg-dark); }
 
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 1rem; }
-    .modal-container { background: white; color: #0f172a; width: 100%; max-width: 950px; max-height: 92vh; border-radius: 12px; overflow-y: auto; padding: 1.5rem; position: relative; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 0.5rem; margin-bottom: 1rem; }
-    .modal-close { background: none; border: none; font-size: 1.25rem; cursor: pointer; color: #64748b; }
+    .modal-container { background: var(--modal-bg); color: var(--modal-text); width: 100%; max-width: 900px; max-height: 92vh; border-radius: 12px; overflow-y: auto; padding: 1.5rem; position: relative; border: 1px solid var(--border-dark); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-dark); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+    .modal-close { background: none; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted); }
 
     .form-grid { display: grid; gap: 0.75rem; margin-bottom: 0.75rem; }
     .grid-2 { grid-template-columns: repeat(2, 1fr); }
@@ -61,45 +104,30 @@
     .grid-5 { grid-template-columns: repeat(5, 1fr); }
     .grid-7 { grid-template-columns: repeat(7, 1fr); }
     .form-group { display: flex; flex-direction: column; gap: 0.2rem; }
-    .form-group label { font-size: 0.65rem; font-weight: bold; color: #475569; text-transform: uppercase; }
-    .form-control { padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.825rem; width: 100%; }
+    .form-group label { font-size: 0.65rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
+    .form-control { padding: 0.55rem; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-main); border-radius: 6px; font-size: 0.825rem; width: 100%; }
 
-    .vitals-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; }
-    .vitals-card label { color: #64748b; font-size: 0.625rem; font-weight: bold; text-transform: uppercase; }
-    .vitals-card input { background: #ffffff; font-weight: 600; color: #0f172a; }
+    .badge-sufficient { background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.7rem; }
+    .badge-low { background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.7rem; }
 
-    /* SCHEDULE MODULE SPECIFIC STYLES */
+    /* SCHEDULE MODULE STYLES */
     .sch-grid { display: grid; grid-template-columns: 95px repeat(7, 1fr); border: 1px solid var(--border-dark); border-radius: 8px; overflow: hidden; background: var(--panel-dark); }
-    .sch-header-cell { padding: 0.6rem; text-align: center; background: #0f172a; border-bottom: 1px solid var(--border-dark); border-right: 1px solid var(--border-dark); font-size: 0.75rem; font-weight: bold; color: var(--text-muted); }
-    .sch-time-cell { padding: 0.75rem 0.2rem; text-align: center; background: #0f172a; border-bottom: 1px solid var(--border-dark); border-right: 1px solid var(--border-dark); font-size: 0.7rem; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; justify-content: center; }
+    .sch-header-cell { padding: 0.6rem; text-align: center; background: var(--bg-dark); border-bottom: 1px solid var(--border-dark); border-right: 1px solid var(--border-dark); font-size: 0.75rem; font-weight: bold; color: var(--text-muted); }
+    .sch-time-cell { padding: 0.75rem 0.2rem; text-align: center; background: var(--bg-dark); border-bottom: 1px solid var(--border-dark); border-right: 1px solid var(--border-dark); font-size: 0.7rem; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; justify-content: center; }
     .sch-slot-cell { border-bottom: 1px solid var(--border-dark); border-right: 1px solid var(--border-dark); min-height: 48px; padding: 0.25rem; position: relative; cursor: pointer; transition: 0.2s; }
     .sch-slot-cell:hover { background: rgba(234, 88, 12, 0.08); }
     .sch-lunch-cell { background: rgba(239, 68, 68, 0.12); cursor: not-allowed; display: flex; align-items: center; justify-content: center; color: #f87171; font-size: 0.7rem; font-weight: bold; }
-
     .sch-booking-card { background: var(--accent-orange); color: white; padding: 0.35rem 0.5rem; border-radius: 6px; font-size: 0.7rem; font-weight: bold; }
 
-    .mini-cal { background: var(--panel-dark); border: 1px solid var(--border-dark); border-radius: 8px; padding: 1rem; }
-    .mini-cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-weight: bold; color: var(--accent-orange); font-size: 0.85rem; }
-    .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; gap: 0.25rem; font-size: 0.75rem; }
-
-    /* PRE-PRINTED LETTERHEAD PRINT LAYOUT (EXACT 50mm TOP MARGIN - NO PRICES/PARTICULARS) */
+    /* PRE-PRINTED LETTERHEAD PRINT SHEET (NO PRICES) */
     #print-rx-sheet { display: none; }
     @media print {
       @page { size: A4; margin: 0; }
       body * { visibility: hidden; }
       #print-rx-sheet, #print-rx-sheet * { visibility: visible; }
       #print-rx-sheet {
-        display: block !important;
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        color: #000 !important;
-        background: #fff !important;
-        padding-top: 50mm !important; /* 50mm clearance for pre-printed letterhead */
-        padding-left: 15mm !important;
-        padding-right: 15mm !important;
-        font-family: Arial, sans-serif;
+        display: block !important; position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important;
+        padding-top: 50mm !important; padding-left: 15mm !important; padding-right: 15mm !important; font-family: Arial, sans-serif;
       }
       #pr-header-logo { display: none !important; }
       #sidebar, #main-content, .modal-overlay { display: none !important; }
@@ -110,10 +138,12 @@
 
   <div id="sidebar">
     <div class="brand-header">
-      <div class="brand-logo">AA</div>
-      <div>
-        <div class="brand-title">AASU AROGYAM</div>
-        <div style="font-size: 0.65rem; color: var(--text-muted);">AYURVEDIC HOSPITAL ERP</div>
+      <div style="display:flex; align-items:center; gap:0.6rem;">
+        <div class="brand-logo">AA</div>
+        <div>
+          <div class="brand-title">AASU AROGYAM</div>
+          <div style="font-size: 0.625rem; color: var(--text-muted);">AYURVEDIC ERP</div>
+        </div>
       </div>
     </div>
     <ul class="nav-list">
@@ -136,6 +166,30 @@
 
   <div id="main-content">
     
+    <!-- TOP CONTROL BAR FOR LIGHT/DARK MODE & 15 COLOR THEMES -->
+    <div class="theme-bar">
+      <span style="font-size:0.75rem; font-weight:bold; color:var(--text-muted);">🎨 SYSTEM THEME & ENGINE:</span>
+      <select id="theme-selector" onchange="changeTheme(this.value)">
+        <option value="default-orange">1. Default Orange Slate (Current)</option>
+        <option value="emerald">2. Emerald Ayurveda</option>
+        <option value="royal-blue">3. Royal Doctor Blue</option>
+        <option value="crimson-red">4. Crimson Hospital</option>
+        <option value="purple-haze">5. Purple Haze</option>
+        <option value="amber-gold">6. Amber Gold</option>
+        <option value="teal-ocean">7. Teal Ocean</option>
+        <option value="pink-rose">8. Pink Rose Clinical</option>
+        <option value="cyberpunk">9. Cyberpunk Neon</option>
+        <option value="forest-green">10. Forest Herbal Green</option>
+        <option value="indigo-night">11. Indigo Night</option>
+        <option value="warm-coffee">12. Warm Coffee Earth</option>
+        <option value="sunset-violet">13. Sunset Violet</option>
+        <option value="copper-bronze">14. Copper Bronze</option>
+        <option value="mint-fresh">15. Fresh Mint</option>
+      </select>
+
+      <button id="mode-toggle-btn" onclick="toggleLightDarkMode()">☀️ Light Mode</button>
+    </div>
+
     <!-- MODULE 1: DASHBOARD -->
     <div id="mod-dashboard" class="module-section active">
       <div class="section-header"><h2>📊 Hospital Operations Dashboard</h2></div>
@@ -147,7 +201,7 @@
           <span style="font-size: 0.7rem; color: var(--text-muted);">PRESCRIPTIONS</span><h3 id="st-rx" style="margin-top: 0.3rem;">0</h3>
         </div>
         <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
-          <span style="font-size: 0.7rem; color: var(--text-muted);">ACTIVE EMPLOYEES</span><h3 id="st-emp" style="margin-top: 0.3rem;">0</h3>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">PHARMACY ITEMS STOCK</span><h3 id="st-pharmacy" style="margin-top: 0.3rem;">0</h3>
         </div>
         <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
           <span style="font-size: 0.7rem; color: var(--text-muted);">PENDING BILL DUES</span><h3 id="st-dues" style="color: var(--accent-orange); margin-top: 0.3rem;">₹0</h3>
@@ -173,7 +227,7 @@
         <h2>🧑‍⚕️ Patient Directory & EMR Ledger</h2>
         <button class="btn btn-orange" onclick="openModal('md-patient')">+ Register New Patient</button>
       </div>
-      <input type="text" id="p-search" class="form-control" placeholder="Search patient by Name, 10-digit Mobile No, or UHID..." style="background: var(--panel-dark); color: white; border-color: var(--border-dark); margin-bottom: 1rem;" onkeyup="renderPatients()" />
+      <input type="text" id="p-search" class="form-control" placeholder="Search patient by Name, 10-digit Mobile No, or UHID..." style="margin-bottom: 1rem;" onkeyup="renderPatients()" />
       <table class="data-table">
         <thead><tr><th>UHID</th><th>FULL NAME</th><th>MOBILE NO</th><th>AGE / GENDER</th><th>PRAKRITI</th><th>WEIGHT / BP / PULSE</th><th>ACTIONS</th></tr></thead>
         <tbody id="tbl-patients"></tbody>
@@ -241,7 +295,7 @@
         <div style="background:var(--panel-dark); border:1px solid var(--border-dark); padding:1.25rem; border-radius:8px; margin-bottom:1.5rem;">
           <h4 style="color:var(--accent-orange); margin-bottom:0.75rem;">+ Add New Room / Resource</h4>
           <div style="display:flex; gap:0.75rem;">
-            <input type="text" id="cfg-room-name" class="form-control" placeholder="e.g. Room 4 (Pizhichil)" style="background:var(--bg-dark); color:white; border-color:var(--border-dark);" />
+            <input type="text" id="cfg-room-name" class="form-control" placeholder="e.g. Room 4 (Pizhichil)" />
             <button class="btn btn-orange" onclick="addScheduleRoom()">Add Room</button>
           </div>
         </div>
@@ -251,6 +305,69 @@
           <tbody id="tbl-cfg-rooms"></tbody>
         </table>
       </div>
+    </div>
+
+    <!-- MODULE 5: AUSHADHI NIRMAN (AYURVEDIC MANUFACTURING ENGINE) -->
+    <div id="mod-aushadhi" class="module-section">
+      <div style="background:var(--panel-dark); border:1px solid var(--border-dark); border-radius:8px; padding:1.25rem; margin-bottom:1.5rem;">
+        <div class="section-header" style="margin-bottom:0.75rem;">
+          <h3 style="color:var(--accent-orange); font-size:1.1rem;">🌱 RAW MATERIALS INVENTORY (KACHA DRAVYA)</h3>
+          <button class="btn btn-orange" onclick="openModal('md-raw-mat')">+ Add Raw Material</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Item ID</th>
+              <th>Material Name</th>
+              <th>Category</th>
+              <th>Available Stock</th>
+              <th>Reorder Limit</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-raw-mat"></tbody>
+        </table>
+      </div>
+
+      <div style="background:var(--panel-dark); border:1px solid var(--border-dark); border-radius:8px; padding:1.25rem;">
+        <div class="section-header" style="margin-bottom:0.75rem;">
+          <h3 style="color:var(--accent-orange); font-size:1.1rem;">🏺 MASTER RECIPES & EXECUTIVE PRODUCTION ENGINE</h3>
+          <button class="btn btn-blue" onclick="openModal('md-batch-prod')">⚙️ Execute Batch Production</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Recipe ID</th>
+              <th>Output Medicine Name</th>
+              <th>Barcode</th>
+              <th>Required Ingredients (per unit)</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-recipes"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MODULE 6: HERBAL PHARMACY (AUTOMATICALLY SYNCED FROM PRODUCTION) -->
+    <div id="mod-pharmacy" class="module-section">
+      <div class="section-header">
+        <h2>💊 Herbal Pharmacy Inventory & Retail Ready Stock</h2>
+        <span style="font-size:0.75rem; color:var(--text-muted)">Stock automatically increments when batch production runs in Aushadhi Nirman!</span>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>BARCODE</th>
+            <th>MEDICINE NAME</th>
+            <th>BATCH CODE</th>
+            <th>EXPIRY (MM/YYYY)</th>
+            <th>SELLING PRICE (₹)</th>
+            <th>STOCK AVAILABLE</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+        <tbody id="tbl-pharmacy"></tbody>
+      </table>
     </div>
 
     <!-- MODULE 7: BILLING & INVOICES -->
@@ -281,8 +398,6 @@
       </table>
     </div>
 
-    <div id="mod-aushadhi" class="module-section"><div class="section-header"><h2>🌿 Aushadhi Manufacturing</h2></div></div>
-    <div id="mod-pharmacy" class="module-section"><div class="section-header"><h2>💊 Herbal Pharmacy Stock</h2></div></div>
     <div id="mod-therapy" class="module-section"><div class="section-header"><h2>✨ Therapy Master Directory</h2></div></div>
     <div id="mod-payroll" class="module-section"><div class="section-header"><h2>💵 Payroll & Commissions</h2></div></div>
     <div id="mod-accounts" class="module-section"><div class="section-header"><h2>🏛️ Accounts & Vendors</h2></div></div>
@@ -290,6 +405,90 @@
     <div id="mod-admin" class="module-section"><div class="section-header"><h2>🔐 Staff Credentials & Access</h2></div></div>
     <div id="mod-ipd" class="module-section"><div class="section-header"><h2>🏥 IPD Ward Management</h2></div></div>
 
+  </div>
+
+  <!-- MODAL 1: ADD RAW MATERIAL -->
+  <div id="md-raw-mat" class="modal-overlay">
+    <div class="modal-container" style="max-width: 550px;">
+      <div class="modal-header">
+        <h3>+ Register Raw Material Stock</h3>
+        <button class="modal-close" onclick="closeModal('md-raw-mat')">✕</button>
+      </div>
+      <form onsubmit="saveRawMaterial(event)">
+        <div class="form-group" style="margin-bottom:0.75rem;">
+          <label>MATERIAL NAME *</label>
+          <input type="text" id="rm-name" class="form-control" placeholder="e.g. Til Taila (Sesame Base)" required />
+        </div>
+        <div class="form-grid grid-2">
+          <div class="form-group">
+            <label>CATEGORY *</label>
+            <select id="rm-category" class="form-control" required>
+              <option>Base Oil/Ghee</option>
+              <option>Herbs</option>
+              <option>Bhasma & Minerals</option>
+              <option>Kwath Extract</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>UNIT *</label>
+            <select id="rm-unit" class="form-control" required>
+              <option>L</option>
+              <option>kg</option>
+              <option>g</option>
+              <option>ml</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid grid-2" style="margin-bottom:1.25rem;">
+          <div class="form-group">
+            <label>INITIAL STOCK *</label>
+            <input type="number" step="0.01" id="rm-stock" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label>REORDER LIMIT *</label>
+            <input type="number" step="0.01" id="rm-reorder" class="form-control" required />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-orange" style="width:100%; justify-content:center;">Save Raw Material</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: EXECUTE BATCH PRODUCTION -->
+  <div id="md-batch-prod" class="modal-overlay">
+    <div class="modal-container" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3>⚙️ Execute Batch Production Routine</h3>
+        <button class="modal-close" onclick="closeModal('md-batch-prod')">✕</button>
+      </div>
+      <form onsubmit="runProductionEngine(event)">
+        <div class="form-group" style="margin-bottom:0.75rem;">
+          <label>MASTER RECIPE *</label>
+          <select id="bp-recipe-id" class="form-control" required></select>
+        </div>
+        <div class="form-grid grid-2">
+          <div class="form-group">
+            <label>UNITS TO PRODUCE *</label>
+            <input type="number" id="bp-units" class="form-control" value="20" required />
+          </div>
+          <div class="form-group">
+            <label>BATCH CODE *</label>
+            <input type="text" id="bp-batch-code" class="form-control" value="BATCH-2026-01" required />
+          </div>
+        </div>
+        <div class="form-grid grid-2" style="margin-bottom:1.25rem;">
+          <div class="form-group">
+            <label>EXPIRY MONTH/YEAR *</label>
+            <input type="text" id="bp-expiry" class="form-control" placeholder="09/2028" value="09/2028" required />
+          </div>
+          <div class="form-group">
+            <label>SELLING PRICE (₹) *</label>
+            <input type="number" id="bp-price" class="form-control" value="650" required />
+          </div>
+        </div>
+        <button type="submit" class="btn btn-blue" style="width:100%; justify-content:center; font-size:0.9rem;">Run Production Engine & Transfer to Pharmacy</button>
+      </form>
+    </div>
   </div>
 
   <!-- MODAL: REGISTER PATIENT -->
@@ -343,8 +542,8 @@
         </div>
       </div>
 
-      <div class="vitals-card">
-        <span style="font-size: 0.65rem; font-weight: bold; color: var(--accent-orange); display: block; margin-bottom: 0.4rem;">PATIENT EMR VITALS (AUTO-FILLED)</span>
+      <div style="background:var(--bg-dark); border:1px solid var(--border-dark); padding:0.75rem; border-radius:8px; margin-bottom:0.75rem;">
+        <span style="font-size:0.65rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.4rem;">PATIENT EMR VITALS (AUTO-FILLED)</span>
         <div class="form-grid grid-7">
           <div><label>MOBILE NO</label><input type="text" id="rx-v-mobile" class="form-control" readonly /></div>
           <div><label>AGE *</label><input type="text" id="rx-v-age" class="form-control" readonly /></div>
@@ -361,8 +560,8 @@
         <div class="form-group"><label>VAIDYA CONSULTATION FEE (₹) *</label><input type="number" id="rx-consult-fee" value="300" class="form-control" onkeyup="renderRxItemsTable()" /></div>
       </div>
 
-      <div style="background: #fdfbf7; border: 1px solid #e7e5e4; padding: 0.85rem; border-radius: 8px; margin-bottom: 0.75rem;">
-        <span style="font-size: 0.75rem; font-weight: bold; color: #44403c; display: block; margin-bottom: 0.5rem;">Add Prescribed Medicine, Diagnostic Test, or Therapy</span>
+      <div style="background:var(--bg-dark); border: 1px solid var(--border-dark); padding: 0.85rem; border-radius: 8px; margin-bottom: 0.75rem;">
+        <span style="font-size: 0.75rem; font-weight: bold; color: var(--accent-orange); display: block; margin-bottom: 0.5rem;">Add Prescribed Medicine, Diagnostic Test, or Therapy</span>
         <div class="form-grid grid-5">
           <div class="form-group">
             <label>CATEGORY</label>
@@ -379,9 +578,9 @@
         </div>
         <button type="button" class="btn btn-orange" onclick="addRxItem()" style="margin-top: 0.3rem;">+ Add To Prescription</button>
 
-        <table class="data-table" style="background: white; color: black; margin-top: 0.5rem;">
+        <table class="data-table" style="margin-top: 0.5rem;">
           <thead>
-            <tr style="background: #fefce8; color: #854d0e;">
+            <tr>
               <th>Category</th>
               <th>Item / Therapy / Test</th>
               <th>Dosage / Notes</th>
@@ -410,7 +609,7 @@
     </div>
   </div>
 
-  <!-- PRINTABLE SHEET FOR PRE-PRINTED LETTERHEAD (PURE CLINICAL PRESCRIPTION - NO FINANCIAL DETAILS) -->
+  <!-- PRINTABLE SHEET FOR PRE-PRINTED LETTERHEAD -->
   <div id="print-rx-sheet">
     <div id="pr-header-logo" style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 0.5rem; margin-bottom: 1rem;">
       <h1 style="font-size: 1.8rem; margin-bottom: 0.2rem;">AASU AROGYAM AYURVEDIC HOSPITAL</h1>
@@ -520,6 +719,16 @@
 
     let db = {
       patients: [], rx: [], emp: [], billing: [], rxItems: [],
+      rawMaterials: [
+        { id: 'RAW-01', name: 'Til Taila (Sesame Base)', category: 'Base Oil/Ghee', unit: 'L', stock: 150.00, reorder: 25.00 },
+        { id: 'RAW-02', name: 'Dashamoola Herb Extract', category: 'Herbs', unit: 'kg', stock: 20.00, reorder: 5.00 }
+      ],
+      recipes: [
+        { id: 'REC-01', name: 'Mahanarayana Thailam (500ml)', barcode: '8901001', raw_req_id: 'RAW-01', req_qty_per_unit: 0.5 }
+      ],
+      pharmacy: [
+        { barcode: '8901001', name: 'Mahanarayana Thailam (500ml)', batch_code: 'BATCH-2026-01', expiry: '09/2028', price: 650, stock: 20 }
+      ],
       rooms: [
         { id: 'ROOM-01', name: 'Room 1 (Panchakarma)' },
         { id: 'ROOM-02', name: 'Room 2 (Shirodhara)' },
@@ -535,6 +744,19 @@
       "16:00 - 16:45", "17:00 - 17:45", "18:00 - 18:45", "19:00 - 19:45"
     ];
 
+    /* THEME CONTROLLER (15 THEMES + LIGHT/DARK MODE) */
+    function toggleLightDarkMode() {
+      const html = document.documentElement;
+      const curMode = html.getAttribute('data-mode') || 'dark';
+      const newMode = curMode === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-mode', newMode);
+      document.getElementById('mode-toggle-btn').innerText = newMode === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+    }
+
+    function changeTheme(themeName) {
+      document.documentElement.setAttribute('data-theme', themeName);
+    }
+
     function switchTab(id, el) {
       document.querySelectorAll('.module-section').forEach(e => e.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
@@ -549,6 +771,9 @@
         document.getElementById('rx-date').value = new Date().toISOString().split('T')[0];
         renderRxDataList();
         renderRxItemsTable();
+      } else if (id === 'md-batch-prod') {
+        const recipeSel = document.getElementById('bp-recipe-id');
+        recipeSel.innerHTML = db.recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
       }
     }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
@@ -574,15 +799,136 @@
       renderScheduleGrid();
       renderSuperviseTable();
       renderConfigureRooms();
+      renderAushadhiNirman();
+      renderPharmacy();
       updateDashboardStats();
     }
 
     function updateDashboardStats() {
       document.getElementById('st-patients').innerText = db.patients.length;
       document.getElementById('st-rx').innerText = db.rx.length;
-      document.getElementById('st-emp').innerText = db.emp.length;
+      document.getElementById('st-pharmacy').innerText = db.pharmacy.length;
       const totalDues = db.billing.reduce((acc, item) => acc + (Number(item.balance_due) || 0), 0);
       document.getElementById('st-dues').innerText = '₹' + totalDues;
+    }
+
+    /* AUSHADHI NIRMAN & PHARMACY AUTOMATIC STOCK INTEGRATION */
+    function renderAushadhiNirman() {
+      // 1. Raw Materials Table
+      const rawTbl = document.getElementById('tbl-raw-mat');
+      if (rawTbl) {
+        rawTbl.innerHTML = db.rawMaterials.map(r => {
+          const isLow = r.stock <= r.reorder;
+          const badge = isLow ? `<span class="badge-low">REORDER NEEDED</span>` : `<span class="badge-sufficient">SUFFICIENT</span>`;
+          return `
+            <tr>
+              <td><b>${r.id}</b></td>
+              <td><b>${r.name}</b></td>
+              <td><span class="tab-btn" style="padding:2px 6px; font-size:0.65rem;">${r.category}</span></td>
+              <td><b>${r.stock.toFixed(2)} ${r.unit}</b></td>
+              <td>${r.reorder} ${r.unit}</td>
+              <td>${badge}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // 2. Master Recipes Table
+      const recTbl = document.getElementById('tbl-recipes');
+      if (recTbl) {
+        recTbl.innerHTML = db.recipes.map(rc => {
+          const raw = db.rawMaterials.find(x => x.id === rc.raw_req_id);
+          const ingredientStr = raw ? `${raw.id} (${rc.req_qty_per_unit}${raw.unit})` : 'Raw Ingredients';
+          return `
+            <tr>
+              <td><b>${rc.id}</b></td>
+              <td><b>${rc.name}</b></td>
+              <td><code>${rc.barcode}</code></td>
+              <td>${ingredientStr}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    function saveRawMaterial(e) {
+      e.preventDefault();
+      const name = document.getElementById('rm-name').value;
+      const category = document.getElementById('rm-category').value;
+      const unit = document.getElementById('rm-unit').value;
+      const stock = Number(document.getElementById('rm-stock').value) || 0;
+      const reorder = Number(document.getElementById('rm-reorder').value) || 0;
+
+      const id = 'RAW-0' + (db.rawMaterials.length + 1);
+      db.rawMaterials.push({ id, name, category, unit, stock, reorder });
+
+      alert('Raw Material Registered!');
+      closeModal('md-raw-mat');
+      renderAushadhiNirman();
+    }
+
+    function runProductionEngine(e) {
+      e.preventDefault();
+      const recipeId = document.getElementById('bp-recipe-id').value;
+      const recipe = db.recipes.find(r => r.id === recipeId); if (!recipe) return alert('Select recipe');
+
+      const units = Number(document.getElementById('bp-units').value) || 0;
+      const batchCode = document.getElementById('bp-batch-code').value;
+      const expiry = document.getElementById('bp-expiry').value;
+      const price = Number(document.getElementById('bp-price').value) || 0;
+
+      // Check Raw material deduction
+      const raw = db.rawMaterials.find(x => x.id === recipe.raw_req_id);
+      if (raw) {
+        const requiredTotal = recipe.req_qty_per_unit * units;
+        if (raw.stock < requiredTotal) {
+          return alert(`Insufficient Raw Material Stock! Required: ${requiredTotal}${raw.unit}, Available: ${raw.stock}${raw.unit}`);
+        }
+        raw.stock -= requiredTotal;
+      }
+
+      // Sync into Pharmacy Inventory Stock!
+      const existingMed = db.pharmacy.find(p => p.barcode === recipe.barcode && p.batch_code === batchCode);
+      if (existingMed) {
+        existingMed.stock += units;
+        existingMed.price = price;
+      } else {
+        db.pharmacy.unshift({
+          barcode: recipe.barcode,
+          name: recipe.name,
+          batch_code: batchCode,
+          expiry: expiry,
+          price: price,
+          stock: units
+        });
+      }
+
+      alert(`✅ Production Batch Executed Successfully!\n• Produced: ${units} units of ${recipe.name}\n• Stock Automatically Transferred to Herbal Pharmacy Stock.`);
+      closeModal('md-batch-prod');
+      renderAushadhiNirman();
+      renderPharmacy();
+      updateDashboardStats();
+    }
+
+    function renderPharmacy() {
+      const tbl = document.getElementById('tbl-pharmacy');
+      if (!tbl) return;
+
+      tbl.innerHTML = db.pharmacy.map(p => {
+        const isLow = p.stock <= 5;
+        const badge = isLow ? `<span class="badge-low">LOW STOCK</span>` : `<span class="badge-sufficient">IN STOCK</span>`;
+        return `
+          <tr>
+            <td><code>${p.barcode}</code></td>
+            <td><b>${p.name}</b></td>
+            <td>${p.batch_code}</td>
+            <td>${p.expiry}</td>
+            <td><b>₹${p.price}</b></td>
+            <td><b>${p.stock} units</b></td>
+            <td>${badge}</td>
+          </tr>
+        `;
+      }).join('') || '<tr><td colSpan="7">No inventory available. Run batch production to add stock.</td></tr>';
     }
 
     /* PATIENT LOGIC */
@@ -715,7 +1061,7 @@
     function renderRxItemsTable() {
       const consultFee = Number(document.getElementById('rx-consult-fee')?.value) || 0;
       let html = `
-        <tr style="background:#f1f5f9;">
+        <tr style="background:var(--bg-dark);">
           <td><b>Consultation</b></td>
           <td><b>Vaidya Consultation Fee</b></td>
           <td>Doctor OPD Charge</td>
@@ -792,7 +1138,7 @@
       }
     }
 
-    /* PRINT PRESCRIPTION - ONLY MEDICAL INFORMATION (NO CONSULTATION FEE / FINANCIAL DETAILS) */
+    /* PRINT PRESCRIPTION - PURE MEDICAL SHEET (NO FEES) */
     function printPrescription() {
       const pId = document.getElementById('rx-patient-id').value;
       const pat = db.patients.find(p => p.id === pId); if (!pat) return alert('Select patient');
@@ -808,7 +1154,6 @@
       document.getElementById('pr-diag').innerText = document.getElementById('rx-diag').value || 'N/A';
       document.getElementById('pr-instructions').innerText = document.getElementById('rx-instructions').value || 'None';
 
-      // DO NOT PRINT CONSULTATION FEE OR PRICES ON MEDICAL PRESCRIPTION SHEET
       let html = db.rxItems.map(i => `
         <tr style="border-bottom: 1px solid #eee;">
           <td style="padding: 6px;">${i.type}</td>
@@ -856,7 +1201,7 @@
       window.open(`https://api.whatsapp.com/send?phone=91${r.mobile_no}&text=🌿%20AASU%20AROGYAM%20Rx:%20${r.rx_no}%20Total:%20₹${r.grand_total}`);
     }
 
-    /* BILLING & PARTIAL PAYMENTS */
+    /* BILLING COUNTER */
     function filterBilling(status, btn) {
       activeBillingFilter = status;
       document.querySelectorAll('#mod-billing .tab-btn').forEach(b => b.classList.remove('active'));
