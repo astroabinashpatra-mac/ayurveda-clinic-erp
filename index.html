@@ -115,6 +115,7 @@
       </div>
     </div>
 
+    <!-- MODULE 2: PRESCRIPTIONS -->
     <div id="mod-prescription" class="module-section">
       <div class="section-header">
         <h2>📜 Digital Ayurvedic E-Prescription Desk</h2>
@@ -126,6 +127,7 @@
       </table>
     </div>
 
+    <!-- MODULE 3: PATIENTS -->
     <div id="mod-patients" class="module-section">
       <div class="section-header">
         <h2>🧑‍⚕️ Patient Directory & EMR Ledger</h2>
@@ -142,10 +144,17 @@
     <div id="mod-aushadhi" class="module-section"><div class="section-header"><h2>🌿 Aushadhi Manufacturing & Formulations</h2></div><p style="color: var(--text-muted);">In-house medicine manufacturing, raw batch processing, and expiry tracking.</p></div>
     <div id="mod-pharmacy" class="module-section"><div class="section-header"><h2>💊 Herbal Pharmacy Stock & POS</h2></div><p style="color: var(--text-muted);">Over-the-counter medicine POS sales and inventory ledger.</p></div>
 
+    <!-- MODULE 7: BILLING -->
     <div id="mod-billing" class="module-section">
-      <div class="section-header"><h2>💰 Central Integrated Billing Counter</h2></div>
+      <div class="section-header">
+        <h2>💰 Central Integrated Billing Counter</h2>
+        <div style="display:flex; gap:0.5rem;">
+          <button class="btn btn-blue" onclick="filterBilling('all')">All Invoices</button>
+          <button class="btn btn-danger" onclick="filterBilling('pending')">⚠️ Pending Dues Only</button>
+        </div>
+      </div>
       <table class="data-table">
-        <thead><tr><th>BILL NO</th><th>RX / IPD NO</th><th>PATIENT NAME</th><th>MODULE</th><th>TOTAL (₹)</th><th>BALANCE DUE (₹)</th><th>STATUS</th></tr></thead>
+        <thead><tr><th>BILL NO</th><th>RX / IPD NO</th><th>PATIENT NAME</th><th>TOTAL (₹)</th><th>PAID (₹)</th><th>BALANCE DUE (₹)</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
         <tbody id="tbl-billing"></tbody>
       </table>
     </div>
@@ -171,7 +180,7 @@
     <div id="mod-ipd" class="module-section"><div class="section-header"><h2>🏥 IPD Ward Admissions & Bed Ledger</h2></div><p style="color: var(--text-muted);">In-patient ward bed allocation, advance deposit, and daily treatment ledger.</p></div>
   </div>
 
-  <!-- MODALS -->
+  <!-- MODAL 1: PATIENT REGISTRATION -->
   <div id="md-patient" class="modal-overlay">
     <div class="modal-container">
       <div class="modal-header"><h3>Register Patient Account</h3><button class="modal-close" onclick="closeModal('md-patient')">✕</button></div>
@@ -197,15 +206,31 @@
     </div>
   </div>
 
+  <!-- MODAL 2: PRESCRIPTION BUILDER WITH AUTO-FILLED VITALS -->
   <div id="md-rx" class="modal-overlay">
     <div class="modal-container" style="max-width: 900px;" id="print-area">
       <div class="modal-header"><h3>Create Ayurvedic E-Prescription</h3><button class="modal-close" onclick="closeModal('md-rx')">✕</button></div>
       <div class="form-grid grid-3">
-        <div class="form-group"><label>SELECT PATIENT ACCOUNT</label><select id="rx-patient" class="form-control" required></select></div>
+        <div class="form-group">
+          <label>SELECT PATIENT ACCOUNT</label>
+          <select id="rx-patient" class="form-control" onchange="autoFillPatientVitals()" required></select>
+        </div>
         <div class="form-group"><label>PRESCRIPTION DATE</label><input type="date" id="rx-date" class="form-control" required /></div>
         <div class="form-group"><label>ATTENDING DOCTOR (VAIDYA)</label><select id="rx-doctor" class="form-control"><option>Dr. Pruthweeraj Singh (Chief Ayurvedic Vaidya)</option><option>Dr. Abinash Patra (Vaidya)</option></select></div>
       </div>
-      <div class="form-group" style="margin-bottom: 0.75rem;"><label>DIAGNOSIS / NIDAN</label><input type="text" id="rx-diag" placeholder="e.g. Sandhivata" class="form-control" /></div>
+
+      <!-- AUTO-FILLED PATIENT DEMOGRAPHICS & VITALS BANNER -->
+      <div class="form-grid grid-4" style="background:#f1f5f9; padding:0.6rem; border-radius:8px; border:1px solid #cbd5e1; margin-bottom:0.75rem;">
+        <div class="form-group"><label>MOBILE NO</label><input type="text" id="rx-v-mobile" class="form-control" readonly style="background:#e2e8f0; font-weight:bold;" /></div>
+        <div class="form-group"><label>AGE / GENDER</label><input type="text" id="rx-v-age-gender" class="form-control" readonly style="background:#e2e8f0;" /></div>
+        <div class="form-group"><label>PRAKRITI</label><input type="text" id="rx-v-prakriti" class="form-control" readonly style="background:#e2e8f0; color:#ea580c; font-weight:bold;" /></div>
+        <div class="form-group"><label>WEIGHT / B.P. / PULSE</label><input type="text" id="rx-v-vitals" class="form-control" readonly style="background:#e2e8f0;" /></div>
+      </div>
+
+      <div class="form-grid grid-2" style="margin-bottom: 0.75rem;">
+        <div class="form-group"><label>DIAGNOSIS / NIDAN</label><input type="text" id="rx-diag" placeholder="e.g. Sandhivata" class="form-control" /></div>
+        <div class="form-group"><label>VAIDYA CONSULTATION FEE (₹)</label><input type="number" id="rx-consult-fee" value="300" class="form-control" /></div>
+      </div>
 
       <div style="background: #fdfbf7; border: 1px solid #e7e5e4; padding: 0.85rem; border-radius: 8px; margin-bottom: 0.75rem;">
         <span style="font-size: 0.75rem; font-weight: bold; color: #44403c; display: block; margin-bottom: 0.5rem;">Add Prescribed Medicines & Therapies (Auto Entries to Billing)</span>
@@ -232,6 +257,22 @@
     </div>
   </div>
 
+  <!-- MODAL 3: PAYMENT COLLECTION -->
+  <div id="md-pay" class="modal-overlay">
+    <div class="modal-container" style="max-width: 420px;">
+      <div class="modal-header"><h3>Collect Payment</h3><button class="modal-close" onclick="closeModal('md-pay')">✕</button></div>
+      <form onsubmit="processPayment(event)">
+        <input type="hidden" id="pay-bill-id" />
+        <div class="form-group" style="margin-bottom:0.5rem;"><label>TOTAL AMOUNT (₹)</label><input type="text" id="pay-total" class="form-control" readonly style="background:#e2e8f0; font-weight:bold;" /></div>
+        <div class="form-group" style="margin-bottom:0.5rem;"><label>CURRENTLY PAID (₹)</label><input type="text" id="pay-prev" class="form-control" readonly style="background:#e2e8f0;" /></div>
+        <div class="form-group" style="margin-bottom:0.5rem;"><label>NEW PAYMENT AMOUNT (₹) *</label><input type="number" id="pay-amount" class="form-control" required /></div>
+        <div class="form-group" style="margin-bottom:1rem;"><label>PAYMENT MODE *</label><select id="pay-mode" class="form-control"><option>Cash</option><option>UPI / PhonePe / GPay</option><option>Card</option><option>Net Banking</option></select></div>
+        <button type="submit" class="btn btn-green" style="width:100%;">Record Payment & Update Status</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 4: HRMS -->
   <div id="md-emp" class="modal-overlay">
     <div class="modal-container">
       <div class="modal-header"><h3>Onboard New Employee</h3><button class="modal-close" onclick="closeModal('md-emp')">✕</button></div>
@@ -277,10 +318,11 @@
     let sbClient = null;
 
     if (window.supabase) {
-      try { sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.warn("Supabase init warning:", e); }
+      try { sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.warn("Supabase warning:", e); }
     }
 
     let db = { patients: [], rx: [], emp: [], billing: [], rxItems: [] };
+    let billingFilter = 'all';
 
     function switchTab(id, el) {
       document.querySelectorAll('.module-section').forEach(e => e.classList.remove('active'));
@@ -290,7 +332,10 @@
       if (el) el.classList.add('active');
     }
 
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function openModal(id) { 
+      document.getElementById(id).style.display = 'flex'; 
+      if (id === 'md-rx') autoFillPatientVitals();
+    }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     async function init() {
@@ -304,19 +349,40 @@
           if (emp) db.emp = emp;
           const { data: b } = await sbClient.from('billing').select('*').order('created_at', { ascending: false });
           if (b) db.billing = b;
-        } catch(err) {
-          console.warn("Supabase fetch fallback:", err);
-        }
+        } catch(err) { console.warn("Supabase fallback:", err); }
       }
 
       renderPatients();
       renderRx();
       renderEmployees();
       renderBilling();
+      updateDashboardStats();
+    }
 
+    function updateDashboardStats() {
       document.getElementById('st-patients').innerText = db.patients.length;
       document.getElementById('st-rx').innerText = db.rx.length;
       document.getElementById('st-emp').innerText = db.emp.length;
+      const pendingTotal = db.billing.reduce((acc, c) => acc + Number(c.balance_due || 0), 0);
+      document.getElementById('st-dues').innerText = '₹' + pendingTotal;
+    }
+
+    /* PATIENT AUTO-FILL IN PRESCRIPTION */
+    function autoFillPatientVitals() {
+      const pId = document.getElementById('rx-patient')?.value;
+      const pat = db.patients.find(p => p.id === pId);
+
+      if (pat) {
+        document.getElementById('rx-v-mobile').value = pat.mobile_no || 'N/A';
+        document.getElementById('rx-v-age-gender').value = `${pat.age || 0} Y / ${pat.gender || 'N/A'}`;
+        document.getElementById('rx-v-prakriti').value = pat.prakriti || 'N/A';
+        document.getElementById('rx-v-vitals').value = `${pat.weight || 0} kg | BP: ${pat.bp || 'N/A'} | Pulse: ${pat.pulse || 'N/A'}`;
+      } else {
+        document.getElementById('rx-v-mobile').value = '';
+        document.getElementById('rx-v-age-gender').value = '';
+        document.getElementById('rx-v-prakriti').value = '';
+        document.getElementById('rx-v-vitals').value = '';
+      }
     }
 
     function renderPatients() {
@@ -325,12 +391,13 @@
       const tbl = document.getElementById('tbl-patients');
       if (tbl) {
         tbl.innerHTML = filtered.map(p => `
-          <tr><td><b>${p.uhid || 'AA-P-101'}</b></td><td><b>${p.full_name}</b></td><td>${p.mobile_no}</td><td>${p.age}Y / ${p.gender}</td><td>${p.prakriti}</td><td>${p.weight || 0}kg | ${p.bp || 'N/A'}</td><td><button class="btn btn-blue" onclick="editPatient('${p.id}')">Edit</button> <button class="btn btn-danger" onclick="delPatient('${p.id}')">Delete</button></td></tr>
+          <tr><td><b>${p.uhid || 'AA-P-101'}</b></td><td><b>${p.full_name}</b></td><td>${p.mobile_no}</td><td>${p.age}Y / ${p.gender}</td><td>${p.prakriti}</td><td>${p.weight || 0}kg | ${p.bp || 'N/A'} | ${p.pulse || 'N/A'}</td><td><button class="btn btn-blue" onclick="editPatient('${p.id}')">Edit</button> <button class="btn btn-danger" onclick="delPatient('${p.id}')">Delete</button></td></tr>
         `).join('') || '<tr><td colSpan="7">No patients found. Click "+ Register New Patient" to add.</td></tr>';
       }
       const rxDropdown = document.getElementById('rx-patient');
       if (rxDropdown) {
         rxDropdown.innerHTML = db.patients.map(p => `<option value="${p.id}">${p.full_name} (${p.mobile_no})</option>`).join('');
+        autoFillPatientVitals();
       }
     }
 
@@ -378,12 +445,13 @@
       init();
     }
 
+    /* PRESCRIPTION & INTEGRATED BILLING SYNC */
     function addRxItem() {
       const item = document.getElementById('rx-item').value;
       const dose = document.getElementById('rx-dose').value;
       const price = Number(document.getElementById('rx-price').value) || 0;
       const qty = Number(document.getElementById('rx-qty').value) || 1;
-      if (!item) return alert('Enter formulation name');
+      if (!item) return alert('Enter formulation / therapy name');
       db.rxItems.push({ item, dose, price, qty, total: price * qty });
       document.getElementById('tbl-rx-items').innerHTML = db.rxItems.map((i, idx) => `
         <tr><td><b>${i.item}</b></td><td>${i.dose}</td><td>₹${i.price}</td><td>${i.qty}</td><td><b>₹${i.total}</b></td><td><button onclick="db.rxItems.splice(${idx},1);addRxItem();" style="color:red;border:none;background:none;cursor:pointer;">✕</button></td></tr>
@@ -394,25 +462,33 @@
     async function savePrescription() {
       const pId = document.getElementById('rx-patient').value;
       const pat = db.patients.find(p => p.id === pId); if (!pat) return alert('Select patient account');
-      const total = db.rxItems.reduce((a,c) => a + c.total, 0);
+      
+      const consultFee = Number(document.getElementById('rx-consult-fee').value) || 0;
+      const itemsTotal = db.rxItems.reduce((a,c) => a + c.total, 0);
+      const grandTotal = itemsTotal + consultFee;
+
+      const finalItems = [...db.rxItems];
+      if (consultFee > 0) finalItems.unshift({ item: 'Vaidya Consultation Fee', dose: '1 Visit', price: consultFee, qty: 1, total: consultFee });
+
       const rxDate = document.getElementById('rx-date').value || new Date().toISOString().split('T')[0];
       const rxNo = 'RX-P' + Math.floor(100 + Math.random() * 900);
 
       if (sbClient) {
         const { data } = await sbClient.from('prescriptions').insert([{
           patient_id: pId, patient_name: pat.full_name, mobile_no: pat.mobile_no, rx_date: rxDate,
-          attending_doctor: document.getElementById('rx-doctor').value, diagnosis: document.getElementById('rx-diag').value, items: db.rxItems, grand_total: total
+          attending_doctor: document.getElementById('rx-doctor').value, diagnosis: document.getElementById('rx-diag').value, items: finalItems, grand_total: grandTotal
         }]).select();
+
         await sbClient.from('billing').insert([{
           patient_id: pId, rx_no: data ? data[0].rx_no : rxNo, patient_name: pat.full_name, mobile_no: pat.mobile_no,
-          bill_type: 'OPD', total_amount: total, balance_due: total, items: db.rxItems
+          bill_type: 'OPD / Prescription', total_amount: grandTotal, paid_amount: 0, balance_due: grandTotal, payment_status: 'Unpaid', items: finalItems
         }]);
       } else {
-        db.rx.unshift({ id: 'rx-' + Date.now(), rx_no: rxNo, patient_name: pat.full_name, mobile_no: pat.mobile_no, rx_date: rxDate, attending_doctor: document.getElementById('rx-doctor').value, diagnosis: document.getElementById('rx-diag').value, grand_total: total });
-        db.billing.unshift({ id: 'b-' + Date.now(), bill_no: 'BILL-' + Math.floor(1000 + Math.random() * 9000), rx_no: rxNo, patient_name: pat.full_name, bill_type: 'OPD', total_amount: total, balance_due: total, payment_status: 'Unpaid' });
+        db.rx.unshift({ id: 'rx-' + Date.now(), rx_no: rxNo, patient_name: pat.full_name, mobile_no: pat.mobile_no, rx_date: rxDate, attending_doctor: document.getElementById('rx-doctor').value, diagnosis: document.getElementById('rx-diag').value, grand_total: grandTotal });
+        db.billing.unshift({ id: 'b-' + Date.now(), bill_no: 'BILL-' + Math.floor(1000 + Math.random() * 9000), rx_no: rxNo, patient_name: pat.full_name, total_amount: grandTotal, paid_amount: 0, balance_due: grandTotal, payment_status: 'Unpaid' });
       }
 
-      alert('Prescription Saved & Synced to Central Billing Counter!');
+      alert('Prescription & Consultation Fee Synced to Central Billing Counter!');
       closeModal('md-rx'); db.rxItems = []; init();
     }
 
@@ -428,19 +504,80 @@
     function shareWhatsApp() {
       const pId = document.getElementById('rx-patient').value;
       const pat = db.patients.find(p => p.id === pId); if (!pat) return alert('Select patient');
-      const total = db.rxItems.reduce((a,c) => a + c.total, 0);
-      window.open(`https://api.whatsapp.com/send?phone=91${pat.mobile_no}&text=🌿%20AASU%20AROGYAM%20AYURVEDIC%20HOSPITAL%20🌿%0ATotal%20Rx%20Amount:%20₹${total}`);
+      const consultFee = Number(document.getElementById('rx-consult-fee').value) || 0;
+      const grandTotal = db.rxItems.reduce((a,c) => a + c.total, 0) + consultFee;
+      window.open(`https://api.whatsapp.com/send?phone=91${pat.mobile_no}&text=🌿%20AASU%20AROGYAM%20AYURVEDIC%20HOSPITAL%20🌿%0APatient:%20${pat.full_name}%0ATotal%20Prescription%20%26%20Consultation%20Bill:%20₹${grandTotal}`);
+    }
+
+    /* BILLING & PAYMENT PROCESSING */
+    function filterBilling(mode) {
+      billingFilter = mode;
+      renderBilling();
     }
 
     function renderBilling() {
       const tbl = document.getElementById('tbl-billing');
-      if (tbl) {
-        tbl.innerHTML = db.billing.map(b => `
-          <tr><td><b>${b.bill_no}</b></td><td>${b.rx_no || 'N/A'}</td><td><b>${b.patient_name}</b></td><td>${b.bill_type}</td><td>₹${b.total_amount}</td><td><b style="color:var(--accent-orange)">₹${b.balance_due}</b></td><td><span style="color:#10b981;font-weight:bold">${b.payment_status}</span></td></tr>
-        `).join('') || '<tr><td colSpan="7">No billing records found.</td></tr>';
+      if (!tbl) return;
+
+      let list = db.billing;
+      if (billingFilter === 'pending') {
+        list = list.filter(b => Number(b.balance_due) > 0);
       }
+
+      tbl.innerHTML = list.map(b => `
+        <tr>
+          <td><b>${b.bill_no}</b></td>
+          <td>${b.rx_no || 'N/A'}</td>
+          <td><b>${b.patient_name}</b></td>
+          <td>₹${b.total_amount}</td>
+          <td>₹${b.paid_amount || 0}</td>
+          <td><b style="color:var(--accent-orange)">₹${b.balance_due}</b></td>
+          <td><span style="color:${b.payment_status === 'Paid' ? '#10b981' : b.payment_status === 'Partial' ? '#f59e0b' : '#ef4444'}; font-weight:bold;">${b.payment_status}</span></td>
+          <td><button class="btn btn-green" onclick="openPaymentModal('${b.id}')">💵 Collect Payment</button></td>
+        </tr>
+      `).join('') || '<tr><td colSpan="8">No billing records found for this view.</td></tr>';
     }
 
+    function openPaymentModal(id) {
+      const b = db.billing.find(x => x.id === id);
+      if (!b) return;
+      document.getElementById('pay-bill-id').value = b.id;
+      document.getElementById('pay-total').value = b.total_amount;
+      document.getElementById('pay-prev').value = b.paid_amount || 0;
+      document.getElementById('pay-amount').value = b.balance_due;
+      openModal('md-pay');
+    }
+
+    async function processPayment(e) {
+      e.preventDefault();
+      const id = document.getElementById('pay-bill-id').value;
+      const b = db.billing.find(x => x.id === id);
+      if (!b) return;
+
+      const newPayment = Number(document.getElementById('pay-amount').value) || 0;
+      const updatedPaid = (Number(b.paid_amount) || 0) + newPayment;
+      const updatedBalance = Number(b.total_amount) - updatedPaid;
+      const newStatus = updatedBalance <= 0 ? 'Paid' : updatedPaid > 0 ? 'Partial' : 'Unpaid';
+
+      const payload = {
+        paid_amount: updatedPaid,
+        balance_due: updatedBalance < 0 ? 0 : updatedBalance,
+        payment_status: newStatus
+      };
+
+      if (sbClient) {
+        await sbClient.from('billing').update(payload).eq('id', id);
+      } else {
+        const idx = db.billing.findIndex(x => x.id === id);
+        if (idx !== -1) db.billing[idx] = { ...db.billing[idx], ...payload };
+      }
+
+      alert(`Payment of ₹${newPayment} recorded! Status: ${newStatus}`);
+      closeModal('md-pay');
+      init();
+    }
+
+    /* HRMS MODULE */
     function renderEmployees() {
       const q = (document.getElementById('emp-search')?.value || '').toLowerCase();
       const filtered = db.emp.filter(e => (e.first_name || '').toLowerCase().includes(q) || (e.last_name || '').toLowerCase().includes(q) || (e.emp_id || '').toLowerCase().includes(q));
