@@ -1,5 +1,5 @@
 /**
- * MODULE 5: AUSHADHI NIRMAN (FULL STACK INTEGRATION)
+ * MODULE 5: AUSHADHI NIRMAN (STRICT CSS ALIGNMENT & INGREDIENT FORMATTING)
  */
 window.nirmanState = {
   currentIngredients: [],
@@ -20,25 +20,26 @@ function el(id) {
   return document.getElementById(id);
 }
 
+// 1. DYNAMIC MODAL INJECTION WITH FIXED FLEX/GRID ALIGNMENTS
 function ensureModalsExist() {
   if (!el('modal-master-recipe')) {
     const m = document.createElement('div');
     m.id = 'modal-master-recipe';
     m.className = 'modal';
-    m.style.cssText = 'display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 99999;';
+    m.style.cssText = 'display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 99999; padding: 1rem;';
     m.innerHTML = `
-      <div style="background: #1e293b; width: 560px; padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: white;">
-        <h3 style="margin-top: 0;">+ Register Master Recipe</h3>
+      <div style="background: #1e293b; width: 100%; max-width: 580px; padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: white; box-sizing: border-box;">
+        <h3 style="margin-top: 0; color: white;">+ Register Master Recipe</h3>
         <div style="margin-bottom: 1rem;">
-          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem;">Output Medicine Name *</label>
-          <input type="text" id="input-recipe-name" placeholder="e.g. Mahanarayani Tailam" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Output Medicine Name *</label>
+          <input type="text" id="input-recipe-name" placeholder="e.g. Mahanarayani Tailam" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
         </div>
-        <div style="background: rgba(15, 23, 42, 0.8); padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
+        <div style="background: rgba(15, 23, 42, 0.8); padding: 1rem; border-radius: 6px; margin-bottom: 1rem; box-sizing: border-box;">
           <h4 style="margin-top: 0; margin-bottom: 0.8rem; color: #ea580c;">Add Raw Ingredients (BOM)</h4>
-          <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.5rem; align-items: center; margin-bottom: 0.8rem;">
-            <select id="select-recipe-raw-material" style="padding: 0.5rem; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 4px;"></select>
-            <input type="number" id="input-recipe-qty" placeholder="Qty/unit" style="padding: 0.5rem; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 4px;">
-            <button type="button" onclick="addIngredientToRecipe()" style="background: #ea580c; color: white; border: none; padding: 0.5rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold;">+ Add Ingredient</button>
+          <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.8rem; width: 100%; box-sizing: border-box;">
+            <select id="select-recipe-raw-material" style="flex: 2; min-width: 0; padding: 0.5rem; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;"></select>
+            <input type="number" id="input-recipe-qty" placeholder="Qty/unit" style="flex: 1; min-width: 0; padding: 0.5rem; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+            <button type="button" onclick="addIngredientToRecipe()" style="background: #ea580c; color: white; border: none; padding: 0.5rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; whitespace: nowrap; flex-shrink: 0;">+ Add Ingredient</button>
           </div>
           <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
             <thead>
@@ -64,18 +65,18 @@ function ensureModalsExist() {
     const rm = document.createElement('div');
     rm.id = 'modal-raw-material';
     rm.className = 'modal';
-    rm.style.cssText = 'display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 99999;';
+    rm.style.cssText = 'display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 99999; padding: 1rem;';
     rm.innerHTML = `
-      <div style="background: #1e293b; width: 480px; padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: white;">
+      <div style="background: #1e293b; width: 100%; max-width: 480px; padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: white; box-sizing: border-box;">
         <h3 style="margin-top: 0;">Raw Material Record</h3>
         <div style="margin-bottom: 1rem;">
           <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem;">Material Name *</label>
-          <input type="text" id="input-rm-name" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+          <input type="text" id="input-rm-name" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
           <div>
             <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem;">Category</label>
-            <select id="select-rm-category" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+            <select id="select-rm-category" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
               <option value="Herbs">Herbs</option>
               <option value="Base Oil/Ghee">Base Oil/Ghee</option>
               <option value="Bhasma & Minerals">Bhasma & Minerals</option>
@@ -83,7 +84,7 @@ function ensureModalsExist() {
           </div>
           <div>
             <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem;">Unit</label>
-            <select id="select-rm-unit" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+            <select id="select-rm-unit" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
               <option value="kg">kg</option>
               <option value="L">L</option>
               <option value="g">g</option>
@@ -93,15 +94,15 @@ function ensureModalsExist() {
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.8rem; margin-bottom: 1.5rem;">
           <div>
             <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem;">Stock</label>
-            <input type="number" id="input-rm-stock" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+            <input type="number" id="input-rm-stock" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
           </div>
           <div>
             <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem;">Reorder</label>
-            <input type="number" id="input-rm-reorder" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+            <input type="number" id="input-rm-reorder" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
           </div>
           <div>
             <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem;">Cost/Unit</label>
-            <input type="number" id="input-rm-cost" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+            <input type="number" id="input-rm-cost" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
           </div>
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
@@ -114,6 +115,7 @@ function ensureModalsExist() {
   }
 }
 
+// 2. MODAL CONTROLLERS
 function openMasterRecipeModal() {
   ensureModalsExist();
   const modal = el('modal-master-recipe');
@@ -156,6 +158,7 @@ function closeRawMaterialModal() {
   window.nirmanState.editingRmId = null;
 }
 
+// 3. FETCH & RENDER WITH NULL-SAFE INGREDIENT RESOLVER
 async function loadAushadhiNirmanData() {
   ensureModalsExist();
   const db = getDb();
@@ -203,19 +206,32 @@ function renderMasterRecipesTable(data) {
   const tbody = el('tbody-master-recipes') || document.querySelectorAll('#module-aushadhi-nirman table tbody')[1] || document.querySelectorAll('table')[1]?.querySelector('tbody');
   if (!tbody) return;
 
+  const rawMap = {};
+  (window.nirmanState.rawMaterials || []).forEach(rm => { rawMap[rm.id] = rm; });
+
   tbody.innerHTML = data.map(r => {
     let ingText = 'No ingredients';
+
     if (r.ingredients) {
       try {
         const parsed = typeof r.ingredients === 'string' ? JSON.parse(r.ingredients) : r.ingredients;
         if (Array.isArray(parsed) && parsed.length > 0) {
-          ingText = parsed.map(i => `${i.name || i.id} (${i.qty})`).join(', ');
+          ingText = parsed.map(i => {
+            const rawItem = rawMap[i.id];
+            const name = i.name || (rawItem ? rawItem.name : i.id);
+            const qty = i.qty || 1;
+            const unit = rawItem ? (rawItem.unit || '') : '';
+            return `${name} (${qty}${unit})`;
+          }).join(', ');
         }
       } catch (e) {
         ingText = String(r.ingredients);
       }
     } else if (r.raw_req_id) {
-      ingText = `${r.raw_req_id} (${r.req_qty_per_unit || 1})`;
+      const rawItem = rawMap[r.raw_req_id];
+      const name = rawItem ? rawItem.name : r.raw_req_id;
+      const unit = rawItem ? (rawItem.unit || '') : '';
+      ingText = `${name} (${r.req_qty_per_unit || 1}${unit})`;
     }
 
     return `
@@ -238,7 +254,49 @@ function populateRawMaterialsSelect() {
 
   const list = window.nirmanState.rawMaterials || [];
   select.innerHTML = '<option value="">-- Select Raw Material --</option>' +
-    list.map(m => `<option value="${m.id}">${m.id} - ${m.name} (${m.stock} ${m.unit || 'kg'})</option>`).join('');
+    list.map(m => `<option value="${m.id}">${m.name} (${m.stock} ${m.unit || 'kg'})</option>`).join('');
+}
+
+// 4. BOM INGREDIENT ADDER & ACTIONS
+function addIngredientToRecipe() {
+  const select = el('select-recipe-raw-material');
+  const qtyInp = el('input-recipe-qty');
+
+  if (!select || !select.value) return alert("Select a Raw Material first.");
+  const qty = parseFloat(qtyInp ? qtyInp.value : 0);
+  if (isNaN(qty) || qty <= 0) return alert("Quantity per unit must be > 0.");
+
+  const matId = select.value;
+  const rawItem = (window.nirmanState.rawMaterials || []).find(r => r.id === matId);
+  const matName = rawItem ? rawItem.name : matId;
+
+  const existing = window.nirmanState.currentIngredients.find(i => i.id === matId);
+  if (existing) existing.qty += qty;
+  else window.nirmanState.currentIngredients.push({ id: matId, name: matName, qty: qty });
+
+  renderModalIngredientsTable();
+  if (qtyInp) qtyInp.value = '';
+}
+
+function renderModalIngredientsTable() {
+  const tbody = el('tbody-modal-ingredients');
+  if (!tbody) return;
+
+  const list = window.nirmanState.currentIngredients;
+  if (list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:0.8rem; color:#9ca3af;">No ingredients added.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map((item, idx) => `
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <td style="padding:0.5rem; color:white;">${item.name}</td>
+      <td style="padding:0.5rem; color:white; font-weight:bold;">${item.qty}</td>
+      <td style="padding:0.5rem; text-align:center;">
+        <button type="button" onclick="window.nirmanState.currentIngredients.splice(${idx},1); renderModalIngredientsTable();" style="background:#dc2626; color:white; border:none; padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
+      </td>
+    </tr>
+  `).join('');
 }
 
 async function saveRawMaterial() {
@@ -280,46 +338,6 @@ async function deleteRawMaterial(id) {
   const db = getDb();
   await db.from('raw_materials').delete().eq('id', id);
   loadAushadhiNirmanData();
-}
-
-function addIngredientToRecipe() {
-  const select = el('select-recipe-raw-material');
-  const qtyInp = el('input-recipe-qty');
-
-  if (!select || !select.value) return alert("Select a Raw Material first.");
-  const qty = parseFloat(qtyInp ? qtyInp.value : 0);
-  if (isNaN(qty) || qty <= 0) return alert("Quantity per unit must be > 0.");
-
-  const matId = select.value;
-  const matName = select.options[select.selectedIndex].text;
-
-  const existing = window.nirmanState.currentIngredients.find(i => i.id === matId);
-  if (existing) existing.qty += qty;
-  else window.nirmanState.currentIngredients.push({ id: matId, name: matName, qty: qty });
-
-  renderModalIngredientsTable();
-  if (qtyInp) qtyInp.value = '';
-}
-
-function renderModalIngredientsTable() {
-  const tbody = el('tbody-modal-ingredients');
-  if (!tbody) return;
-
-  const list = window.nirmanState.currentIngredients;
-  if (list.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:0.8rem; color:#9ca3af;">No ingredients added.</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = list.map((item, idx) => `
-    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-      <td style="padding:0.5rem; color:white;">${item.name}</td>
-      <td style="padding:0.5rem; color:white; font-weight:bold;">${item.qty}</td>
-      <td style="padding:0.5rem; text-align:center;">
-        <button type="button" onclick="window.nirmanState.currentIngredients.splice(${idx},1); renderModalIngredientsTable();" style="background:#dc2626; color:white; border:none; padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
-      </td>
-    </tr>
-  `).join('');
 }
 
 async function saveMasterRecipe() {
@@ -364,8 +382,10 @@ async function executeBatchProduction() {
   const { data: recipes } = await db.from('master_recipes').select('*');
   if (!recipes || recipes.length === 0) return alert("No master recipes registered.");
 
-  const menu = recipes.map((r, i) => `${i + 1}. ${r.name || r.medicine_name || r.id}`).join('\n');
-  const sel = prompt("Select Master Recipe Number for Batch Production:\n" + menu);
+  const menu = recipes.map((r, i) => `${i + 1}. ${r.name || r.medicine_name || r.id}`).join('
+');
+  const sel = prompt("Select Master Recipe Number for Batch Production:
+" + menu);
   if (!sel) return;
 
   const target = recipes[parseInt(sel) - 1];
@@ -398,7 +418,12 @@ async function executeBatchProduction() {
     }
   }
 
-  alert(`Batch Production Successful!\nManufactured ${batchQty} units of ${target.name}.\n\nStock Deductions:\n` + log.join('\n'));
+  alert(`Batch Production Successful!
+Manufactured ${batchQty} units of ${target.name}.
+
+Stock Deductions:
+` + log.join('
+'));
   loadAushadhiNirmanData();
 }
 
