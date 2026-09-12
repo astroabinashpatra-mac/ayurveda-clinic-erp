@@ -88,7 +88,7 @@
     .grid-5 { grid-template-columns: repeat(5, 1fr); }
     .grid-7 { grid-template-columns: repeat(7, 1fr); }
     .form-group { display: flex; flex-direction: column; gap: 0.2rem; }
-    .form-group label { font-size: 0.65rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
+    .form-group label { font-size: 0.65rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; min-height: 26px; display: flex; align-items: flex-end; margin-bottom: 0.3rem; }
     .form-control { padding: 0.55rem; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-main); border-radius: 6px; font-size: 0.825rem; width: 100%; }
 
     .sch-grid { display: grid; grid-template-columns: 110px repeat(7, 1fr); border: 1px solid var(--border-dark); border-radius: 8px; overflow: hidden; background: var(--panel-dark); }
@@ -1825,7 +1825,44 @@
 
     function openRawMaterialModal() { document.getElementById('rm-id').value = ''; document.getElementById('rm-name').value = ''; document.getElementById('rm-stock').value = ''; document.getElementById('rm-reorder').value = ''; openModal('md-raw-mat'); }
     function editRawMaterial(id) { const rm = db.rawMaterials.find(r => r.id === id); if (!rm) return; document.getElementById('rm-id').value = rm.id; document.getElementById('rm-name').value = rm.name; document.getElementById('rm-stock').value = rm.stock; document.getElementById('rm-reorder').value = rm.reorder; openModal('md-raw-mat'); }
-    async function saveRawMaterial(e) { e.preventDefault(); const id = document.getElementById('rm-id').value; const payload = { name: document.getElementById('rm-name').value, category: document.getElementById('rm-category').value, unit: document.getElementById('rm-unit').value, stock: Number(document.getElementById('rm-stock').value) || 0, reorder: Number(document.getElementById('rm-reorder').value) || 0 }; if (!id) payload.id = 'RAW-0' + (db.rawMaterials.length + 1); if (sbClient) { if (id) await sbClient.from('raw_materials').update(payload).eq('id', id); else await sbClient.from('raw_materials').insert([payload]); } else { if (id) { const idx = db.rawMaterials.findIndex(r => r.id === id); if (idx !== -1) db.rawMaterials[idx] = { id, ...payload }; } else db.rawMaterials.push(payload); } closeModal('md-raw-mat'); init(); }
+    async function saveRawMaterial(e) {
+      e.preventDefault();
+      const id = document.getElementById('rm-id').value;
+      const matName = document.getElementById('rm-name').value.trim();
+      const category = document.getElementById('rm-category').value;
+      const unit = document.getElementById('rm-unit').value;
+      const stock = parseFloat(document.getElementById('rm-stock').value) || 0;
+      const reorder = parseFloat(document.getElementById('rm-reorder').value) || 0;
+
+      const payload = {
+        name: matName,
+        category: category,
+        unit: unit,
+        stock: stock,
+        reorder: reorder
+      };
+
+      if (id) {
+        const idx = db.rawMaterials.findIndex(r => r.id === id);
+        if (idx !== -1) db.rawMaterials[idx] = { ...db.rawMaterials[idx], ...payload };
+        if (sbClient) {
+          try { await sbClient.from('raw_materials').update(payload).eq('id', id); } catch(err){ console.error(err); }
+        }
+      } else {
+        const newObj = { id: 'RAW-' + Date.now(), ...payload };
+        db.rawMaterials.unshift(newObj);
+        if (sbClient) {
+          try {
+            const { data, error } = await sbClient.from('raw_materials').insert([payload]).select();
+            if (data && data[0]) newObj.id = data[0].id;
+          } catch(err){ console.error(err); }
+        }
+      }
+
+      closeModal('md-raw-mat');
+      renderAushadhiNirman();
+      alert(`✅ Raw Material "${matName}" saved successfully!`);
+    }
     async function delRawMaterial(id) { if (!confirm('Delete item?')) return; if (sbClient) await sbClient.from('raw_materials').delete().eq('id', id); else db.rawMaterials = db.rawMaterials.filter(r => r.id !== id); init(); }
 
     function openRecipeModal() { document.getElementById('rc-id').value = ''; document.getElementById('rc-name').value = ''; generateAutoBarcode(); currentRecipeIngredients = []; const sel = document.getElementById('rc-add-raw-id'); if (sel) sel.innerHTML = db.rawMaterials.map(r => `<option value="${r.id}">${r.id} - ${r.name}</option>`).join(''); renderRecipeIngredientsTable(); openModal('md-recipe'); }
@@ -1839,15 +1876,63 @@
       const recipeId = document.getElementById('bp-recipe-id').value;
       const recipe = db.recipes.find(r => r.id === recipeId);
       if (!recipe) return alert('Select recipe');
-      const units = Number(document.getElementById('bp-units').value) || 0;
-      let ingList = []; try { ingList = typeof recipe.ingredients === 'string' ? JSON.parse(recipe.ingredients) : (recipe.ingredients || []); } catch(err){}
-      for (let ing of ingList) { const raw = db.rawMaterials.find(x => x.id === ing.raw_id); if (!raw || Number(raw.stock) < Number(ing.qty_per_unit) * units) return alert(`Insufficient raw stock for ${raw ? raw.name : ing.raw_id}`); }
-      for (let ing of ingList) { const raw = db.rawMaterials.find(x => x.id === ing.raw_id); if (raw) { raw.stock = Math.max(0, Number(raw.stock) - (Number(ing.qty_per_unit) * units)); if (sbClient) try { await sbClient.from('raw_materials').update({ stock: raw.stock }).eq('id', raw.id); } catch(err){} } }
-      const phPayload = { barcode: recipe.barcode, name: recipe.name, batch_code: document.getElementById('bp-batch-code').value, expiry: document.getElementById('bp-expiry').value, production_cost: Number(document.getElementById('bp-cost-price').value)||250, price: Number(document.getElementById('bp-price').value)||650, stock: units };
-      if (sbClient) try { await sbClient.from('pharmacy_stock').insert([phPayload]); } catch(err){}
+
+      const units = parseFloat(document.getElementById('bp-units').value) || 0;
+      if (units <= 0) return alert('Enter valid production units');
+
+      let ingList = [];
+      try {
+        ingList = typeof recipe.ingredients === 'string' ? JSON.parse(recipe.ingredients) : (recipe.ingredients || []);
+      } catch(err){ console.error(err); }
+
+      if (!ingList.length) return alert('This recipe has no ingredients attached!');
+
+      // Step 1: Check if stock is sufficient
+      for (let ing of ingList) {
+        const raw = db.rawMaterials.find(x => x.id === ing.raw_id || x.name === ing.raw_name);
+        const qtyRequired = (parseFloat(ing.qty_per_unit) || 0) * units;
+        const currentStock = parseFloat(raw ? raw.stock : 0);
+
+        if (!raw || currentStock < qtyRequired) {
+          return alert(`⚠️ Insufficient Stock! ${raw ? raw.name : ing.raw_id} requires ${qtyRequired.toFixed(2)}, but only ${currentStock.toFixed(2)} is available.`);
+        }
+      }
+
+      # Step 2: Deduct stock from memory & Supabase DB
+      for (let ing of ingList) {
+        const raw = db.rawMaterials.find(x => x.id === ing.raw_id || x.name === ing.raw_name);
+        if (raw) {
+          const qtyRequired = (parseFloat(ing.qty_per_unit) || 0) * units;
+          raw.stock = Math.max(0, parseFloat(raw.stock) - qtyRequired);
+
+          if (sbClient) {
+            try {
+              await sbClient.from('raw_materials').update({ stock: raw.stock }).eq('id', raw.id);
+            } catch(err) { console.error('Error updating raw material stock:', err); }
+          }
+        }
+      }
+
+      // Step 3: Transfer produced items to Pharmacy Stock
+      const phPayload = {
+        barcode: recipe.barcode,
+        name: recipe.name,
+        batch_code: document.getElementById('bp-batch-code').value,
+        expiry: document.getElementById('bp-expiry').value,
+        purchase_rate: parseFloat(document.getElementById('bp-cost-price').value) || 250,
+        price: parseFloat(document.getElementById('bp-price').value) || 650,
+        stock: units
+      };
+
+      if (sbClient) {
+        try { await sbClient.from('pharmacy_stock').insert([phPayload]); } catch(err){}
+      }
       db.pharmacy.unshift(phPayload);
-      alert(`Batch Executed! ${units} units of ${recipe.name} transferred to Pharmacy.`);
-      closeModal('md-batch-prod'); init();
+
+      alert(`✅ Production Successful! Deducted raw materials and transferred ${units} units of "${recipe.name}" to Pharmacy Inventory.`);
+      closeModal('md-batch-prod');
+      renderAushadhiNirman();
+      renderPharmacy();
     }
 
     /* HERBAL PHARMACY & POS */
