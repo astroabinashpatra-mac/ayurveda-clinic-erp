@@ -744,7 +744,7 @@ function removeRecipeIngredient(index) {
         <div class="section-header">
           <h3 style="color:var(--accent-orange);">🏺 MASTER RECIPES & PRODUCTION ENGINE</h3>
           <div style="display:flex; gap:0.5rem;">
-            <button class="btn btn-orange" onclick="openRecipeModal()">+ Add Master Recipe</button>
+            <button type="button" onclick="openMasterRecipeModal()"  class="btn btn-orange" onclick="openRecipeModal()">+ Add Master Recipe</button>
             <button class="btn btn-blue" onclick="openModal('md-batch-prod')">⚙️ Execute Batch Production</button>
           </div>
         </div>
@@ -4325,6 +4325,37 @@ async function saveMasterRecipe(e) {
   if (modal && modal.style) modal.style.display = 'none';
 
   if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+}
+</script>
+
+
+<script id="open-modal-handlers">
+function openMasterRecipeModal() {
+  const modals = document.querySelectorAll('.modal, [id*="modal"], div[style*="position: fixed"], div[style*="position:fixed"]');
+  let targetModal = null;
+
+  for (let m of modals) {
+    if (m.innerText && m.innerText.includes('Register Master Recipe')) {
+      targetModal = m;
+      break;
+    }
+  }
+
+  if (!targetModal) {
+    targetModal = document.querySelector('#modal-master-recipe');
+  }
+
+  if (targetModal) {
+    targetModal.style.display = 'flex';
+    targetModal.style.opacity = '1';
+    targetModal.style.visibility = 'visible';
+
+    // Reset ingredient list state on clean modal launch
+    window.currentRecipeIngredients = [];
+    if (typeof renderRecipeTable === 'function') renderRecipeTable();
+  } else {
+    alert("Could not locate Master Recipe modal container in DOM.");
+  }
 }
 </script>
 
