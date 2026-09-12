@@ -1595,11 +1595,15 @@
         db.billing.unshift({ id: 'b-' + Date.now(), ...billPayload, created_at: new Date().toISOString() });
         if (sbClient) {
           try {
-            const { data: rxData, error: rxErr } = await sbClient.from('prescriptions').insert([rxPayload]).select();
-            if (rxErr) console.error('Supabase Prescriptions Insert Error:', rxErr);
-            const { error: billErr } = await sbClient.from('billing').insert([billPayload]);
-            if (billErr) console.error('Supabase Billing Insert Error:', billErr);
-          } catch(e){ console.error('Supabase Catch:', e); }
+            const { data, error } = await sbClient.from('prescriptions').insert([rxPayload]).select();
+            if (error) {
+              console.error('Prescriptions Insert Failed:', error);
+              alert('Database Sync Warning: ' + error.message);
+            } else {
+              console.log('Prescription persisted to Supabase:', data);
+            }
+            await sbClient.from('billing').insert([billPayload]);
+          } catch(e) { console.error('DB Catch:', e); }
         }
       }
 
