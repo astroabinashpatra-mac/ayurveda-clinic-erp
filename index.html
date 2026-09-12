@@ -151,6 +151,123 @@ document.addEventListener('keydown', function(event) {
   }
 });
 
+
+
+// --- MODULE 5: RAW MATERIALS & MASTER RECIPES SYNC ENGINE ---
+
+// 1. Fetch live raw materials from Supabase and sync into recipe dropdowns
+async function syncRawMaterialsToRecipeBuilder() {
+  if (!supabaseClient) return;
+  const { data: materials, error } = await supabaseClient
+    .from('raw_materials')
+    .select('*')
+    .order('name');
+  
+  if (error) {
+    console.error("Error fetching raw materials:", error);
+    return;
+  }
+  
+  window.availableRawMaterials = materials || [];
+  updateAllRecipeDropdowns();
+}
+
+// 2. Refresh dropdown options across all recipe ingredient rows
+function updateAllRecipeDropdowns() {
+  const dropdowns = document.querySelectorAll('.ing-material-select');
+  dropdowns.forEach(select => {
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">-- Select Raw Material --</option>';
+    (window.availableRawMaterials || []).forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = `${m.name} (${m.unit || 'unit'}) - ₹${m.purchase_rate || 0}/unit`;
+      opt.dataset.rate = m.purchase_rate || 0;
+      if (m.id === currentVal) opt.selected = true;
+      select.appendChild(opt);
+    });
+  });
+}
+
+// 3. Add dynamic ingredient row with auto-populated purchase rate & event triggers
+function addRecipeIngredientRow(selectedId = '', qty = 0) {
+  const tbody = document.querySelector('#recipe-ingredients-table tbody');
+  if (!tbody) return;
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="padding:0.4rem;">
+      <select class="ing-material-select" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" onchange="onIngredientSelectChange(this)">
+        <option value="">-- Select Raw Material --</option>
+      </select>
+    </td>
+    <td style="padding:0.4rem;">
+      <input type="number" step="0.01" class="ing-qty" value="${qty}" placeholder="0" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" oninput="calculateRecipeCost()">
+    </td>
+    <td style="padding:0.4rem;">
+      <input type="number" step="0.01" class="ing-rate" value="0.00" placeholder="0.00" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" oninput="calculateRecipeCost()">
+    </td>
+    <td class="ing-total-cost" style="padding:0.4rem; font-weight:bold; color:var(--accent-green);">₹0.00</td>
+    <td style="padding:0.4rem; text-align:center;">
+      <button type="button" onclick="this.closest('tr').remove(); calculateRecipeCost();" style="background:#dc2626; color:white; border:none; padding:0.3rem 0.6rem; border-radius:4px; cursor:pointer;">✕</button>
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+  updateAllRecipeDropdowns();
+  
+  if (selectedId) {
+    const select = tr.querySelector('.ing-material-select');
+    select.value = selectedId;
+    onIngredientSelectChange(select);
+  }
+}
+
+// 4. Auto-fill purchase rate when an ingredient is selected
+function onIngredientSelectChange(selectElem) {
+  const selectedOpt = selectElem.options[selectElem.selectedIndex];
+  const rateInput = selectElem.closest('tr').querySelector('.ing-rate');
+  if (selectedOpt && selectedOpt.dataset.rate && rateInput) {
+    rateInput.value = parseFloat(selectedOpt.dataset.rate).toFixed(2);
+  }
+  calculateRecipeCost();
+}
+
+// 5. Live COGS investment & selling price calculator
+function calculateRecipeCost() {
+  const rows = document.querySelectorAll('#recipe-ingredients-table tbody tr');
+  let totalBatchCost = 0;
+
+  rows.forEach(row => {
+    const qty = parseFloat(row.querySelector('.ing-qty')?.value) || 0;
+    const rate = parseFloat(row.querySelector('.ing-rate')?.value) || 0;
+    const itemCost = qty * rate;
+    totalBatchCost += itemCost;
+    
+    const costCell = row.querySelector('.ing-total-cost');
+    if (costCell) costCell.textContent = '₹' + itemCost.toFixed(2);
+  });
+
+  const yieldInput = document.getElementById('recipe-standard-yield');
+  const yieldQty = parseFloat(yieldInput?.value) || 1;
+  const unitCost = totalBatchCost / (yieldQty || 1);
+
+  const elTotalCost = document.getElementById('calc-total-batch-cost');
+  const elUnitCost = document.getElementById('calc-unit-cost');
+  const elSuggestedMRP = document.getElementById('calc-suggested-mrp');
+
+  if (elTotalCost) elTotalCost.textContent = '₹' + totalBatchCost.toFixed(2);
+  if (elUnitCost) elUnitCost.textContent = '₹' + unitCost.toFixed(2);
+  if (elSuggestedMRP && !elSuggestedMRP.dataset.userEdited) {
+    elSuggestedMRP.value = (unitCost * 1.40).toFixed(2);
+  }
+}
+
+// Automatically sync dropdowns when Module 5 tab opens
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(syncRawMaterialsToRecipeBuilder, 1000);
+});
+
 </script>
 
   <style>
@@ -3021,6 +3138,123 @@ document.addEventListener('keydown', function(event) {
       }
     });
   }
+});
+
+
+
+// --- MODULE 5: RAW MATERIALS & MASTER RECIPES SYNC ENGINE ---
+
+// 1. Fetch live raw materials from Supabase and sync into recipe dropdowns
+async function syncRawMaterialsToRecipeBuilder() {
+  if (!supabaseClient) return;
+  const { data: materials, error } = await supabaseClient
+    .from('raw_materials')
+    .select('*')
+    .order('name');
+  
+  if (error) {
+    console.error("Error fetching raw materials:", error);
+    return;
+  }
+  
+  window.availableRawMaterials = materials || [];
+  updateAllRecipeDropdowns();
+}
+
+// 2. Refresh dropdown options across all recipe ingredient rows
+function updateAllRecipeDropdowns() {
+  const dropdowns = document.querySelectorAll('.ing-material-select');
+  dropdowns.forEach(select => {
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">-- Select Raw Material --</option>';
+    (window.availableRawMaterials || []).forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = `${m.name} (${m.unit || 'unit'}) - ₹${m.purchase_rate || 0}/unit`;
+      opt.dataset.rate = m.purchase_rate || 0;
+      if (m.id === currentVal) opt.selected = true;
+      select.appendChild(opt);
+    });
+  });
+}
+
+// 3. Add dynamic ingredient row with auto-populated purchase rate & event triggers
+function addRecipeIngredientRow(selectedId = '', qty = 0) {
+  const tbody = document.querySelector('#recipe-ingredients-table tbody');
+  if (!tbody) return;
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="padding:0.4rem;">
+      <select class="ing-material-select" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" onchange="onIngredientSelectChange(this)">
+        <option value="">-- Select Raw Material --</option>
+      </select>
+    </td>
+    <td style="padding:0.4rem;">
+      <input type="number" step="0.01" class="ing-qty" value="${qty}" placeholder="0" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" oninput="calculateRecipeCost()">
+    </td>
+    <td style="padding:0.4rem;">
+      <input type="number" step="0.01" class="ing-rate" value="0.00" placeholder="0.00" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" oninput="calculateRecipeCost()">
+    </td>
+    <td class="ing-total-cost" style="padding:0.4rem; font-weight:bold; color:var(--accent-green);">₹0.00</td>
+    <td style="padding:0.4rem; text-align:center;">
+      <button type="button" onclick="this.closest('tr').remove(); calculateRecipeCost();" style="background:#dc2626; color:white; border:none; padding:0.3rem 0.6rem; border-radius:4px; cursor:pointer;">✕</button>
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+  updateAllRecipeDropdowns();
+  
+  if (selectedId) {
+    const select = tr.querySelector('.ing-material-select');
+    select.value = selectedId;
+    onIngredientSelectChange(select);
+  }
+}
+
+// 4. Auto-fill purchase rate when an ingredient is selected
+function onIngredientSelectChange(selectElem) {
+  const selectedOpt = selectElem.options[selectElem.selectedIndex];
+  const rateInput = selectElem.closest('tr').querySelector('.ing-rate');
+  if (selectedOpt && selectedOpt.dataset.rate && rateInput) {
+    rateInput.value = parseFloat(selectedOpt.dataset.rate).toFixed(2);
+  }
+  calculateRecipeCost();
+}
+
+// 5. Live COGS investment & selling price calculator
+function calculateRecipeCost() {
+  const rows = document.querySelectorAll('#recipe-ingredients-table tbody tr');
+  let totalBatchCost = 0;
+
+  rows.forEach(row => {
+    const qty = parseFloat(row.querySelector('.ing-qty')?.value) || 0;
+    const rate = parseFloat(row.querySelector('.ing-rate')?.value) || 0;
+    const itemCost = qty * rate;
+    totalBatchCost += itemCost;
+    
+    const costCell = row.querySelector('.ing-total-cost');
+    if (costCell) costCell.textContent = '₹' + itemCost.toFixed(2);
+  });
+
+  const yieldInput = document.getElementById('recipe-standard-yield');
+  const yieldQty = parseFloat(yieldInput?.value) || 1;
+  const unitCost = totalBatchCost / (yieldQty || 1);
+
+  const elTotalCost = document.getElementById('calc-total-batch-cost');
+  const elUnitCost = document.getElementById('calc-unit-cost');
+  const elSuggestedMRP = document.getElementById('calc-suggested-mrp');
+
+  if (elTotalCost) elTotalCost.textContent = '₹' + totalBatchCost.toFixed(2);
+  if (elUnitCost) elUnitCost.textContent = '₹' + unitCost.toFixed(2);
+  if (elSuggestedMRP && !elSuggestedMRP.dataset.userEdited) {
+    elSuggestedMRP.value = (unitCost * 1.40).toFixed(2);
+  }
+}
+
+// Automatically sync dropdowns when Module 5 tab opens
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(syncRawMaterialsToRecipeBuilder, 1000);
 });
 
 </script>
