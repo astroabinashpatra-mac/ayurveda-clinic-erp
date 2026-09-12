@@ -125,6 +125,32 @@ function calculateRecipeCost() {
   if (elSuggestedMRP) elSuggestedMRP.value = (unitCost * 1.40).toFixed(2);
 }
 
+
+
+// Global ESC key listener to close open modals across all modules
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27) {
+    // 1. Find all visible modal overlays or dialog containers
+    const modals = document.querySelectorAll('.modal, .modal-overlay, [id*="modal"], [id*="Modal"]');
+    
+    modals.forEach(modal => {
+      const computedDisplay = window.getComputedStyle(modal).display;
+      if (computedDisplay !== 'none') {
+        modal.style.display = 'none';
+        modal.classList.remove('active', 'show');
+      }
+    });
+
+    // 2. Trigger active close button clicks if modal uses custom teardown logic
+    const visibleCloseBtns = document.querySelectorAll('.modal-close, .close, [onclick*="close"]');
+    visibleCloseBtns.forEach(btn => {
+      if (btn.offsetParent !== null) {
+        btn.click();
+      }
+    });
+  }
+});
+
 </script>
 
   <style>
@@ -2970,6 +2996,32 @@ function calculateRecipeCost() {
   // Default 40% margin calculation for suggested MRP
   if (elSuggestedMRP) elSuggestedMRP.value = (unitCost * 1.40).toFixed(2);
 }
+
+
+
+// Global ESC key listener to close open modals across all modules
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27) {
+    // 1. Find all visible modal overlays or dialog containers
+    const modals = document.querySelectorAll('.modal, .modal-overlay, [id*="modal"], [id*="Modal"]');
+    
+    modals.forEach(modal => {
+      const computedDisplay = window.getComputedStyle(modal).display;
+      if (computedDisplay !== 'none') {
+        modal.style.display = 'none';
+        modal.classList.remove('active', 'show');
+      }
+    });
+
+    // 2. Trigger active close button clicks if modal uses custom teardown logic
+    const visibleCloseBtns = document.querySelectorAll('.modal-close, .close, [onclick*="close"]');
+    visibleCloseBtns.forEach(btn => {
+      if (btn.offsetParent !== null) {
+        btn.click();
+      }
+    });
+  }
+});
 
 </script>
 
