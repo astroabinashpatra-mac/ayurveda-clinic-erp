@@ -1870,7 +1870,40 @@ Required: ${requiredTotal}, Available: ${availableStr}`);
     }
 
     /* POS RETAIL COUNTER FUNCTIONS */
+        function togglePosCustomerType(type) {
+      if (type === 'registered') {
+        document.getElementById('pos-otc-fields').style.display = 'none';
+        document.getElementById('pos-reg-fields').style.display = 'block';
+        renderPosPatientDataList();
+      } else {
+        document.getElementById('pos-otc-fields').style.display = 'grid';
+        document.getElementById('pos-reg-fields').style.display = 'none';
+        document.getElementById('pos-cust-name').value = 'Walk-in Customer';
+        document.getElementById('pos-cust-mobile').value = '';
+        document.getElementById('pos-p-search').value = '';
+        document.getElementById('pos-reg-patient-id').value = '';
+      }
+    }
+
+    function renderPosPatientDataList() {
+      const dl = document.getElementById('dl-pos-patients');
+      if (dl) {
+        dl.innerHTML = db.patients.map(p => `<option value="${p.full_name} (${p.mobile_no})">${p.uhid} | Age: ${p.age} | ${p.prakriti}</option>`).join('');
+      }
+    }
+
+    function onPosPatientSelect() {
+      const val = document.getElementById('pos-p-search').value.toLowerCase();
+      const pat = db.patients.find(p => `${p.full_name} (${p.mobile_no})`.toLowerCase() === val || p.mobile_no === val || p.full_name.toLowerCase() === val);
+      if (pat) {
+        document.getElementById('pos-cust-name').value = pat.full_name;
+        document.getElementById('pos-cust-mobile').value = pat.mobile_no;
+        document.getElementById('pos-reg-patient-id').value = pat.id;
+      }
+    }
+
     function populatePosDropdown() {
+      togglePosCustomerType("otc");
       const sel = document.getElementById('pos-med-select');
       if (!sel) return;
       sel.innerHTML = db.pharmacy.map(p => `
