@@ -464,6 +464,43 @@ function removeRecipeIngredient(index) {
   </style>
                           <link rel="icon" type="image/png" href="data:image/png;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iI2ZmZmZmZiIvPgogIDwhLS0gQmx1ZSBIdW1hbiBGaWd1cmUgLyBTd2lybCAtLT4KICA8Y2lyY2xlIGN4PSIyNiIgY3k9IjE4IiByPSIzLjUiIGZpbGw9IiMwMjg0YzciLz4KICA8cGF0aCBkPSJNMjYgMjQgQzIwIDMwIDE4IDQyIDI3IDUyIEMyMSA0NCAyMSAzNCAyNyAyNiBaIiBmaWxsPSIjMDI4NGM3Ii8+CiAgPCEtLSBHcmVlbiBMZWFmIEVsZW1lbnQgLS0+CiAgPHBhdGggZD0iTTI5IDUyIEMzOCA0MiA0NSAyOCAzNiAxNiBDMzggMjggMzQgNDIgMjkgNTIgWiIgZmlsbD0iIzY1YTMwZCIvPgogIDxwYXRoIGQ9Ik0zMCA0OCBDMzcgMzggNDIgMjggMzYgMTggQzM4IDI4IDM0IDM4IDMwIDQ4IFoiIGZpbGw9IiM4NGNjMTYiLz4KPC9zdmc+Cg==">
   <link rel="apple-touch-icon" href="data:image/png;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iI2ZmZmZmZiIvPgogIDwhLS0gQmx1ZSBIdW1hbiBGaWd1cmUgLyBTd2lybCAtLT4KICA8Y2lyY2xlIGN4PSIyNiIgY3k9IjE4IiByPSIzLjUiIGZpbGw9IiMwMjg0YzciLz4KICA8cGF0aCBkPSJNMjYgMjQgQzIwIDMwIDE4IDQyIDI3IDUyIEMyMSA0NCAyMSAzNCAyNyAyNiBaIiBmaWxsPSIjMDI4NGM3Ii8+CiAgPCEtLSBHcmVlbiBMZWFmIEVsZW1lbnQgLS0+CiAgPHBhdGggZD0iTTI5IDUyIEMzOCA0MiA0NSAyOCAzNiAxNiBDMzggMjggMzQgNDIgMjkgNTIgWiIgZmlsbD0iIzY1YTMwZCIvPgogIDxwYXRoIGQ9Ik0zMCA0OCBDMzcgMzggNDIgMjggMzYgMTggQzM4IDI4IDM0IDM4IDMwIDQ4IFoiIGZpbGw9IiM4NGNjMTYiLz4KPC9zdmc+Cg==">
+<script>
+
+// --- GLOBAL MODULE NAVIGATION ENGINE ---
+function showModule(moduleId) {
+  try {
+    // Hide all module sections
+    const modules = document.querySelectorAll('.module-content, [id^="module-"]');
+    modules.forEach(m => {
+      m.style.display = 'none';
+      m.classList.remove('active');
+    });
+
+    // Target selected module container
+    const target = document.getElementById(moduleId) || document.getElementById('module-' + moduleId);
+    if (target) {
+      target.style.display = 'block';
+      target.classList.add('active');
+    }
+
+    // Update sidebar active link state
+    const navLinks = document.querySelectorAll('.sidebar a, .nav-item');
+    navLinks.forEach(link => link.classList.remove('active'));
+    
+    const activeLink = document.querySelector(`[onclick*="${moduleId}"]`);
+    if (activeLink) activeLink.classList.add('active');
+
+    // Trigger tab-specific initialization hooks safely
+    if (moduleId === 'aushadhi-nirman' || moduleId === '5' || moduleId === 'module-5') {
+      if (typeof syncRawMaterialsToRecipeBuilder === 'function') syncRawMaterialsToRecipeBuilder();
+      if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+    }
+  } catch (err) {
+    console.error("Navigation Error:", err);
+  }
+}
+
+</script>
 </head>
 <body>
 
