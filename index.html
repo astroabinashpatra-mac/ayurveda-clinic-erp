@@ -1289,7 +1289,7 @@ function removeRecipeIngredient(index) {
 
   <div id="md-raw-mat" class="modal-overlay">
     <div class="modal-container" style="max-width: 500px;">
-      <div class="modal-header"><h3>Raw Material Record</h3><button class="modal-close" onclick="closeModal('md-raw-mat')">✕</button></div>
+      <div id="modal-raw-material" class="modal-header"><h3>Raw Material Record</h3><button class="modal-close" onclick="closeModal('md-raw-mat')">✕</button></div>
       <form onsubmit="saveRawMaterial(event)">
         <input type="hidden" id="rm-id" />
         <div class="form-group"><label>MATERIAL NAME *</label><input type="text" id="rm-name" class="form-control" required /></div>
