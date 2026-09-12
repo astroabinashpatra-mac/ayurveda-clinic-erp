@@ -546,7 +546,7 @@
       <div class="form-grid grid-3">
         <div class="form-group">
           <label>SELECT REGISTERED PATIENT *</label>
-          <input type="text" id="rx-p-search" list="dl-patients" class="form-control" placeholder="Type Name, Mobile No, or UHID..." oninput="onRxPatientSelect()" required />
+          <input type="text" id="rx-p-search" list="dl-patients" class="form-control" placeholder="Type Name, Mobile No, or UHID..." onfocus="populateRxPatientDatalist()" oninput="onRxPatientSelect()" required />
           <datalist id="dl-patients"></datalist>
           <input type="hidden" id="rx-patient-id" />
         </div>
@@ -1366,22 +1366,25 @@
       init();
     }
 
-    function populateRxPatientDatalist() {
+        function populateRxPatientDatalist() {
       const dl = document.getElementById('dl-patients');
       if (!dl) return;
       dl.innerHTML = (db.patients || []).map(p => 
-        `<option value="${p.full_name} (${p.mobile_no})">${p.uhid || 'AA-P'} | Age: ${p.age} | ${p.prakriti || 'N/A'}</option>`
+        `<option value="${p.full_name} (${p.mobile_no || 'N/A'})">${p.uhid || 'AA-P'} | Mobile: ${p.mobile_no || 'N/A'} | Age: ${p.age || 'N/A'}</option>`
       ).join('');
     }
 
     function onRxPatientSelect() {
-      const val = (document.getElementById('rx-p-search')?.value || '').toLowerCase();
-      const pat = (db.patients || []).find(p => 
-        `${p.full_name} (${p.mobile_no})`.toLowerCase() === val || 
-        (p.mobile_no && p.mobile_no === val) || 
-        (p.full_name && p.full_name.toLowerCase() === val) ||
-        (p.uhid && p.uhid.toLowerCase() === val)
-      );
+      const val = (document.getElementById('rx-p-search')?.value || '').trim().toLowerCase();
+      if (!val) return;
+
+      const pat = (db.patients || []).find(p => {
+        const fullCombined = `${p.full_name} (${p.mobile_no})`.toLowerCase();
+        const nameOnly = (p.full_name || '').toLowerCase();
+        const mobileOnly = (p.mobile_no || '').toLowerCase();
+        const uhidOnly = (p.uhid || '').toLowerCase();
+        return fullCombined === val || nameOnly === val || mobileOnly === val || uhidOnly === val || fullCombined.includes(val);
+      });
 
       if (pat) {
         document.getElementById('rx-patient-id').value = pat.id;
@@ -1553,9 +1556,12 @@
         ...rxItems
       ];
 
+      const isUuid = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+      const safePatientId = isUuid(pId) ? pId : null;
+
       const rxPayload = {
         rx_no: rxNo,
-        patient_id: pId || null,
+        patient_id: safePatientId,
         patient_name: patientName,
         mobile_no: mobileNo || 'N/A',
         rx_date: document.getElementById('rx-date').value || new Date().toISOString().split('T')[0],
@@ -2622,7 +2628,14 @@ Print receipt now?`)) printPosInvoice(billNo);
       if (sbClient) {
         try {
           const { data: p } = await sbClient.from('patients').select('*'); if (p) db.patients = p;
-          const { data: rx } = await sbClient.from('prescriptions').select('*'); if (rx) db.rx = rx;
+          const { data: rx } = await sbClient.from('prescriptions').select('*');
+          if (rx && rx.length > 0) {
+            db.rx = rx;
+            localStorage.setItem('aasu_rx_backup', JSON.stringify(rx));
+          } else {
+            const backup = localStorage.getItem('aasu_rx_backup');
+            if (backup) db.rx = JSON.parse(backup);
+          }
           const { data: rm } = await sbClient.from('raw_materials').select('*'); if (rm && rm.length) db.rawMaterials = rm;
           const { data: rc } = await sbClient.from('master_recipes').select('*'); if (rc && rc.length) db.recipes = rc;
           const { data: ph } = await sbClient.from('pharmacy_stock').select('*'); if (ph && ph.length) db.pharmacy = ph;
