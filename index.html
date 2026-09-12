@@ -3538,5 +3538,111 @@ async function saveRawMaterial() {
 }
 </script>
 
+
+<script id="recipe-engine-complete-fix">
+// --- MASTER RECIPES SAVE & RELATIONAL DISPLAY ENGINE ---
+
+async function saveMasterRecipe() {
+  try {
+    if (!supabaseClient) throw new Error("Supabase client is not connected.");
+
+    const modal = document.querySelector('#modal-master-recipe') || document.querySelectorAll('.modal')[1] || document;
+    const nameInput = modal.querySelector('input[type="text"]');
+    const name = nameInput ? nameInput.value.trim() : '';
+
+    if (!name) {
+      alert("Please enter Output Medicine Name.");
+      return;
+    }
+
+    if (!window.currentRecipeIngredients || window.currentRecipeIngredients.length === 0) {
+      alert("Please add at least one ingredient using '+ Add Ingredient'.");
+      return;
+    }
+
+    const recipeId = 'REC-' + Date.now().toString().slice(-6);
+    const barcodeVal = 'BC-' + Math.floor(100000 + Math.random() * 900000);
+
+    // 1. Save Master Recipe Header
+    const { data: recipeData, error: recipeErr } = await supabaseClient
+      .from('master_recipes')
+      .insert([{
+        id: recipeId,
+        medicine_name: name,
+        barcode: barcodeVal,
+        standard_yield: 1
+      }])
+      .select()
+      .single();
+
+    if (recipeErr) throw recipeErr;
+
+    // 2. Save Relational Ingredients
+    const ingredientRows = window.currentRecipeIngredients.map(item => ({
+      recipe_id: recipeData.id,
+      raw_material_id: item.id,
+      qty_required: item.qty
+    }));
+
+    const { error: ingErr } = await supabaseClient
+      .from('recipe_ingredients')
+      .insert(ingredientRows);
+
+    if (ingErr) throw ingErr;
+
+    alert("Master Recipe & Ingredients saved successfully!");
+    
+    window.currentRecipeIngredients = [];
+    const tbody = modal.querySelector('tbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:gray; padding:1rem;">No ingredients added.</td></tr>';
+    
+    if (modal) modal.style.display = 'none';
+    if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+
+  } catch (err) {
+    console.error("Save Master Recipe Error:", err);
+    alert("Failed to save Master Recipe: " + (err.message || JSON.stringify(err)));
+  }
+}
+
+// Fetch and display Master Recipes with nested Ingredients
+async function loadAushadhiNirmanData() {
+  if (!supabaseClient) return;
+  try {
+    const { data: recipes, error } = await supabaseClient
+      .from('master_recipes')
+      .select('*, recipe_ingredients(*, raw_materials(*))');
+
+    if (error) throw error;
+
+    const recipeTbody = document.querySelectorAll('#module-aushadhi-nirman table tbody')[1] || 
+                        document.querySelectorAll('table')[1]?.querySelector('tbody');
+
+    if (recipeTbody && recipes) {
+      recipeTbody.innerHTML = recipes.map(r => {
+        const ingList = (r.recipe_ingredients || [])
+          .map(i => `${i.raw_materials?.name || 'Material'} (${i.qty_required}${i.raw_materials?.unit || ''})`)
+          .join(', ') || 'No ingredients mapped';
+
+        return `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <td style="padding:0.6rem; color:white;">${r.id}</td>
+            <td style="padding:0.6rem; color:white; font-weight:bold;">${r.medicine_name}</td>
+            <td style="padding:0.6rem; color:white;">${r.barcode || 'N/A'}</td>
+            <td style="padding:0.6rem; color:var(--text-muted);">${ingList}</td>
+            <td style="padding:0.6rem; text-align:center;">
+              <button style="background:#2563eb; color:white; border:none; padding:0.2rem 0.5rem; border-radius:4px; margin-right:4px;">Edit</button>
+              <button style="background:#dc2626; color:white; border:none; padding:0.2rem 0.5rem; border-radius:4px;">Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+  } catch (err) {
+    console.error("Error loading recipes:", err);
+  }
+}
+</script>
+
 </body>
 </html>
