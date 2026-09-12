@@ -284,11 +284,38 @@
       </div>
     </div>
 
-    <!-- MODULE 7: BILLING -->
+    <!-- MODULE 7: CENTRAL INTEGRATED BILLING & PENDING PAYMENT LEDGER -->
     <div id="mod-billing" class="module-section">
-      <div class="section-header"><h2>💰 Central Integrated Billing Counter</h2></div>
+      <div class="section-header">
+        <div>
+          <h2>💰 Central Billing & Pending Payment Ledger</h2>
+          <span style="font-size:0.75rem; color:var(--text-muted)">Track all sales invoices, search patient outstanding dues, collect partial or full payments.</span>
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+          <button class="tab-btn active" id="btn-bill-filter-all" onclick="filterBillingLedger('All', this)">All Invoices</button>
+          <button class="tab-btn" id="btn-bill-filter-pending" onclick="filterBillingLedger('Pending', this)">⚠️ Pending Payment Ledger</button>
+          <button class="tab-btn" id="btn-bill-filter-paid" onclick="filterBillingLedger('Paid', this)">✅ Paid Invoices</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:1rem;">
+        <input type="text" id="bill-search-input" class="form-control" placeholder="🔍 Search patient ledger by Patient Name, UHID, Mobile No, or Bill No..." onkeyup="renderBilling()" />
+      </div>
+
       <table class="data-table">
-        <thead><tr><th>BILL NO</th><th>RX NO</th><th>PATIENT NAME</th><th>TOTAL (₹)</th><th>PAID (₹)</th><th>BALANCE DUE (₹)</th><th>STATUS</th><th>ACTION</th></tr></thead>
+        <thead>
+          <tr>
+            <th>BILL NO</th>
+            <th>DATE</th>
+            <th>PATIENT NAME / UHID</th>
+            <th>MOBILE</th>
+            <th>GRAND TOTAL</th>
+            <th>PAID AMOUNT</th>
+            <th>OUTSTANDING DUE</th>
+            <th>STATUS</th>
+            <th>ACTIONS</th>
+          </tr>
+        </thead>
         <tbody id="tbl-billing"></tbody>
       </table>
     </div>
@@ -452,40 +479,100 @@
     </div>
   </div>
 
-  <!-- MODAL: POS RETAIL COUNTER -->
+  <!-- ADVANCED POS RETAIL COUNTER WITH TAX, DISCOUNT & PARTIAL PAYMENT LEDGER -->
   <div id="md-pos" class="modal-overlay">
-    <div class="modal-container" style="max-width: 800px;">
-      <div class="modal-header"><h3>🛒 Pharmacy Retail POS Counter</h3><button class="modal-close" onclick="closeModal('md-pos')">✕</button></div>
-      <div class="form-grid grid-2">
+    <div class="modal-container" style="max-width: 900px;">
+      <div class="modal-header">
+        <h3>🛒 Pharmacy Retail POS Counter & Billing</h3>
+        <button class="modal-close" onclick="closeModal('md-pos')">✕</button>
+      </div>
+      
+      <div class="form-grid grid-2" style="margin-bottom:0.75rem;">
         <div class="form-group">
-          <label>CUSTOMER TYPE</label>
+          <label>CUSTOMER TYPE *</label>
           <select id="pos-cust-type" class="form-control" onchange="togglePosCustType(this.value)">
             <option value="otc">Over The Counter Sale</option>
-            <option value="registered">Registered Patient</option>
+            <option value="registered">Registered Patient (EMR Directory)</option>
           </select>
         </div>
-        <div class="form-group"><label>PAYMENT MODE</label><select id="pos-pay-mode" class="form-control"><option>Cash</option><option>UPI / QR</option><option>Card</option></select></div>
-      </div>
-      <div id="pos-otc-box" class="form-grid grid-2">
-        <div class="form-group"><label>CUSTOMER NAME</label><input type="text" id="pos-cust-name" class="form-control" value="Walk-in Customer" /></div>
-        <div class="form-group"><label>MOBILE NO</label><input type="text" id="pos-cust-mobile" class="form-control" placeholder="10 digits" /></div>
-      </div>
-      <div id="pos-reg-box" class="form-group" style="display:none;">
-        <label>SELECT REGISTERED PATIENT</label>
-        <input type="text" id="pos-p-search" list="dl-pos-patients" class="form-control" oninput="onPosPatientSelect()" placeholder="Search patient..." />
-        <datalist id="dl-pos-patients"></datalist>
-      </div>
-      <div style="background:var(--bg-dark); padding:0.75rem; border-radius:6px; margin-top:0.5rem;">
-        <div class="form-grid grid-4" style="align-items:end;">
-          <div class="form-group" style="grid-column:span 2;"><label>SELECT MEDICINE</label><select id="pos-med-select" class="form-control"></select></div>
-          <div class="form-group"><label>QTY</label><input type="number" id="pos-qty" class="form-control" value="1" min="1" /></div>
-          <button type="button" class="btn btn-orange" onclick="addPosCartItem()">+ Add</button>
+        <div class="form-group">
+          <label>PAYMENT MODE *</label>
+          <select id="pos-pay-mode" class="form-control">
+            <option>Cash</option>
+            <option>UPI / QR</option>
+            <option>Card</option>
+            <option>Credit / Due</option>
+          </select>
         </div>
-        <table class="data-table" style="margin-top:0.5rem;"><tbody id="tbl-pos-cart"></tbody></table>
       </div>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1rem;">
-        <h2 id="pos-grand-total" style="color:var(--accent-green);">₹0.00</h2>
-        <button class="btn btn-green" onclick="checkoutPosSale()">💳 Complete Sale & Print</button>
+
+      <div id="pos-otc-box" class="form-grid grid-2" style="margin-bottom:0.75rem;">
+        <div class="form-group"><label>CUSTOMER NAME *</label><input type="text" id="pos-cust-name" class="form-control" value="Walk-in Customer" /></div>
+        <div class="form-group"><label>MOBILE NO *</label><input type="text" id="pos-cust-mobile" class="form-control" placeholder="10-digit mobile" /></div>
+      </div>
+
+      <div id="pos-reg-box" class="form-group" style="margin-bottom:0.75rem; display:none;">
+        <label>SEARCH REGISTERED PATIENT (EMR DIRECTORY) *</label>
+        <input type="text" id="pos-p-search" list="dl-pos-patients" class="form-control" oninput="onPosPatientSelect()" placeholder="Type Patient Name, Mobile No, or UHID..." />
+        <datalist id="dl-pos-patients"></datalist>
+        <input type="hidden" id="pos-patient-id" />
+      </div>
+
+      <div style="background:var(--bg-dark); padding:0.85rem; border-radius:8px; border:1px solid var(--border-dark); margin-bottom:0.75rem;">
+        <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.5rem;">SELECT MEDICINES / ITEMS</span>
+        <div class="form-grid grid-4" style="align-items:end;">
+          <div class="form-group" style="grid-column:span 2;">
+            <label>MEDICINE STOCK ITEM *</label>
+            <select id="pos-med-select" class="form-control"></select>
+          </div>
+          <div class="form-group"><label>QUANTITY *</label><input type="number" id="pos-qty" class="form-control" value="1" min="1" /></div>
+          <button type="button" class="btn btn-orange" onclick="addPosCartItem()">+ Add to Bill</button>
+        </div>
+        <table class="data-table" style="margin-top:0.5rem;">
+          <thead>
+            <tr><th>Item Name</th><th>Batch</th><th>Unit Price</th><th>Qty</th><th>Total (₹)</th><th>Action</th></tr>
+          </thead>
+          <tbody id="tbl-pos-cart"></tbody>
+        </table>
+      </div>
+
+      <!-- TAX, DISCOUNT & PART PAYMENT CALCULATION PANEL -->
+      <div style="background:var(--panel-dark); padding:1rem; border-radius:8px; border:1px solid var(--border-dark); margin-bottom:1rem;">
+        <div class="form-grid grid-4">
+          <div class="form-group">
+            <label>DISCOUNT MODE</label>
+            <select id="pos-disc-type" class="form-control" onchange="onPosDiscountModeChange()">
+              <option value="percent">Percentage (%)</option>
+              <option value="amount">Amount (₹)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label id="pos-disc-label">DISCOUNT VALUE *</label>
+            <input type="number" step="0.01" id="pos-disc-val" class="form-control" value="0" onkeyup="calculatePosTotals()" onchange="calculatePosTotals()" />
+          </div>
+          <div class="form-group">
+            <label>TAX / GST (%) *</label>
+            <input type="number" step="0.01" id="pos-tax-percent" class="form-control" value="0" onkeyup="calculatePosTotals()" onchange="calculatePosTotals()" />
+          </div>
+          <div class="form-group">
+            <label>AMOUNT PAYING NOW (₹) *</label>
+            <input type="number" step="0.01" id="pos-paid-amt" class="form-control" style="font-weight:bold; color:var(--accent-green);" onkeyup="calculatePosTotals()" onchange="calculatePosTotals()" />
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:0.5rem; margin-top:0.75rem; background:var(--bg-dark); padding:0.75rem; border-radius:6px; font-size:0.8rem;">
+          <div><span style="color:var(--text-muted); font-size:0.65rem; display:block;">SUBTOTAL</span><b id="pos-lbl-subtotal">₹0.00</b></div>
+          <div><span style="color:var(--text-muted); font-size:0.65rem; display:block;">DISCOUNT</span><b id="pos-lbl-discount" style="color:#ef4444;">-₹0.00</b></div>
+          <div><span style="color:var(--text-muted); font-size:0.65rem; display:block;">TAX (GST)</span><b id="pos-lbl-tax" style="color:var(--accent-blue);">+₹0.00</b></div>
+          <div><span style="color:var(--text-muted); font-size:0.65rem; display:block;">GRAND TOTAL</span><b id="pos-lbl-grandtotal" style="font-size:1rem; color:var(--text-main);">₹0.00</b></div>
+          <div><span style="color:var(--text-muted); font-size:0.65rem; display:block;">PAID NOW</span><b id="pos-lbl-paid" style="color:var(--accent-green);">₹0.00</b></div>
+          <div><span style="color:var(--text-muted); font-size:0.65rem; display:block;">BALANCE DUE</span><b id="pos-lbl-due" style="color:var(--accent-orange);">₹0.00</b></div>
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('md-pos')">Cancel</button>
+        <button class="btn btn-green" style="font-size:0.95rem; padding:0.65rem 1.5rem;" onclick="checkoutPosSale()">💳 Complete Checkout & Print</button>
       </div>
     </div>
   </div>
@@ -639,7 +726,7 @@
 
     function openModal(id) {
       document.getElementById(id).style.display = 'flex';
-      if (id === 'md-pos') { populatePosMedDropdown(); renderPosCart(); }
+      if (id === 'md-pos') { populatePosMedDropdown(); renderPosCart(); calculatePosTotals(); }
     }
 
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
@@ -993,14 +1080,14 @@ Required: ${reqQty}, Available: ${avail}`);
       const med = db.pharmacy.find(p => p.barcode === barcode); if (!med) return;
       const qty = Number(document.getElementById('pos-qty').value) || 1;
       posCart.push({ barcode: med.barcode, name: med.name, price: med.price, qty: qty, total: qty * med.price });
-      renderPosCart();
+      renderPosCart(); calculatePosTotals();
     }
 
     function renderPosCart() {
       let tot = 0;
       document.getElementById('tbl-pos-cart').innerHTML = posCart.map((c, i) => {
         tot += c.total;
-        return `<tr><td>${c.name}</td><td>₹${c.price}</td><td>${c.qty}</td><td>₹${c.total}</td><td><button onclick="posCart.splice(${i},1);renderPosCart();">✕</button></td></tr>`;
+        return `<tr><td>${c.name}</td><td>₹${c.price}</td><td>${c.qty}</td><td>₹${c.total}</td><td><button onclick="posCart.splice(${i},1);renderPosCart(); calculatePosTotals();">✕</button></td></tr>`;
       }).join('');
       document.getElementById('pos-grand-total').innerText = '₹' + tot.toFixed(2);
     }
