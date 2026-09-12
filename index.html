@@ -89,6 +89,42 @@ async function executeProductionBatch(recipeId, targetQty, batchNo) {
   }
 }
 
+
+
+// Calculate total production cost and suggested selling price live in recipe builder
+function calculateRecipeCost() {
+  const rows = document.querySelectorAll('#recipe-ingredients-table tbody tr');
+  let totalBatchCost = 0;
+
+  rows.forEach(row => {
+    const qtyInput = row.querySelector('.ing-qty');
+    const rateInput = row.querySelector('.ing-rate');
+    const costCell = row.querySelector('.ing-total-cost');
+    
+    const qty = parseFloat(qtyInput ? qtyInput.value : 0) || 0;
+    const rate = parseFloat(rateInput ? rateInput.value : 0) || 0;
+    const itemCost = qty * rate;
+    
+    totalBatchCost += itemCost;
+    if (costCell) costCell.textContent = '₹' + itemCost.toFixed(2);
+  });
+
+  const yieldInput = document.getElementById('recipe-standard-yield');
+  const yieldQty = parseFloat(yieldInput ? yieldInput.value : 1) || 1;
+  const unitCost = totalBatchCost / yieldQty;
+
+  // Update summary fields
+  const elTotalCost = document.getElementById('calc-total-batch-cost');
+  const elUnitCost = document.getElementById('calc-unit-cost');
+  const elSuggestedMRP = document.getElementById('calc-suggested-mrp');
+
+  if (elTotalCost) elTotalCost.textContent = '₹' + totalBatchCost.toFixed(2);
+  if (elUnitCost) elUnitCost.textContent = '₹' + unitCost.toFixed(2);
+  
+  // Default 40% margin calculation for suggested MRP
+  if (elSuggestedMRP) elSuggestedMRP.value = (unitCost * 1.40).toFixed(2);
+}
+
 </script>
 
   <style>
@@ -2893,6 +2929,42 @@ async function executeProductionBatch(recipeId, targetQty, batchNo) {
     alert("Production failed: " + err.message);
     return false;
   }
+}
+
+
+
+// Calculate total production cost and suggested selling price live in recipe builder
+function calculateRecipeCost() {
+  const rows = document.querySelectorAll('#recipe-ingredients-table tbody tr');
+  let totalBatchCost = 0;
+
+  rows.forEach(row => {
+    const qtyInput = row.querySelector('.ing-qty');
+    const rateInput = row.querySelector('.ing-rate');
+    const costCell = row.querySelector('.ing-total-cost');
+    
+    const qty = parseFloat(qtyInput ? qtyInput.value : 0) || 0;
+    const rate = parseFloat(rateInput ? rateInput.value : 0) || 0;
+    const itemCost = qty * rate;
+    
+    totalBatchCost += itemCost;
+    if (costCell) costCell.textContent = '₹' + itemCost.toFixed(2);
+  });
+
+  const yieldInput = document.getElementById('recipe-standard-yield');
+  const yieldQty = parseFloat(yieldInput ? yieldInput.value : 1) || 1;
+  const unitCost = totalBatchCost / yieldQty;
+
+  // Update summary fields
+  const elTotalCost = document.getElementById('calc-total-batch-cost');
+  const elUnitCost = document.getElementById('calc-unit-cost');
+  const elSuggestedMRP = document.getElementById('calc-suggested-mrp');
+
+  if (elTotalCost) elTotalCost.textContent = '₹' + totalBatchCost.toFixed(2);
+  if (elUnitCost) elUnitCost.textContent = '₹' + unitCost.toFixed(2);
+  
+  // Default 40% margin calculation for suggested MRP
+  if (elSuggestedMRP) elSuggestedMRP.value = (unitCost * 1.40).toFixed(2);
 }
 
 </script>
