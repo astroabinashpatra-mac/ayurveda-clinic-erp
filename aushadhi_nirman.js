@@ -1,6 +1,6 @@
 /**
- * MODULE 5: AUSHADHI NIRMAN (MEDICINE PRODUCTION ENGINE)
- * Fully isolated JS engine using direct ID targeting.
+ * MODULE 5: AUSHADHI NIRMAN (MEDICINE PRODUCTION & INVENTORY ENGINE)
+ * Direct DOM ID targeting & Supabase public schema integration.
  */
 
 window.nirmanState = {
@@ -10,8 +10,8 @@ window.nirmanState = {
   editingRmId: null
 };
 
-// --- DATABASE CLIENT RESOLVER ---
-function getNirmanDb() {
+// Database Client Detection
+function getDb() {
   if (typeof sbClient !== 'undefined' && sbClient) return sbClient;
   if (window.sbClient) return window.sbClient;
   if (typeof supabaseClient !== 'undefined' && supabaseClient) return supabaseClient;
@@ -19,64 +19,63 @@ function getNirmanDb() {
   return null;
 }
 
-// --- SAFE DOM ELEMENT GETTER ---
-function getEl(id) {
+// DOM Helper
+function el(id) {
   return document.getElementById(id);
 }
 
-// --- MODAL CONTROLLERS ---
+// --- MODAL DISPLAY CONTROLLERS ---
 function openMasterRecipeModal() {
-  const modal = getEl('modal-master-recipe');
-  if (!modal) return alert("Error: #modal-master-recipe not found in DOM.");
-  
+  const modal = el('modal-master-recipe');
+  if (!modal) return alert("DOM Error: #modal-master-recipe not found.");
+
   modal.style.display = 'flex';
   modal.style.opacity = '1';
   modal.style.visibility = 'visible';
-  
+
   window.nirmanState.currentIngredients = [];
-  renderRecipeIngredientsTable();
+  renderModalIngredientsTable();
   populateRawMaterialsSelect();
 
-  const nameInp = getEl('input-recipe-name');
-  if (nameInp) nameInp.value = '';
+  if (el('input-recipe-name')) el('input-recipe-name').value = '';
 }
 
 function closeMasterRecipeModal() {
-  const modal = getEl('modal-master-recipe');
+  const modal = el('modal-master-recipe');
   if (modal) modal.style.display = 'none';
   window.nirmanState.currentIngredients = [];
 }
 
 function openRawMaterialModal(editItem = null) {
-  const modal = getEl('modal-raw-material');
-  if (!modal) return alert("Error: #modal-raw-material not found in DOM.");
+  const modal = el('modal-raw-material');
+  if (!modal) return alert("DOM Error: #modal-raw-material not found.");
 
   window.nirmanState.editingRmId = editItem ? editItem.id : null;
   modal.style.display = 'flex';
   modal.style.opacity = '1';
   modal.style.visibility = 'visible';
 
-  if (getEl('input-rm-name')) getEl('input-rm-name').value = editItem ? editItem.name : '';
-  if (getEl('select-rm-category')) getEl('select-rm-category').value = editItem ? (editItem.category || 'Herbs') : 'Herbs';
-  if (getEl('select-rm-unit')) getEl('select-rm-unit').value = editItem ? (editItem.unit || 'kg') : 'kg';
-  if (getEl('input-rm-stock')) getEl('input-rm-stock').value = editItem ? editItem.stock : '';
-  if (getEl('input-rm-reorder')) getEl('input-rm-reorder').value = editItem ? editItem.reorder : '';
-  if (getEl('input-rm-cost')) getEl('input-rm-cost').value = editItem ? (editItem.purchase_rate || '') : '';
+  if (el('input-rm-name')) el('input-rm-name').value = editItem ? editItem.name : '';
+  if (el('select-rm-category')) el('select-rm-category').value = editItem ? (editItem.category || 'Herbs') : 'Herbs';
+  if (el('select-rm-unit')) el('select-rm-unit').value = editItem ? (editItem.unit || 'kg') : 'kg';
+  if (el('input-rm-stock')) el('input-rm-stock').value = editItem ? editItem.stock : '';
+  if (el('input-rm-reorder')) el('input-rm-reorder').value = editItem ? editItem.reorder : '';
+  if (el('input-rm-cost')) el('input-rm-cost').value = editItem ? (editItem.purchase_rate || '') : '';
 }
 
 function closeRawMaterialModal() {
-  const modal = getEl('modal-raw-material');
+  const modal = el('modal-raw-material');
   if (modal) modal.style.display = 'none';
   window.nirmanState.editingRmId = null;
 }
 
-// --- DATA FETCH & RENDER ENGINE ---
+// --- DATABASE FETCH & UI RENDERERS ---
 async function loadAushadhiNirmanData() {
-  const db = getNirmanDb();
+  const db = getDb();
   if (!db) return;
 
   try {
-    // 1. Fetch Raw Materials Inventory
+    // 1. Fetch raw_materials table
     const { data: rawData, error: rawErr } = await db.from('raw_materials').select('*').order('created_at', { ascending: false });
     if (!rawErr && rawData) {
       window.nirmanState.rawMaterials = rawData;
@@ -84,23 +83,23 @@ async function loadAushadhiNirmanData() {
       populateRawMaterialsSelect();
     }
 
-    // 2. Fetch Master Recipes
+    // 2. Fetch master_recipes table
     const { data: recData, error: recErr } = await db.from('master_recipes').select('*').order('created_at', { ascending: false });
     if (!recErr && recData) {
       window.nirmanState.masterRecipes = recData;
       renderMasterRecipesTable(recData);
     }
   } catch (err) {
-    console.error("Aushadhi Nirman load error:", err);
+    console.error("Data load exception:", err);
   }
 }
 
 function renderRawMaterialsTable(data) {
-  const tbody = getEl('tbody-raw-materials');
+  const tbody = el('tbody-raw-materials');
   if (!tbody) return;
 
   if (!data || data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:1rem; color:#9ca3af;">No raw materials found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:1rem; color:#9ca3af;">No raw materials found in database.</td></tr>';
     return;
   }
 
@@ -121,7 +120,7 @@ function renderRawMaterialsTable(data) {
 }
 
 function renderMasterRecipesTable(data) {
-  const tbody = getEl('tbody-master-recipes');
+  const tbody = el('tbody-master-recipes');
   if (!tbody) return;
 
   if (!data || data.length === 0) {
@@ -137,9 +136,7 @@ function renderMasterRecipesTable(data) {
         if (Array.isArray(parsed)) {
           ingText = parsed.map(i => `${i.name || i.id} (${i.qty})`).join(', ');
         }
-      } catch (e) {
-        ingText = r.ingredients;
-      }
+      } catch (e) { ingText = r.ingredients; }
     } else if (r.raw_req_id) {
       ingText = `${r.raw_req_id} (${r.req_qty_per_unit})`;
     }
@@ -159,7 +156,7 @@ function renderMasterRecipesTable(data) {
 }
 
 function populateRawMaterialsSelect() {
-  const select = getEl('select-recipe-raw-material');
+  const select = el('select-recipe-raw-material');
   if (!select) return;
 
   const list = window.nirmanState.rawMaterials || [];
@@ -167,20 +164,19 @@ function populateRawMaterialsSelect() {
     list.map(m => `<option value="${m.id}">${m.id} - ${m.name} (${m.stock} ${m.unit || 'kg'})</option>`).join('');
 }
 
-// --- CRUD OPERATIONS: RAW MATERIALS ---
+// --- CRUD: RAW MATERIALS ---
 async function saveRawMaterial() {
-  const db = getNirmanDb();
-  if (!db) return alert("Database client unavailable.");
+  const db = getDb();
+  if (!db) return alert("Supabase database client unavailable.");
 
-  const nameInp = getEl('input-rm-name');
-  const name = nameInp ? nameInp.value.trim() : '';
+  const name = el('input-rm-name')?.value.trim();
   if (!name) return alert("Material Name is required.");
 
-  const category = getEl('select-rm-category')?.value || 'Herbs';
-  const unit = getEl('select-rm-unit')?.value || 'kg';
-  const stock = parseFloat(getEl('input-rm-stock')?.value || 0);
-  const reorder = parseFloat(getEl('input-rm-reorder')?.value || 0);
-  const cost = parseFloat(getEl('input-rm-cost')?.value || 0);
+  const category = el('select-rm-category')?.value || 'Herbs';
+  const unit = el('select-rm-unit')?.value || 'kg';
+  const stock = parseFloat(el('input-rm-stock')?.value || 0);
+  const reorder = parseFloat(el('input-rm-reorder')?.value || 0);
+  const cost = parseFloat(el('input-rm-cost')?.value || 0);
 
   const payload = {
     name: name,
@@ -194,12 +190,12 @@ async function saveRawMaterial() {
   if (window.nirmanState.editingRmId) {
     const { error } = await db.from('raw_materials').update(payload).eq('id', window.nirmanState.editingRmId);
     if (error) return alert("Update failed: " + error.message);
-    alert("Raw Material updated!");
+    alert("Raw Material updated successfully!");
   } else {
     payload.id = 'RAW-' + Date.now();
     const { error } = await db.from('raw_materials').insert([payload]);
     if (error) return alert("Save failed: " + error.message);
-    alert("Raw Material saved!");
+    alert("Raw Material saved successfully!");
   }
 
   closeRawMaterialModal();
@@ -207,22 +203,22 @@ async function saveRawMaterial() {
 }
 
 function editRawMaterial(id) {
-  const item = window.nirmanState.rawMaterials.find(r => r.id === id);
+  const item = (window.nirmanState.rawMaterials || []).find(r => r.id === id);
   if (item) openRawMaterialModal(item);
 }
 
 async function deleteRawMaterial(id) {
   if (!confirm(`Delete raw material ${id}?`)) return;
-  const db = getNirmanDb();
+  const db = getDb();
   const { error } = await db.from('raw_materials').delete().eq('id', id);
   if (error) return alert("Delete failed: " + error.message);
   loadAushadhiNirmanData();
 }
 
-// --- MODAL BOM BUILDER ENGINE ---
+// --- BOM RECIPE BUILDER ---
 function addIngredientToRecipe() {
-  const select = getEl('select-recipe-raw-material');
-  const qtyInp = getEl('input-recipe-qty');
+  const select = el('select-recipe-raw-material');
+  const qtyInp = el('input-recipe-qty');
 
   if (!select || !select.value) return alert("Select a Raw Material first.");
   const qty = parseFloat(qtyInp ? qtyInp.value : 0);
@@ -238,12 +234,12 @@ function addIngredientToRecipe() {
     window.nirmanState.currentIngredients.push({ id: matId, name: matName, qty: qty });
   }
 
-  renderRecipeIngredientsTable();
+  renderModalIngredientsTable();
   if (qtyInp) qtyInp.value = '';
 }
 
-function renderRecipeIngredientsTable() {
-  const tbody = getEl('tbody-modal-ingredients');
+function renderModalIngredientsTable() {
+  const tbody = el('tbody-modal-ingredients');
   if (!tbody) return;
 
   const list = window.nirmanState.currentIngredients;
@@ -265,20 +261,19 @@ function renderRecipeIngredientsTable() {
 
 function removeIngredientItem(idx) {
   window.nirmanState.currentIngredients.splice(idx, 1);
-  renderRecipeIngredientsTable();
+  renderModalIngredientsTable();
 }
 
-// --- CRUD OPERATIONS: MASTER RECIPES ---
+// --- CRUD: MASTER RECIPES ---
 async function saveMasterRecipe() {
-  const db = getNirmanDb();
-  if (!db) return alert("Database client unavailable.");
+  const db = getDb();
+  if (!db) return alert("Supabase database client unavailable.");
 
-  const nameInp = getEl('input-recipe-name');
-  const medicineName = nameInp ? nameInp.value.trim() : '';
+  const medicineName = el('input-recipe-name')?.value.trim();
   if (!medicineName) return alert("Output Medicine Name is required.");
 
   if (window.nirmanState.currentIngredients.length === 0) {
-    return alert("Add at least 1 raw material ingredient.");
+    return alert("Add at least 1 raw material ingredient using '+ Add Ingredient'.");
   }
 
   const recipeId = 'REC-' + Date.now().toString().slice(-6);
@@ -297,23 +292,23 @@ async function saveMasterRecipe() {
   const { error } = await db.from('master_recipes').insert([payload]);
   if (error) return alert("Recipe save failed: " + error.message);
 
-  alert("Master Recipe & BOM saved!");
+  alert("Master Recipe & BOM saved successfully to Supabase!");
   closeMasterRecipeModal();
   loadAushadhiNirmanData();
 }
 
 async function deleteMasterRecipe(id) {
   if (!confirm(`Delete master recipe ${id}?`)) return;
-  const db = getNirmanDb();
+  const db = getDb();
   const { error } = await db.from('master_recipes').delete().eq('id', id);
   if (error) return alert("Delete failed: " + error.message);
   loadAushadhiNirmanData();
 }
 
-// --- AUTOMATED BATCH PRODUCTION & DEDUCTION ---
+// --- BATCH PRODUCTION & AUTO STOCK DEDUCTION ---
 async function executeBatchProduction() {
-  const db = getNirmanDb();
-  if (!db) return alert("Database client unavailable.");
+  const db = getDb();
+  if (!db) return alert("Supabase database client unavailable.");
 
   const { data: recipes } = await db.from('master_recipes').select('*');
   if (!recipes || recipes.length === 0) return alert("No master recipes registered.");
@@ -353,11 +348,11 @@ async function executeBatchProduction() {
     }
   }
 
-  alert(`Batch Production Successful!\nProduced ${batchQty} units of ${target.name}.\n\nStock Deductions:\n` + deductionLog.join('\n'));
+  alert(`Batch Production Successful!\nManufactured ${batchQty} units of ${target.name}.\n\nSupabase Stock Deductions:\n` + deductionLog.join('\n'));
   loadAushadhiNirmanData();
 }
 
-// --- GLOBAL WINDOW EXPOSURES ---
+// Global Event Exports
 window.openMasterRecipeModal = openMasterRecipeModal;
 window.closeMasterRecipeModal = closeMasterRecipeModal;
 window.openRawMaterialModal = openRawMaterialModal;
@@ -370,7 +365,12 @@ window.removeIngredientItem = removeIngredientItem;
 window.saveMasterRecipe = saveMasterRecipe;
 window.deleteMasterRecipe = deleteMasterRecipe;
 window.executeBatchProduction = executeBatchProduction;
+window.loadAushadhiNirmanData = loadAushadhiNirmanData;
 
-// Auto-Load on Startup
-document.addEventListener('DOMContentLoaded', loadAushadhiNirmanData);
+// Boot Auto-Loaders
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadAushadhiNirmanData);
+} else {
+  loadAushadhiNirmanData();
+}
 window.addEventListener('load', loadAushadhiNirmanData);
