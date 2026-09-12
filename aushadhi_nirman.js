@@ -129,7 +129,7 @@ async function loadAushadhiNirmanData() {
           return `
             <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
               <td style="padding: 0.6rem; color: white;">${r.id}</td>
-              <td style="padding: 0.6rem; color: white; font-weight: bold;">${r.medicine_name}</td>
+              <td style="padding: 0.6rem; color: white; font-weight: bold;">${r.medicine_name || r.name || r.recipe_name || 'Unnamed Recipe'}</td>
               <td style="padding: 0.6rem; color: white;">${r.barcode || 'N/A'}</td>
               <td style="padding: 0.6rem; color: #9ca3af;">${ingList}</td>
               <td style="padding: 0.6rem; text-align: center;">
@@ -270,6 +270,61 @@ async function saveMasterRecipe() {
   const recipeId = 'REC-' + Date.now().toString().slice(-6);
   const barcodeVal = 'BC-' + Math.floor(100000 + Math.random() * 900000);
 
+  // Attempt save with schema fallbacks ('medicine_name' -> 'name' -> 'recipe_name')
+  let recipe = null;
+  let rErr = null;
+
+  const payloads = [
+    { id: recipeId, medicine_name: medName, barcode: barcodeVal, standard_yield: 1 },
+    { id: recipeId, name: medName, barcode: barcodeVal, standard_yield: 1 },
+    { id: recipeId, recipe_name: medName, barcode: barcodeVal, standard_yield: 1 }
+  ];
+
+  for (const payload of payloads) {
+    const res = await db.from('master_recipes').insert([payload]).select().single();
+    if (!res.error) {
+      recipe = res.data;
+      rErr = null;
+      break;
+    } else {
+      rErr = res.error;
+    }
+  }
+
+  if (rErr || !recipe) return alert("Recipe Header Save Failed: " + (rErr ? rErr.message : "Schema error"));
+
+  const rows = window.currentRecipeIngredients.map(item => ({
+    recipe_id: recipe.id,
+    raw_material_id: item.id,
+    qty_required: item.qty
+  }));
+
+  const { error: iErr } = await db.from('recipe_ingredients').insert(rows);
+  if (iErr) return alert("Ingredients Save Failed: " + iErr.message);
+
+  alert("Master Recipe & BOM saved successfully to Supabase!");
+  window.currentRecipeIngredients = [];
+  renderRecipeIngredientsTable();
+  if (medNameInput) medNameInput.value = '';
+
+  closeMasterRecipeModal();
+  loadAushadhiNirmanData();
+}
+
+async function _deprecated_saveMasterRecipe() {
+  const db = getDb();
+  if (!db) return alert("sbClient missing.");
+
+  const modal = getRecipeModal();
+  const medNameInput = el('recipe-med-name') || modal?.querySelector('input[type="text"]:not([readonly])');
+  const medName = medNameInput ? medNameInput.value.trim() : '';
+
+  if (!medName) return alert("Please enter Output Medicine Name.");
+  if (!window.currentRecipeIngredients.length) return alert("Add at least 1 raw material ingredient.");
+
+  const recipeId = 'REC-' + Date.now().toString().slice(-6);
+  const barcodeVal = 'BC-' + Math.floor(100000 + Math.random() * 900000);
+
   const { data: recipe, error: rErr } = await db.from('master_recipes').insert([{
     id: recipeId, medicine_name: medName, barcode: barcodeVal, standard_yield: 1
   }]).select().single();
@@ -299,7 +354,7 @@ async function executeBatchProduction() {
   const { data: recipes } = await db.from('master_recipes').select('*, recipe_ingredients(*, raw_materials(*))');
   if (!recipes || !recipes.length) return alert("No recipes found.");
 
-  const menu = recipes.map((r, i) => `${i + 1}. ${r.medicine_name} (${r.id})`).join('\n');
+  const menu = recipes.map((r, i) => `${i + 1}. ${r.medicine_name || r.name || r.recipe_name || 'Unnamed Recipe'} (${r.id})`).join('\n');
   const sel = prompt("Select Master Recipe Number for Batch Production:\n" + menu);
   if (!sel) return;
 
