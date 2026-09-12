@@ -309,10 +309,21 @@
     <div id="mod-hrms" class="module-section">
       <div class="section-header">
         <h2>👥 Employee HRMS Directory</h2>
-        <button class="btn btn-orange" onclick="openModal('md-emp')">+ Onboard Employee</button>
+        <button class="btn btn-orange" onclick="openEmployeeModal()">+ Onboard Employee</button>
       </div>
       <table class="data-table">
-        <thead><tr><th>EMP ID</th><th>NAME</th><th>ROLE</th><th>MOBILE</th><th>SALARY</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Emp ID</th>
+            <th>Full Name</th>
+            <th>Role & Dept</th>
+            <th>Contact</th>
+            <th>Banking / UPI</th>
+            <th>Base Salary</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
         <tbody id="tbl-emp"></tbody>
       </table>
     </div>
