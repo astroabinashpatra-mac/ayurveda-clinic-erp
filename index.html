@@ -3951,5 +3951,180 @@ window.addEventListener('load', () => {
 });
 </script>
 
+
+<script id="full-nirman-engine-v2">
+window.currentRecipeIngredients = [];
+
+function getDb() {
+  if (typeof sbClient !== 'undefined' && sbClient) return sbClient;
+  if (window.sbClient) return window.sbClient;
+  if (typeof supabaseClient !== 'undefined' && supabaseClient) return supabaseClient;
+  if (typeof supabase !== 'undefined' && supabase) return supabase;
+  return null;
+}
+
+// 1. ADD INGREDIENT TO MODAL TABLE
+function addIngredientToRecipe() {
+  const modal = document.querySelector('#modal-master-recipe') || document.querySelector('.modal:not([style*="display: none"])') || document;
+  const select = modal.querySelector('select');
+  const qtyInput = modal.querySelector('input[type="number"]');
+
+  if (!select || !select.value) return alert("Select a Raw Material first.");
+  const qty = parseFloat(qtyInput ? qtyInput.value : 0);
+  if (!qty || qty <= 0) return alert("Enter a valid quantity per unit (> 0).");
+
+  const matId = select.value;
+  const matName = select.options[select.selectedIndex].text;
+
+  const existing = window.currentRecipeIngredients.find(item => item.id === matId);
+  if (existing) {
+    existing.qty += qty;
+  } else {
+    window.currentRecipeIngredients.push({ id: matId, name: matName, qty: qty });
+  }
+
+  renderModalTable();
+  if (qtyInput) qtyInput.value = '';
+}
+
+function renderModalTable() {
+  const modal = document.querySelector('#modal-master-recipe') || document.querySelector('.modal:not([style*="display: none"])') || document;
+  const tbody = modal.querySelector('tbody');
+  if (!tbody) return;
+
+  if (!window.currentRecipeIngredients.length) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:gray; padding:1rem;">No ingredients added.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = window.currentRecipeIngredients.map((item, idx) => `
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <td style="padding:0.5rem; color:white;">${item.name}</td>
+      <td style="padding:0.5rem; color:white;">${item.qty}</td>
+      <td style="padding:0.5rem; text-align:center;">
+        <button type="button" onclick="removeRecipeIngredientItem(${idx})" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function removeRecipeIngredientItem(idx) {
+  window.currentRecipeIngredients.splice(idx, 1);
+  renderModalTable();
+}
+
+// 2. SAVE MASTER RECIPE WITH ACCURATE INPUT TARGETING
+async function saveMasterRecipe() {
+  const db = getDb();
+  if (!db) return alert("Database client (sbClient) not found.");
+
+  const modal = document.querySelector('#modal-master-recipe') || document.querySelectorAll('.modal')[1] || document;
+  
+  // Specific input resolution by label text and placeholder
+  let name = '';
+  const allInputs = modal.querySelectorAll('input');
+  allInputs.forEach(inp => {
+    const ph = (inp.placeholder || '').toLowerCase();
+    const prevText = (inp.previousElementSibling?.textContent || '').toLowerCase();
+    const parentText = (inp.parentElement?.textContent || '').toLowerCase();
+    
+    if (ph.includes('name') || ph.includes('medicine') || prevText.includes('medicine') || parentText.includes('medicine') || parentText.includes('output')) {
+      if (inp.value.trim()) name = inp.value.trim();
+    }
+  });
+
+  if (!name) {
+    for (const inp of allInputs) {
+      if (inp.type === 'text' && inp.value.trim() && !inp.readOnly) {
+        name = inp.value.trim();
+        break;
+      }
+    }
+  }
+
+  if (!name) return alert("Please enter Output Medicine Name.");
+  if (!window.currentRecipeIngredients.length) return alert("Add at least 1 raw material ingredient.");
+
+  const recipeId = 'REC-' + Date.now().toString().slice(-6);
+  const barcodeVal = modal.querySelector('input[readonly]')?.value || ('890' + Math.floor(100000000 + Math.random() * 900000000));
+
+  // Insert Recipe Header
+  const { data: recipe, error: rErr } = await db.from('master_recipes').insert([{
+    id: recipeId,
+    medicine_name: name,
+    barcode: barcodeVal,
+    standard_yield: 1
+  }]).select().single();
+
+  if (rErr) return alert("Recipe Header Insert Failed: " + rErr.message);
+
+  // Insert Relational Ingredients
+  const ingredientsPayload = window.currentRecipeIngredients.map(item => ({
+    recipe_id: recipe.id,
+    raw_material_id: item.id,
+    qty_required: item.qty
+  }));
+
+  const { error: iErr } = await db.from('recipe_ingredients').insert(ingredientsPayload);
+  if (iErr) return alert("Ingredients Insert Failed: " + iErr.message);
+
+  alert("Master Recipe & BOM saved successfully!");
+  window.currentRecipeIngredients = [];
+  renderModalTable();
+  if (modal) modal.style.display = 'none';
+  
+  if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+}
+
+// 3. EXECUTE BATCH PRODUCTION (DEDUCTION MATH ENGINE)
+async function executeBatchProduction() {
+  const db = getDb();
+  if (!db) return alert("Database client missing.");
+
+  const { data: recipes, error: rErr } = await db.from('master_recipes').select('*, recipe_ingredients(*, raw_materials(*))');
+  if (rErr || !recipes || recipes.length === 0) return alert("No master recipes found in database.");
+
+  const menu = recipes.map((r, i) => `${i + 1}. ${r.medicine_name} (${r.id})`).join('
+');
+  const selection = prompt("Select Master Recipe Number for Batch Production:
+" + menu);
+  if (!selection) return;
+
+  const selectedIndex = parseInt(selection) - 1;
+  const targetRecipe = recipes[selectedIndex];
+  if (!targetRecipe) return alert("Invalid recipe selection.");
+
+  const batchQtyStr = prompt(`Enter production units to manufacture for ${targetRecipe.medicine_name}:`, "10");
+  const batchUnits = parseFloat(batchQtyStr);
+  if (!batchUnits || batchUnits <= 0) return alert("Invalid production quantity.");
+
+  const ingredients = targetRecipe.recipe_ingredients || [];
+  if (!ingredients.length) return alert("This recipe has no ingredients mapped.");
+
+  let auditLog = [];
+  for (const ing of ingredients) {
+    const rawId = ing.raw_material_id;
+    const requiredPerUnit = parseFloat(ing.qty_required || 0);
+    const totalDeduction = requiredPerUnit * batchUnits;
+
+    const { data: rawItem } = await db.from('raw_materials').select('stock, name, unit').eq('id', rawId).single();
+    if (rawItem) {
+      const currentStock = parseFloat(rawItem.stock || 0);
+      const newStock = Math.max(0, currentStock - totalDeduction);
+      
+      await db.from('raw_materials').update({ stock: newStock }).eq('id', rawId);
+      auditLog.push(`${rawItem.name}: ${currentStock} -> ${newStock} ${rawItem.unit} (-${totalDeduction})`);
+    }
+  }
+
+  alert(`Batch Production Complete for ${batchUnits} units of ${targetRecipe.medicine_name}!
+
+Stock Deductions:
+` + auditLog.join('
+'));
+  if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+}
+</script>
+
 </body>
 </html>
