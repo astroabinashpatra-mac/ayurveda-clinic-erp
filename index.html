@@ -1556,12 +1556,9 @@
         ...rxItems
       ];
 
-      const isUuid = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
-      const safePatientId = isUuid(pId) ? pId : null;
-
       const rxPayload = {
         rx_no: rxNo,
-        patient_id: safePatientId,
+        patient_id: pId || null,
         patient_name: patientName,
         mobile_no: mobileNo || 'N/A',
         rx_date: document.getElementById('rx-date').value || new Date().toISOString().split('T')[0],
@@ -1598,9 +1595,11 @@
         db.billing.unshift({ id: 'b-' + Date.now(), ...billPayload, created_at: new Date().toISOString() });
         if (sbClient) {
           try {
-            await sbClient.from('prescriptions').insert([rxPayload]);
-            await sbClient.from('billing').insert([billPayload]);
-          } catch(e){}
+            const { data: rxData, error: rxErr } = await sbClient.from('prescriptions').insert([rxPayload]).select();
+            if (rxErr) console.error('Supabase Prescriptions Insert Error:', rxErr);
+            const { error: billErr } = await sbClient.from('billing').insert([billPayload]);
+            if (billErr) console.error('Supabase Billing Insert Error:', billErr);
+          } catch(e){ console.error('Supabase Catch:', e); }
         }
       }
 
