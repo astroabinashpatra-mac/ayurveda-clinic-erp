@@ -1340,7 +1340,7 @@ function removeRecipeIngredient(index) {
           <div class="form-grid grid-3" style="align-items:end;">
             <div class="form-group"><label>RAW MATERIAL *</label><select id="rc-add-raw-id" class="form-control"></select></div>
             <div class="form-group"><label>QTY PER UNIT *</label><input type="number" step="0.001" id="rc-add-qty" class="form-control" placeholder="e.g. 0.25" /></div>
-            <button type="button"  type="button"  type="button" class="btn btn-orange" onclick="addRecipeIngredientRow()" onclick="addIngredientToRecipeTable()" onclick="handleAddIngredient()">+ Add Ingredient</button>
+            <button type="button"  type="button"  type="button"  type="button" class="btn btn-orange" onclick="addRecipeIngredientRow()" onclick="addIngredientToRecipeTable()" onclick="handleAddIngredient()" onclick="addIngredientToRecipe()">+ Add Ingredient</button>
           </div>
           <table class="data-table" style="margin-top:0.75rem;">
             <thead><tr><th>Raw Material</th><th>Qty Required (per unit)</th><th>Action</th></tr></thead>
@@ -3645,8 +3645,12 @@ async function loadAushadhiNirmanData() {
 </script>
 
 
-<script id="final-sbclient-fix">
-// Resolves the exact Supabase variable from line 1508
+
+
+
+<script id="nirman-complete-engine">
+window.currentRecipeIngredients = [];
+
 function getDb() {
   if (typeof sbClient !== 'undefined' && sbClient) return sbClient;
   if (window.sbClient) return window.sbClient;
@@ -3655,73 +3659,167 @@ function getDb() {
   return null;
 }
 
-// 1. Save Raw Material Handler using sbClient
-async function saveRawMaterial() {
+// Fetch Raw Materials & Recipes from Supabase and render tables + dropdowns
+async function loadAushadhiNirmanData() {
   const db = getDb();
-  if (!db) return alert("Error: sbClient is not initialized yet.");
+  if (!db) return;
 
-  const modal = document.querySelector('#modal-raw-material') || document.querySelector('.modal');
-  const nameInput = document.getElementById('rm-name') || modal?.querySelector('input[type="text"]');
-  const name = nameInput ? nameInput.value.trim() : '';
+  try {
+    // 1. Load Raw Materials Inventory
+    const { data: rawData, error: rawErr } = await db.from('raw_materials').select('*').order('created_at', { ascending: false });
+    if (!rawErr && rawData) {
+      window.availableRawMaterials = rawData;
+      
+      // Render Inventory Table
+      const rmTbody = document.querySelector('#module-aushadhi-nirman table tbody') || document.querySelector('table tbody');
+      if (rmTbody) {
+        rmTbody.innerHTML = rawData.map(item => `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <td style="padding: 0.6rem; color: white;">${item.id}</td>
+            <td style="padding: 0.6rem; color: white; font-weight: bold;">${item.name}</td>
+            <td style="padding: 0.6rem; color: white;">${item.category || 'Herbs'}</td>
+            <td style="padding: 0.6rem; color: white;">${parseFloat(item.stock || 0).toFixed(2)} ${item.unit || 'kg'}</td>
+            <td style="padding: 0.6rem; color: white;">${item.reorder || 0} ${item.unit || 'kg'}</td>
+            <td style="padding: 0.6rem;"><span style="color:var(--accent-green);">SUFFICIENT</span></td>
+            <td style="padding: 0.6rem; text-align: center;">
+              <button style="background:#2563eb; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; margin-right:4px;">Edit</button>
+              <button style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px;">Delete</button>
+            </td>
+          </tr>
+        `).join('');
+      }
 
-  if (!name) return alert("Please enter a Material Name.");
+      // Sync Recipe Modal Raw Material Select Dropdown
+      const selectElems = document.querySelectorAll('#modal-master-recipe select, select[id*="recipe-rm"]');
+      selectElems.forEach(select => {
+        select.innerHTML = '<option value="">-- Select Raw Material --</option>' + 
+          rawData.map(m => `<option value="${m.id}">${m.id} - ${m.name} (${m.stock} ${m.unit})</option>`).join('');
+      });
+    }
 
-  const payload = {
-    id: 'RAW-' + Date.now(),
-    name: name,
-    category: document.getElementById('rm-category')?.value || 'Herbs',
-    unit: document.getElementById('rm-unit')?.value || 'kg',
-    stock: parseFloat(document.getElementById('rm-stock')?.value) || 0,
-    reorder: parseFloat(document.getElementById('rm-reorder')?.value) || 0,
-    purchase_rate: parseFloat(document.getElementById('rm-cost')?.value) || 0
-  };
-
-  const { data, error } = await db.from('raw_materials').insert([payload]).select();
-  if (error) return alert("Database Insert Failed: " + error.message);
-
-  alert("Raw Material saved successfully to Supabase!");
-  if (modal) modal.style.display = 'none';
-  if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+    // 2. Load Master Recipes Header + Ingredients
+    const { data: recipeData, error: recErr } = await db.from('master_recipes').select('*, recipe_ingredients(*, raw_materials(*))');
+    if (!recErr && recipeData) {
+      window.availableMasterRecipes = recipeData;
+      const recTbody = document.querySelectorAll('#module-aushadhi-nirman table tbody')[1] || document.querySelectorAll('table')[1]?.querySelector('tbody');
+      if (recTbody) {
+        recTbody.innerHTML = recipeData.map(r => {
+          const ingList = (r.recipe_ingredients || []).map(i => `${i.raw_materials?.name || 'Item'} (${i.qty_required}${i.raw_materials?.unit || ''})`).join(', ') || 'No ingredients';
+          return `
+            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+              <td style="padding: 0.6rem; color: white;">${r.id}</td>
+              <td style="padding: 0.6rem; color: white; font-weight: bold;">${r.medicine_name}</td>
+              <td style="padding: 0.6rem; color: white;">${r.barcode || 'N/A'}</td>
+              <td style="padding: 0.6rem; color: var(--text-muted);">${ingList}</td>
+              <td style="padding: 0.6rem; text-align: center;">
+                <button style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px;">Delete</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+  } catch (e) {
+    console.error("Load Nirman Data Error:", e);
+  }
 }
 
-// 2. Save Master Recipe & BOM Ingredients Handler using sbClient
-async function saveMasterRecipe() {
-  const db = getDb();
-  if (!db) return alert("Error: sbClient is not initialized yet.");
+// Modal Ingredient In-Memory Handler
+function addIngredientToRecipe() {
+  const modal = document.querySelector('#modal-master-recipe') || document.querySelector('.modal:not([style*="display: none"])') || document;
+  const select = modal.querySelector('select');
+  const qtyInput = modal.querySelector('input[type="number"]');
 
-  const modal = document.querySelector('#modal-master-recipe') || document.querySelectorAll('.modal')[1] || document;
-  const nameInput = modal.querySelector('input[type="text"]');
-  const name = nameInput ? nameInput.value.trim() : '';
+  if (!select || !select.value) return alert("Please select a Raw Material.");
+  const qty = parseFloat(qtyInput ? qtyInput.value : 0);
+  if (!qty || qty <= 0) return alert("Please enter a valid quantity per unit.");
 
-  if (!name) return alert("Please enter Output Medicine Name.");
-  if (!window.currentRecipeIngredients || !window.currentRecipeIngredients.length) {
-    return alert("Please add at least 1 ingredient using '+ Add Ingredient'.");
+  const matId = select.value;
+  const matName = select.options[select.selectedIndex].text;
+
+  const existing = window.currentRecipeIngredients.find(item => item.id === matId);
+  if (existing) {
+    existing.qty += qty;
+  } else {
+    window.currentRecipeIngredients.push({ id: matId, name: matName, qty: qty });
   }
 
-  const recipeId = 'REC-' + Date.now().toString().slice(-6);
-  const { data: recipe, error: rErr } = await db.from('master_recipes').insert([{
-    id: recipeId,
-    medicine_name: name,
-    barcode: 'BC-' + Math.floor(100000 + Math.random() * 900000),
-    standard_yield: 1
-  }]).select().single();
-
-  if (rErr) return alert("Master Recipe Header Save Failed: " + rErr.message);
-
-  const ingredientsPayload = window.currentRecipeIngredients.map(item => ({
-    recipe_id: recipe.id,
-    raw_material_id: item.id,
-    qty_required: item.qty
-  }));
-
-  const { error: iErr } = await db.from('recipe_ingredients').insert(ingredientsPayload);
-  if (iErr) return alert("Recipe Ingredients Save Failed: " + iErr.message);
-
-  alert("Master Recipe & BOM saved successfully!");
-  window.currentRecipeIngredients = [];
-  if (modal) modal.style.display = 'none';
-  if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+  renderRecipeModalIngredientsTable();
+  if (qtyInput) qtyInput.value = '';
 }
+
+function renderRecipeModalIngredientsTable() {
+  const modal = document.querySelector('#modal-master-recipe') || document.querySelector('.modal:not([style*="display: none"])') || document;
+  const tbody = modal.querySelector('tbody');
+  if (!tbody) return;
+
+  if (window.currentRecipeIngredients.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:gray; padding:1rem;">No ingredients added.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = window.currentRecipeIngredients.map((item, idx) => `
+    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+      <td style="padding:0.5rem; color:white;">${item.name}</td>
+      <td style="padding:0.5rem; color:white;">${item.qty}</td>
+      <td style="padding:0.5rem; text-align:center;">
+        <button type="button" onclick="removeRecipeIngredientItem(${idx})" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function removeRecipeIngredientItem(index) {
+  window.currentRecipeIngredients.splice(index, 1);
+  renderRecipeModalIngredientsTable();
+}
+
+// Execute Batch Production: Deducts Used Raw Materials from Supabase Inventory
+async function executeBatchProduction() {
+  const db = getDb();
+  if (!db) return alert("Supabase client missing.");
+  if (!window.availableMasterRecipes || window.availableMasterRecipes.length === 0) {
+    return alert("No master recipes registered yet.");
+  }
+
+  const recipeList = window.availableMasterRecipes.map((r, i) => `${i + 1}. ${r.medicine_name} (${r.id})`).join('
+');
+  const choiceStr = prompt("Select Master Recipe number for batch execution:
+" + recipeList);
+  if (!choiceStr) return;
+
+  const idx = parseInt(choiceStr) - 1;
+  const recipe = window.availableMasterRecipes[idx];
+  if (!recipe) return alert("Invalid selection.");
+
+  const batchQtyStr = prompt(`Enter batch production output quantity for ${recipe.medicine_name}:`, "10");
+  const batchQty = parseFloat(batchQtyStr);
+  if (!batchQty || batchQty <= 0) return alert("Invalid batch quantity.");
+
+  const ingredients = recipe.recipe_ingredients || [];
+  if (ingredients.length === 0) return alert("This recipe has no ingredients assigned.");
+
+  // Deduct stock per ingredient in Supabase
+  for (const ing of ingredients) {
+    const rawId = ing.raw_material_id;
+    const qtyNeeded = parseFloat(ing.qty_required) * batchQty;
+
+    const { data: rawItem } = await db.from('raw_materials').select('stock').eq('id', rawId).single();
+    if (rawItem) {
+      const currentStock = parseFloat(rawItem.stock || 0);
+      const newStock = Math.max(0, currentStock - qtyNeeded);
+      await db.from('raw_materials').update({ stock: newStock }).eq('id', rawId);
+    }
+  }
+
+  alert(`Batch execution complete! Deducted raw materials for ${batchQty} units of ${recipe.medicine_name}.`);
+  loadAushadhiNirmanData();
+}
+
+// Auto load data on startup
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(loadAushadhiNirmanData, 800);
+});
 </script>
 
 </body>
