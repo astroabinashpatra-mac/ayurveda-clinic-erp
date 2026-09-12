@@ -1898,7 +1898,7 @@
         }
       }
 
-      # Step 2: Deduct stock from memory & Supabase DB
+      // Step 2: Deduct stock from memory & Supabase DB
       for (let ing of ingList) {
         const raw = db.rawMaterials.find(x => x.id === ing.raw_id || x.name === ing.raw_name);
         if (raw) {
