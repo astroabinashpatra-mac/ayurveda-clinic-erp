@@ -303,25 +303,41 @@ async function saveRawMaterial() {
   const db = getDb();
   if (!db) return alert("Database client unavailable.");
 
-  const name = el('input-rm-name')?.value.trim();
+  // Target active open modal or document
+  const modal = el('modal-raw-material') || document;
+  
+  // Read name across static or dynamic element IDs
+  const nameInput = el('input-rm-name') || el('rm-name') || modal.querySelector('input[type="text"]');
+  const name = nameInput ? nameInput.value.trim() : '';
   if (!name) return alert("Material Name is required.");
+
+  // Read dropdowns and numeric inputs across static or dynamic IDs
+  const catSelect = el('select-rm-category') || el('rm-category') || modal.querySelectorAll('select')[0];
+  const unitSelect = el('select-rm-unit') || el('rm-unit') || modal.querySelectorAll('select')[1];
+  
+  const numInputs = modal.querySelectorAll('input[type="number"]');
+  const stockVal = el('input-rm-stock')?.value || el('rm-stock')?.value || (numInputs[0] ? numInputs[0].value : 0);
+  const reorderVal = el('input-rm-reorder')?.value || el('rm-reorder')?.value || (numInputs[1] ? numInputs[1].value : 0);
+  const costVal = el('input-rm-cost')?.value || el('rm-cost')?.value || (numInputs[2] ? numInputs[2].value : 0);
 
   const payload = {
     name: name,
-    category: el('select-rm-category')?.value || 'Herbs',
-    unit: el('select-rm-unit')?.value || 'kg',
-    stock: parseFloat(el('input-rm-stock')?.value || 0),
-    reorder: parseFloat(el('input-rm-reorder')?.value || 0),
-    purchase_rate: parseFloat(el('input-rm-cost')?.value || 0)
+    category: catSelect ? catSelect.value : 'Herbs',
+    unit: unitSelect ? unitSelect.value : 'kg',
+    stock: parseFloat(stockVal) || 0,
+    reorder: parseFloat(reorderVal) || 0,
+    purchase_rate: parseFloat(costVal) || 0
   };
 
   if (window.nirmanState.editingRmId) {
     const { error } = await db.from('raw_materials').update(payload).eq('id', window.nirmanState.editingRmId);
     if (error) return alert("Update failed: " + error.message);
+    alert("Raw Material updated successfully!");
   } else {
     payload.id = 'RAW-' + Date.now();
     const { error } = await db.from('raw_materials').insert([payload]);
     if (error) return alert("Save failed: " + error.message);
+    alert("Raw Material saved successfully to Supabase!");
   }
 
   closeRawMaterialModal();
