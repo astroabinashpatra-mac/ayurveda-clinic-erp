@@ -119,13 +119,23 @@ async function loadAushadhiNirmanData() {
       syncRawMaterialsDropdown();
     }
 
-    const { data: recData, error: recErr } = await db.from('master_recipes').select('*, recipe_ingredients(*, raw_materials(*))');
+    const { data: recData, error: recErr } = await db.from('master_recipes').select('*').order('created_at', { ascending: false });
     if (!recErr && recData) {
       window.availableMasterRecipes = recData;
       const recTbody = el('master-recipes-tbody') || document.querySelectorAll('#module-aushadhi-nirman table tbody')[1] || document.querySelectorAll('table')[1]?.querySelector('tbody');
       if (recTbody) {
         recTbody.innerHTML = recData.map(r => {
-          const ingList = (r.recipe_ingredients || []).map(i => `${i.raw_materials?.name || 'Item'} (${i.qty_required}${i.raw_materials?.unit || ''})`).join(', ') || 'No ingredients';
+          let ingList = 'No ingredients';
+          if (r.ingredients) {
+            try {
+              const parsed = typeof r.ingredients === 'string' ? JSON.parse(r.ingredients) : r.ingredients;
+              if (Array.isArray(parsed)) {
+                ingList = parsed.map(i => `${i.name || i.id} (${i.qty})`).join(', ');
+              }
+            } catch(e) { ingList = r.ingredients; }
+          } else if (r.raw_req_id) {
+            ingList = `${r.raw_req_id} (${r.req_qty_per_unit})`;
+          }
           return `
             <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
               <td style="padding: 0.6rem; color: white;">${r.id}</td>
@@ -208,7 +218,6 @@ async function deleteRawMaterial(id) {
 async function deleteMasterRecipe(id) {
   if (!confirm(`Delete master recipe ${id}?`)) return;
   const db = getDb();
-  await db.from('recipe_ingredients').delete().eq('recipe_id', id);
   const { error } = await db.from('master_recipes').delete().eq('id', id);
   if (error) return alert("Delete failed: " + error.message);
   loadAushadhiNirmanData();
@@ -269,26 +278,22 @@ async function saveMasterRecipe() {
 
   const recipeId = 'REC-' + Date.now().toString().slice(-6);
   const barcodeVal = 'BC-' + Math.floor(100000 + Math.random() * 900000);
+  const firstIng = window.currentRecipeIngredients[0];
 
-  // Exact Supabase public.master_recipes payload: id, name, barcode
-  const { data: recipe, error: rErr } = await db.from('master_recipes').insert([{
+  const payload = {
     id: recipeId,
     name: medName,
-    barcode: barcodeVal
-  }]).select().single();
+    barcode: barcodeVal,
+    raw_req_id: firstIng ? firstIng.id : null,
+    req_qty_per_unit: firstIng ? firstIng.qty : 0,
+    ingredients: JSON.stringify(window.currentRecipeIngredients)
+  };
 
-  if (rErr) return alert("Recipe Header Save Failed: " + rErr.message);
+  const { data: recipe, error: rErr } = await db.from('master_recipes').insert([payload]).select().single();
 
-  const rows = window.currentRecipeIngredients.map(item => ({
-    recipe_id: recipe.id,
-    raw_material_id: item.id,
-    qty_required: item.qty
-  }));
+  if (rErr) return alert("Master Recipe Save Failed: " + rErr.message);
 
-  const { error: iErr } = await db.from('recipe_ingredients').insert(rows);
-  if (iErr) return alert("Ingredients Save Failed: " + iErr.message);
-
-  alert("Master Recipe & BOM saved successfully to Supabase!");
+  alert("Master Recipe & BOM saved successfully!");
   window.currentRecipeIngredients = [];
   renderRecipeIngredientsTable();
   if (medNameInput) medNameInput.value = '';
