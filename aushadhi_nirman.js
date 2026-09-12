@@ -1,6 +1,6 @@
 /**
- * MODULE 5: AUSHADHI NIRMAN (MEDICINE PRODUCTION & INVENTORY ENGINE)
- * Direct DOM ID targeting & Supabase public schema integration.
+ * MODULE 5: AUSHADHI NIRMAN (MEDICINE PRODUCTION ENGINE)
+ * Direct DOM ID targeting & dynamic modal fallback recovery.
  */
 
 window.nirmanState = {
@@ -10,7 +10,6 @@ window.nirmanState = {
   editingRmId: null
 };
 
-// Database Client Detection
 function getDb() {
   if (typeof sbClient !== 'undefined' && sbClient) return sbClient;
   if (window.sbClient) return window.sbClient;
@@ -19,16 +18,109 @@ function getDb() {
   return null;
 }
 
-// DOM Helper
 function el(id) {
   return document.getElementById(id);
 }
 
-// --- MODAL DISPLAY CONTROLLERS ---
-function openMasterRecipeModal() {
-  const modal = el('modal-master-recipe');
-  if (!modal) return alert("DOM Error: #modal-master-recipe not found.");
+// Guarantee modal existence in DOM
+function ensureModalsExist() {
+  if (!el('modal-master-recipe')) {
+    const recipeModalDiv = document.createElement('div');
+    recipeModalDiv.id = 'modal-master-recipe';
+    recipeModalDiv.className = 'modal';
+    recipeModalDiv.style.cssText = 'display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 99999;';
+    recipeModalDiv.innerHTML = `
+      <div style="background: #1e293b; width: 560px; padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: white;">
+        <h3 style="margin-top: 0; color: white;">+ Register Master Recipe</h3>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Output Medicine Name *</label>
+          <input type="text" id="input-recipe-name" placeholder="e.g. Mahanarayani Tailam" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+        </div>
+        <div style="background: rgba(15, 23, 42, 0.8); padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
+          <h4 style="margin-top: 0; margin-bottom: 0.8rem; color: #ea580c;">Add Raw Ingredients (BOM)</h4>
+          <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.5rem; align-items: center; margin-bottom: 0.8rem;">
+            <select id="select-recipe-raw-material" style="padding: 0.5rem; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 4px;"></select>
+            <input type="number" id="input-recipe-qty" placeholder="Qty/unit" style="padding: 0.5rem; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 4px;">
+            <button type="button" id="btn-add-ingredient" onclick="addIngredientToRecipe()" style="background: #ea580c; color: white; border: none; padding: 0.5rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold;">+ Add Ingredient</button>
+          </div>
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.2); color: #9ca3af;">
+                <th style="padding: 0.4rem;">Raw Material</th>
+                <th style="padding: 0.4rem;">Qty Required (per unit)</th>
+                <th style="padding: 0.4rem; text-align: center;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-modal-ingredients"></tbody>
+          </table>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+          <button type="button" onclick="closeMasterRecipeModal()" style="background: #475569; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Cancel</button>
+          <button type="button" id="btn-save-master-recipe" onclick="saveMasterRecipe()" style="background: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold;">Save Master Recipe</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(recipeModalDiv);
+  }
 
+  if (!el('modal-raw-material')) {
+    const rmModalDiv = document.createElement('div');
+    rmModalDiv.id = 'modal-raw-material';
+    rmModalDiv.className = 'modal';
+    rmModalDiv.style.cssText = 'display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 99999;';
+    rmModalDiv.innerHTML = `
+      <div style="background: #1e293b; width: 480px; padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: white;">
+        <h3 style="margin-top: 0; color: white;">Raw Material Record</h3>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Material Name *</label>
+          <input type="text" id="input-rm-name" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Category</label>
+            <select id="select-rm-category" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+              <option value="Herbs">Herbs</option>
+              <option value="Base Oil/Ghee">Base Oil/Ghee</option>
+              <option value="Bhasma & Minerals">Bhasma & Minerals</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Unit</label>
+            <select id="select-rm-unit" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+              <option value="kg">kg</option>
+              <option value="L">L</option>
+              <option value="g">g</option>
+            </select>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.8rem; margin-bottom: 1.5rem;">
+          <div>
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Stock</label>
+            <input type="number" id="input-rm-stock" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Reorder</label>
+            <input type="number" id="input-rm-reorder" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Cost/Unit</label>
+            <input type="number" id="input-rm-cost" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+          <button type="button" onclick="closeRawMaterialModal()" style="background: #475569; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Cancel</button>
+          <button type="button" id="btn-save-rm" onclick="saveRawMaterial()" style="background: #ea580c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold;">Save Raw Material</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(rmModalDiv);
+  }
+}
+
+// Modal Controllers
+function openMasterRecipeModal() {
+  ensureModalsExist();
+  const modal = el('modal-master-recipe');
   modal.style.display = 'flex';
   modal.style.opacity = '1';
   modal.style.visibility = 'visible';
@@ -47,10 +139,10 @@ function closeMasterRecipeModal() {
 }
 
 function openRawMaterialModal(editItem = null) {
+  ensureModalsExist();
   const modal = el('modal-raw-material');
-  if (!modal) return alert("DOM Error: #modal-raw-material not found.");
-
   window.nirmanState.editingRmId = editItem ? editItem.id : null;
+
   modal.style.display = 'flex';
   modal.style.opacity = '1';
   modal.style.visibility = 'visible';
@@ -69,13 +161,13 @@ function closeRawMaterialModal() {
   window.nirmanState.editingRmId = null;
 }
 
-// --- DATABASE FETCH & UI RENDERERS ---
+// Data Fetch & Table Renderers
 async function loadAushadhiNirmanData() {
+  ensureModalsExist();
   const db = getDb();
   if (!db) return;
 
   try {
-    // 1. Fetch raw_materials table
     const { data: rawData, error: rawErr } = await db.from('raw_materials').select('*').order('created_at', { ascending: false });
     if (!rawErr && rawData) {
       window.nirmanState.rawMaterials = rawData;
@@ -83,7 +175,6 @@ async function loadAushadhiNirmanData() {
       populateRawMaterialsSelect();
     }
 
-    // 2. Fetch master_recipes table
     const { data: recData, error: recErr } = await db.from('master_recipes').select('*').order('created_at', { ascending: false });
     if (!recErr && recData) {
       window.nirmanState.masterRecipes = recData;
@@ -95,7 +186,7 @@ async function loadAushadhiNirmanData() {
 }
 
 function renderRawMaterialsTable(data) {
-  const tbody = el('tbody-raw-materials');
+  const tbody = el('tbody-raw-materials') || document.querySelector('#module-aushadhi-nirman table tbody') || document.querySelector('table tbody');
   if (!tbody) return;
 
   if (!data || data.length === 0) {
@@ -120,7 +211,7 @@ function renderRawMaterialsTable(data) {
 }
 
 function renderMasterRecipesTable(data) {
-  const tbody = el('tbody-master-recipes');
+  const tbody = el('tbody-master-recipes') || document.querySelectorAll('#module-aushadhi-nirman table tbody')[1] || document.querySelectorAll('table')[1]?.querySelector('tbody');
   if (!tbody) return;
 
   if (!data || data.length === 0) {
@@ -164,10 +255,10 @@ function populateRawMaterialsSelect() {
     list.map(m => `<option value="${m.id}">${m.id} - ${m.name} (${m.stock} ${m.unit || 'kg'})</option>`).join('');
 }
 
-// --- CRUD: RAW MATERIALS ---
+// Actions
 async function saveRawMaterial() {
   const db = getDb();
-  if (!db) return alert("Supabase database client unavailable.");
+  if (!db) return alert("Database client unavailable.");
 
   const name = el('input-rm-name')?.value.trim();
   if (!name) return alert("Material Name is required.");
@@ -215,7 +306,6 @@ async function deleteRawMaterial(id) {
   loadAushadhiNirmanData();
 }
 
-// --- BOM RECIPE BUILDER ---
 function addIngredientToRecipe() {
   const select = el('select-recipe-raw-material');
   const qtyInp = el('input-recipe-qty');
@@ -264,16 +354,15 @@ function removeIngredientItem(idx) {
   renderModalIngredientsTable();
 }
 
-// --- CRUD: MASTER RECIPES ---
 async function saveMasterRecipe() {
   const db = getDb();
-  if (!db) return alert("Supabase database client unavailable.");
+  if (!db) return alert("Database client unavailable.");
 
   const medicineName = el('input-recipe-name')?.value.trim();
   if (!medicineName) return alert("Output Medicine Name is required.");
 
   if (window.nirmanState.currentIngredients.length === 0) {
-    return alert("Add at least 1 raw material ingredient using '+ Add Ingredient'.");
+    return alert("Add at least 1 raw material ingredient.");
   }
 
   const recipeId = 'REC-' + Date.now().toString().slice(-6);
@@ -305,10 +394,9 @@ async function deleteMasterRecipe(id) {
   loadAushadhiNirmanData();
 }
 
-// --- BATCH PRODUCTION & AUTO STOCK DEDUCTION ---
 async function executeBatchProduction() {
   const db = getDb();
-  if (!db) return alert("Supabase database client unavailable.");
+  if (!db) return alert("Database client unavailable.");
 
   const { data: recipes } = await db.from('master_recipes').select('*');
   if (!recipes || recipes.length === 0) return alert("No master recipes registered.");
@@ -348,11 +436,10 @@ async function executeBatchProduction() {
     }
   }
 
-  alert(`Batch Production Successful!\nManufactured ${batchQty} units of ${target.name}.\n\nSupabase Stock Deductions:\n` + deductionLog.join('\n'));
+  alert(`Batch Production Successful!\nManufactured ${batchQty} units of ${target.name}.\n\nStock Deductions:\n` + deductionLog.join('\n'));
   loadAushadhiNirmanData();
 }
 
-// Global Event Exports
 window.openMasterRecipeModal = openMasterRecipeModal;
 window.closeMasterRecipeModal = closeMasterRecipeModal;
 window.openRawMaterialModal = openRawMaterialModal;
@@ -365,9 +452,7 @@ window.removeIngredientItem = removeIngredientItem;
 window.saveMasterRecipe = saveMasterRecipe;
 window.deleteMasterRecipe = deleteMasterRecipe;
 window.executeBatchProduction = executeBatchProduction;
-window.loadAushadhiNirmanData = loadAushadhiNirmanData;
 
-// Boot Auto-Loaders
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', loadAushadhiNirmanData);
 } else {
