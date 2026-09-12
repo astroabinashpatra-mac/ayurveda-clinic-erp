@@ -270,28 +270,14 @@ async function saveMasterRecipe() {
   const recipeId = 'REC-' + Date.now().toString().slice(-6);
   const barcodeVal = 'BC-' + Math.floor(100000 + Math.random() * 900000);
 
-  // Attempt save with schema fallbacks ('medicine_name' -> 'name' -> 'recipe_name')
-  let recipe = null;
-  let rErr = null;
+  // Exact Supabase public.master_recipes payload: id, name, barcode
+  const { data: recipe, error: rErr } = await db.from('master_recipes').insert([{
+    id: recipeId,
+    name: medName,
+    barcode: barcodeVal
+  }]).select().single();
 
-  const payloads = [
-    { id: recipeId, medicine_name: medName, barcode: barcodeVal, standard_yield: 1 },
-    { id: recipeId, name: medName, barcode: barcodeVal, standard_yield: 1 },
-    { id: recipeId, recipe_name: medName, barcode: barcodeVal, standard_yield: 1 }
-  ];
-
-  for (const payload of payloads) {
-    const res = await db.from('master_recipes').insert([payload]).select().single();
-    if (!res.error) {
-      recipe = res.data;
-      rErr = null;
-      break;
-    } else {
-      rErr = res.error;
-    }
-  }
-
-  if (rErr || !recipe) return alert("Recipe Header Save Failed: " + (rErr ? rErr.message : "Schema error"));
+  if (rErr) return alert("Recipe Header Save Failed: " + rErr.message);
 
   const rows = window.currentRecipeIngredients.map(item => ({
     recipe_id: recipe.id,
