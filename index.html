@@ -3488,55 +3488,7 @@ function removeRecipeIngredient(index) {
   </div>
 
 
-<script id="force-rm-payload-fix">
-async function saveRawMaterial() {
-  try {
-    if (!supabaseClient) throw new Error("Supabase client is not initialized.");
 
-    const modal = document.querySelector('#modal-raw-material') || document.querySelector('.modal');
-    
-    const name = document.getElementById('rm-name')?.value.trim() || 
-                 modal?.querySelector('input[placeholder*="Material"], input[type="text"]')?.value.trim();
-    const category = document.getElementById('rm-category')?.value || 'Herbs';
-    const unit = document.getElementById('rm-unit')?.value || 'kg';
-    const stock = parseFloat(document.getElementById('rm-stock')?.value) || 0;
-    const reorder = parseFloat(document.getElementById('rm-reorder')?.value) || 0;
-    const rate = parseFloat(document.getElementById('rm-cost')?.value) || 0;
-
-    if (!name) {
-      alert("Please enter a Material Name.");
-      return;
-    }
-
-    const payload = {
-      id: 'RAW-' + Date.now(),
-      name: name,
-      category: category,
-      unit: unit,
-      stock: stock,
-      reorder: reorder,
-      purchase_rate: rate
-    };
-
-    const { data, error } = await supabaseClient
-      .from('raw_materials')
-      .insert([payload])
-      .select();
-
-    if (error) throw error;
-
-    alert("Raw Material saved successfully to Supabase!");
-    
-    if (modal) modal.style.display = 'none';
-    if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
-    if (typeof syncRawMaterialsToRecipeBuilder === 'function') syncRawMaterialsToRecipeBuilder();
-
-  } catch (err) {
-    console.error("Supabase Save Error:", err);
-    alert("Failed to save to Supabase: " + (err.message || JSON.stringify(err)));
-  }
-}
-</script>
 
 
 <script id="recipe-engine-complete-fix">
@@ -3820,6 +3772,109 @@ async function executeBatchProduction() {
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(loadAushadhiNirmanData, 800);
 });
+</script>
+
+
+<script id="master-nirman-engine">
+// --- GLOBAL DATABASE INSTANCE RESOLVER ---
+function getDb() {
+  if (typeof sbClient !== 'undefined' && sbClient) return sbClient;
+  if (window.sbClient) return window.sbClient;
+  if (typeof supabaseClient !== 'undefined' && supabaseClient) return supabaseClient;
+  if (typeof supabase !== 'undefined' && supabase) return supabase;
+  return null;
+}
+
+// 1. Save Raw Material Handler (Uses sbClient & Postgres Column Schema)
+async function saveRawMaterial() {
+  try {
+    const db = getDb();
+    if (!db) return alert("Database client (sbClient) is not initialized.");
+
+    const modal = document.querySelector('#modal-raw-material') || document.querySelector('.modal');
+    
+    // Scrape field values
+    const nameInput = document.getElementById('rm-name') || modal?.querySelector('input[type="text"]');
+    const name = nameInput ? nameInput.value.trim() : '';
+    if (!name) return alert("Please enter a Material Name.");
+
+    const category = document.getElementById('rm-category')?.value || modal?.querySelector('select')?.value || 'Herbs';
+    const unit = document.getElementById('rm-unit')?.value || 'kg';
+    const stockInput = document.getElementById('rm-stock') || modal?.querySelectorAll('input[type="number"]')[0];
+    const reorderInput = document.getElementById('rm-reorder') || modal?.querySelectorAll('input[type="number"]')[1];
+    const costInput = document.getElementById('rm-cost') || modal?.querySelectorAll('input[type="number"]')[2];
+
+    const stock = parseFloat(stockInput ? stockInput.value : 0) || 0;
+    const reorder = parseFloat(reorderInput ? reorderInput.value : 0) || 0;
+    const rate = parseFloat(costInput ? costInput.value : 0) || 0;
+
+    const payload = {
+      id: 'RAW-' + Date.now(),
+      name: name,
+      category: category,
+      unit: unit,
+      stock: stock,
+      reorder: reorder,
+      purchase_rate: rate
+    };
+
+    const { data, error } = await db.from('raw_materials').insert([payload]).select();
+    if (error) return alert("Supabase Save Error: " + error.message);
+
+    alert("Raw Material saved successfully to Supabase!");
+    if (modal) modal.style.display = 'none';
+    
+    if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+  } catch (err) {
+    console.error("Save Raw Material Error:", err);
+    alert("Error saving raw material: " + (err.message || JSON.stringify(err)));
+  }
+}
+
+// 2. Save Master Recipe Handler
+async function saveMasterRecipe() {
+  try {
+    const db = getDb();
+    if (!db) return alert("Database client (sbClient) is not initialized.");
+
+    const modal = document.querySelector('#modal-master-recipe') || document.querySelectorAll('.modal')[1] || document;
+    const nameInput = modal.querySelector('input[type="text"]');
+    const name = nameInput ? nameInput.value.trim() : '';
+
+    if (!name) return alert("Please enter Output Medicine Name.");
+    if (!window.currentRecipeIngredients || window.currentRecipeIngredients.length === 0) {
+      return alert("Please add at least 1 ingredient using '+ Add Ingredient'.");
+    }
+
+    const recipeId = 'REC-' + Date.now().toString().slice(-6);
+    const { data: recipe, error: rErr } = await db.from('master_recipes').insert([{
+      id: recipeId,
+      medicine_name: name,
+      barcode: 'BC-' + Math.floor(100000 + Math.random() * 900000),
+      standard_yield: 1
+    }]).select().single();
+
+    if (rErr) return alert("Recipe Save Failed: " + rErr.message);
+
+    const ingredientRows = window.currentRecipeIngredients.map(item => ({
+      recipe_id: recipe.id,
+      raw_material_id: item.id,
+      qty_required: item.qty
+    }));
+
+    const { error: iErr } = await db.from('recipe_ingredients').insert(ingredientRows);
+    if (iErr) return alert("Recipe Ingredients Save Failed: " + iErr.message);
+
+    alert("Master Recipe & Ingredients saved successfully!");
+    window.currentRecipeIngredients = [];
+    if (modal) modal.style.display = 'none';
+    
+    if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+  } catch (err) {
+    console.error("Save Master Recipe Error:", err);
+    alert("Error saving master recipe: " + err.message);
+  }
+}
 </script>
 
 </body>
