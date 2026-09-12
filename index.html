@@ -168,19 +168,72 @@
 
     <!-- MODULE 1: DASHBOARD -->
     <div id="mod-dashboard" class="module-section active">
-      <div class="section-header"><h2>📊 Hospital Operations Dashboard</h2></div>
-      <div class="form-grid grid-4">
+      <div class="section-header">
+        <h2>📊 Hospital Operations Dashboard</h2>
+        <span style="font-size:0.75rem; color:var(--text-muted);">Welcome back, Chief Vaidya</span>
+      </div>
+
+      <!-- Top KPI Summary Cards -->
+      <div class="form-grid grid-4" style="margin-bottom: 1.5rem;">
         <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
-          <span style="font-size: 0.7rem; color: var(--text-muted);">TOTAL PATIENTS</span><h3 id="st-patients">0</h3>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">TOTAL PATIENTS</span>
+          <h3 id="st-patients" style="margin-top:0.3rem; font-size:1.5rem;">0</h3>
         </div>
         <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
-          <span style="font-size: 0.7rem; color: var(--text-muted);">PRESCRIPTIONS</span><h3 id="st-rx">0</h3>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">PRESCRIPTIONS</span>
+          <h3 id="st-rx" style="margin-top:0.3rem; font-size:1.5rem;">0</h3>
         </div>
         <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
-          <span style="font-size: 0.7rem; color: var(--text-muted);">PHARMACY STOCK ITEMS</span><h3 id="st-pharmacy">0</h3>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">PHARMACY STOCK ITEMS</span>
+          <h3 id="st-pharmacy" style="margin-top:0.3rem; font-size:1.5rem;">0</h3>
         </div>
         <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
-          <span style="font-size: 0.7rem; color: var(--text-muted);">PENDING BILL DUES</span><h3 id="st-dues" style="color: var(--accent-orange);">₹0</h3>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">PENDING BILL DUES</span>
+          <h3 id="st-dues" style="margin-top:0.3rem; font-size:1.5rem; color: var(--accent-orange);">₹0</h3>
+        </div>
+      </div>
+
+      <!-- Quick Action Navigation Link Cards -->
+      <h3 style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem; text-transform:uppercase;">⚡ Quick Module Shortcuts</h3>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+        <div onclick="switchTab('prescription', document.querySelectorAll('.nav-item')[1])" style="background: var(--panel-dark); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-dark); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--accent-orange)'" onmouseout="this.style.borderColor='var(--border-dark)'">
+          <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">📜</div>
+          <h4 style="font-size: 0.9rem; margin-bottom: 0.2rem;">E-Prescription Desk</h4>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">Write & print digital prescriptions</span>
+        </div>
+        <div onclick="switchTab('patients', document.querySelectorAll('.nav-item')[2])" style="background: var(--panel-dark); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-dark); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--accent-orange)'" onmouseout="this.style.borderColor='var(--border-dark)'">
+          <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">🧑‍⚕️</div>
+          <h4 style="font-size: 0.9rem; margin-bottom: 0.2rem;">Patient Directory</h4>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">Register & manage EMR records</span>
+        </div>
+        <div onclick="switchTab('pharmacy', document.querySelectorAll('.nav-item')[5])" style="background: var(--panel-dark); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-dark); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--accent-orange)'" onmouseout="this.style.borderColor='var(--border-dark)'">
+          <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">🛒</div>
+          <h4 style="font-size: 0.9rem; margin-bottom: 0.2rem;">POS Retail Counter</h4>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">Herbal pharmacy sales & billing</span>
+        </div>
+        <div onclick="switchTab('schedule', document.querySelectorAll('.nav-item')[3])" style="background: var(--panel-dark); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-dark); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='var(--accent-orange)'" onmouseout="this.style.borderColor='var(--border-dark)'">
+          <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">📅</div>
+          <h4 style="font-size: 0.9rem; margin-bottom: 0.2rem;">Therapy Schedule</h4>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">Manage room & time reservations</span>
+        </div>
+      </div>
+
+      <!-- Recent Activity Feeds -->
+      <div class="form-grid grid-2">
+        <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
+          <h3 style="font-size: 0.85rem; color: var(--accent-orange); margin-bottom: 0.75rem;">🏥 Hospital Operational Status</h3>
+          <ul style="list-style: none; font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.5rem; color: var(--text-muted);">
+            <li>✅ Supabase Cloud Synced (All 14 Modules Active)</li>
+            <li>🌿 Raw Material Batch Production Engine Ready</li>
+            <li>💰 Central Billing & Payment Ledger Active</li>
+            <li>👥 HRMS & Payroll Disbursal Engine Ready</li>
+          </ul>
+        </div>
+        <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
+          <h3 style="font-size: 0.85rem; color: var(--accent-orange); margin-bottom: 0.75rem;">💡 Quick Tips</h3>
+          <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+            Click on any card above or use the left sidebar navigation to access clinical EMR, pharmacy inventory, accounting, and ward management instantly.
+          </p>
         </div>
       </div>
     </div>
