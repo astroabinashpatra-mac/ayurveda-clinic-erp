@@ -210,20 +210,107 @@
       </table>
     </div>
 
-    <!-- MODULE 4: SCHEDULE -->
+        <!-- MODULE 4: SCHEDULE & VISITS (UPGRADED SINGLE MODULE) -->
     <div id="mod-schedule" class="module-section">
       <div class="section-header">
         <div>
-          <h2>📅 SCHEDULE FOR THERAPY (8:00 AM - 8:00 PM)</h2>
-          <span style="font-size:0.75rem; color:var(--text-muted)">Click on an available spot to create a reservation.</span>
+          <h2>SCHEDULE FOR THERAPY</h2>
+          <span style="font-size:0.75rem; color:var(--text-muted)">Click on an available spot to create a new reservation. Click on any reservation to edit or modify it.</span>
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+          <button class="tab-btn active" id="btn-sch-tab-use" onclick="switchScheduleView('use', this)">Use</button>
+          <button class="tab-btn" id="btn-sch-tab-supervise" onclick="switchScheduleView('supervise', this)">Supervise</button>
+          <button class="tab-btn" id="btn-sch-tab-configure" onclick="switchScheduleView('configure', this)">Configure</button>
         </div>
       </div>
-      <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; align-items: center;">
-        <button class="btn btn-secondary" onclick="changeWeek(-1)">❮</button>
-        <span id="sch-week-label" style="font-weight:bold; color:var(--accent-orange);">Week 37 (Sep 2026)</span>
-        <button class="btn btn-secondary" onclick="changeWeek(1)">❯</button>
+
+      <!-- SUB-VIEW 1: USE (INTERACTIVE GRID & MINI CALENDAR) -->
+      <div id="sch-view-use">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <select class="form-control" style="width:auto; padding:0.3rem 0.6rem;" onchange="changeWeek(0)">
+              <option>Week</option>
+            </select>
+            <button class="btn btn-secondary" style="padding:0.3rem 0.75rem;" onclick="currentWeekOffset=0; renderScheduleGrid();">Today</button>
+            <button class="btn btn-secondary" style="padding:0.3rem 0.6rem;" onclick="changeWeek(-1)">❮</button>
+            <span id="sch-week-label" style="font-weight:bold; color:var(--accent-orange); font-size:0.9rem;">Week 36</span>
+            <button class="btn btn-secondary" style="padding:0.3rem 0.6rem;" onclick="changeWeek(1)">❯</button>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:0.4rem;" id="sch-room-pills">
+            <span style="font-size:0.75rem; font-weight:bold; color:var(--text-muted);">Rooms:</span>
+            <button class="tab-btn active" style="padding:3px 8px; font-size:0.75rem;" onclick="filterScheduleRoom('All', this)">All</button>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 260px; gap:1rem;">
+          <!-- MAIN WEEK GRID -->
+          <div class="sch-grid" id="sch-week-grid"></div>
+
+          <!-- RIGHT SIDEBAR WIDGETS -->
+          <div>
+            <div style="background:var(--panel-dark); border:1px solid var(--border-dark); border-radius:8px; padding:0.75rem; margin-bottom:1rem;">
+              <div style="text-align:center; font-weight:bold; font-size:0.8rem; color:var(--accent-orange); margin-bottom:0.5rem;" id="sch-mini-month-title">SEPTEMBER 2026</div>
+              <div id="sch-mini-calendar-grid" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:2px; text-align:center; font-size:0.65rem;"></div>
+            </div>
+
+            <div style="background:var(--panel-dark); border:1px solid var(--border-dark); border-radius:8px; padding:0.75rem;">
+              <span style="font-size:0.7rem; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:0.5rem;">FILTER ROOMS</span>
+              <div id="sch-room-checkboxes" style="display:flex; flex-direction:column; gap:0.4rem; font-size:0.75rem;"></div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="sch-grid" id="sch-week-grid"></div>
+
+      <!-- SUB-VIEW 2: SUPERVISE (RESERVATION MANAGEMENT TABLE) -->
+      <div id="sch-view-supervise" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h3 style="color:var(--accent-orange); font-size:0.95rem;">SUPERVISE ALL RESERVATIONS</h3>
+          <button class="btn btn-orange" onclick="openReservationModal('10:00 - 10:45', new Date().toISOString().split('T')[0])">+ New Reservation</button>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Appt ID</th>
+              <th>Patient Name</th>
+              <th>Mobile</th>
+              <th>Time Start</th>
+              <th>Time End</th>
+              <th>Room / Therapy</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-sch-supervise"></tbody>
+        </table>
+      </div>
+
+      <!-- SUB-VIEW 3: CONFIGURE (ROOM & RESOURCE MANAGEMENT) -->
+      <div id="sch-view-configure" style="display:none;">
+        <h3 style="color:var(--accent-orange); font-size:0.95rem; margin-bottom:1rem;">CONFIGURE SCHEDULE ROOMS & RESOURCES</h3>
+        <div style="background:var(--panel-dark); border:1px solid var(--border-dark); border-radius:8px; padding:1rem; margin-bottom:1.5rem;">
+          <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.5rem;">+ Add New Room / Resource</span>
+          <form onsubmit="saveScheduleRoom(event)" style="display:flex; gap:0.75rem; align-items:flex-end;">
+            <div class="form-group" style="flex:1;">
+              <label>ROOM NAME & DESCRIPTION</label>
+              <input type="text" id="sch-new-room-name" class="form-control" placeholder="e.g. Room 4 (Pizhichil)" required />
+            </div>
+            <button type="submit" class="btn btn-orange">Add Room</button>
+          </form>
+        </div>
+
+        <h4 style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;">Existing Schedule Rooms</h4>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Room ID</th>
+              <th>Room Name</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-sch-rooms"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- MODULE 5: AUSHADHI NIRMAN -->
@@ -1407,38 +1494,312 @@
     }
 
     /* THERAPY SCHEDULER */
+        /* --- UPGRADED SCHEDULE MODULE JS ENGINE --- */
     let currentWeekOffset = 0;
-    function changeWeek(dir) { currentWeekOffset += dir; renderScheduleGrid(); }
+    let selectedScheduleRoomFilter = 'All';
+
+    function switchScheduleView(view, btn) {
+      document.getElementById('sch-view-use').style.display = view === 'use' ? 'block' : 'none';
+      document.getElementById('sch-view-supervise').style.display = view === 'supervise' ? 'block' : 'none';
+      document.getElementById('sch-view-configure').style.display = view === 'configure' ? 'block' : 'none';
+      document.getElementById('btn-sch-tab-use').classList.remove('active');
+      document.getElementById('btn-sch-tab-supervise').classList.remove('active');
+      document.getElementById('btn-sch-tab-configure').classList.remove('active');
+      if (btn) btn.classList.add('active');
+
+      if (view === 'supervise') renderSuperviseReservations();
+      if (view === 'configure') renderScheduleRooms();
+    }
+
+    function changeWeek(dir) {
+      currentWeekOffset += dir;
+      renderScheduleGrid();
+    }
+
+    function filterScheduleRoom(roomName, btn) {
+      selectedScheduleRoomFilter = roomName;
+      document.querySelectorAll('#sch-room-pills button').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderScheduleGrid();
+    }
+
+    function renderScheduleRoomsUI() {
+      const defaultRooms = [
+        { room_id: 'ROOM-01', room_name: 'Room 1 (Panchakarma)' },
+        { room_id: 'ROOM-02', room_name: 'Room 2 (Shirodhara)' },
+        { room_id: 'ROOM-03', room_name: 'Room 3 (Consultation)' }
+      ];
+
+      const rooms = (db.rooms && db.rooms.length > 0) ? db.rooms : defaultRooms;
+
+      const pillsContainer = document.getElementById('sch-room-pills');
+      if (pillsContainer) {
+        let html = `<span style="font-size:0.75rem; font-weight:bold; color:var(--text-muted);">Rooms:</span>`;
+        html += `<button class="tab-btn ${selectedScheduleRoomFilter === 'All' ? 'active' : ''}" style="padding:3px 8px; font-size:0.75rem;" onclick="filterScheduleRoom('All', this)">All</button>`;
+        rooms.forEach((r, idx) => {
+          const btnClass = selectedScheduleRoomFilter === r.room_name ? 'active' : '';
+          html += `<button class="tab-btn ${btnClass}" style="padding:3px 8px; font-size:0.75rem;" onclick="filterScheduleRoom('${r.room_name}', this)">Room ${idx+1}</button>`;
+        });
+        pillsContainer.innerHTML = html;
+      }
+
+      const checkContainer = document.getElementById('sch-room-checkboxes');
+      if (checkContainer) {
+        let html = `<label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;"><input type="checkbox" checked onchange="filterScheduleRoom('All', null)" /> All Rooms</label>`;
+        rooms.forEach(r => {
+          html += `<label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;"><input type="checkbox" ${selectedScheduleRoomFilter === 'All' || selectedScheduleRoomFilter === r.room_name ? 'checked' : ''} onchange="filterScheduleRoom('${r.room_name}', null)" /> ${r.room_name}</label>`;
+        });
+        checkContainer.innerHTML = html;
+      }
+
+      const modalSelect = document.getElementById('res-room-select');
+      if (modalSelect) {
+        modalSelect.innerHTML = rooms.map(r => `<option value="${r.room_name}">${r.room_name}</option>`).join('');
+      }
+    }
+
     function renderScheduleGrid() {
-      const grid = document.getElementById('sch-week-grid'); if (!grid) return;
+      renderScheduleRoomsUI();
+      const grid = document.getElementById('sch-week-grid');
+      if (!grid) return;
+
       const today = new Date(2026, 8, 12);
       const currentSunday = new Date(today);
       currentSunday.setDate(today.getDate() - today.getDay() + (currentWeekOffset * 7));
+
       const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
       const days = [];
       for (let i = 0; i < 7; i++) {
-        const d = new Date(currentSunday); d.setDate(currentSunday.getDate() + i);
-        days.push({ label: `${dayNames[d.getDay()]} ${d.getDate()} ${monthNames[d.getMonth()]}`, dateStr: d.toISOString().split('T')[0] });
+        const d = new Date(currentSunday);
+        d.setDate(currentSunday.getDate() + i);
+        days.push({
+          label: `${dayNames[d.getDay()]} ${d.getDate()} ${monthNames[d.getMonth()]}`,
+          dayNum: d.getDate(),
+          dayName: dayNames[d.getDay()],
+          dateStr: d.toISOString().split('T')[0]
+        });
       }
-      const slots = ["08:00 - 08:45", "09:00 - 09:45", "10:00 - 10:45", "11:00 - 11:45", "12:00 - 12:45", "13:00 - 13:45", "13:45 - 14:45", "15:00 - 15:45", "16:00 - 16:45", "17:00 - 17:45", "18:00 - 18:45", "19:00 - 19:45"];
+
+      const slots = [
+        "08:00 - 08:45",
+        "09:00 - 09:45",
+        "10:00 - 10:45",
+        "11:00 - 11:45",
+        "12:00 - 12:45",
+        "13:00 - 13:45",
+        "13:45 - 14:45",
+        "15:00 - 15:45",
+        "16:00 - 16:45",
+        "17:00 - 17:45",
+        "18:00 - 18:45",
+        "19:00 - 19:45"
+      ];
+
       let html = `<div class="sch-header-cell">Time</div>`;
-      days.forEach(d => { html += `<div class="sch-header-cell">${d.label}</div>`; });
+      days.forEach(d => {
+        html += `<div class="sch-header-cell">${d.dayName}<br/><span style="font-size:0.65rem; font-weight:normal;">${d.dayNum}</span></div>`;
+      });
+
       slots.forEach(slot => {
         const isLunch = slot === "13:45 - 14:45";
         html += `<div class="sch-time-cell">${slot}</div>`;
+
         for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
-          if (isLunch) { html += `<div class="sch-slot-cell sch-lunch-cell">🍱 LUNCH BREAK</div>`; }
-          else {
-            const res = (db.reservations || []).find(r => r.day_date === days[dayIdx].dateStr && r.time_slot === slot);
-            if (res) { html += `<div class="sch-slot-cell" onclick="alert('Booked for ${res.patient_name}')"><div style="background:var(--accent-orange); color:white; padding:2px; font-size:0.7rem;">${res.patient_name}</div></div>`; }
-            else { html += `<div class="sch-slot-cell" onclick="alert('Book slot ${slot} on ${days[dayIdx].label}')"></div>`; }
+          if (isLunch) {
+            html += `<div class="sch-slot-cell sch-lunch-cell">🍱 LUNCH BREAK</div>`;
+          } else {
+            const resList = (db.reservations || []).filter(r => r.day_date === days[dayIdx].dateStr && r.time_slot === slot);
+            const res = resList.find(r => selectedScheduleRoomFilter === 'All' || r.room_name === selectedScheduleRoomFilter);
+
+            if (res) {
+              html += `<div class="sch-slot-cell" onclick="openReservationModal('${slot}', '${days[dayIdx].dateStr}', '${res.id}')">
+                <div class="sch-booking-card" style="background:var(--accent-orange); color:white; padding:3px 5px; border-radius:4px; font-size:0.7rem; font-weight:bold;">
+                  <div>${res.patient_name}</div>
+                  <div style="font-size:0.6rem; opacity:0.85;">${res.room_name}</div>
+                </div>
+              </div>`;
+            } else {
+              html += `<div class="sch-slot-cell" onclick="openReservationModal('${slot}', '${days[dayIdx].dateStr}')"></div>`;
+            }
           }
         }
       });
+
       grid.innerHTML = html;
+
       const labelEl = document.getElementById('sch-week-label');
-      if (labelEl) labelEl.innerText = `Week ${37 + currentWeekOffset} (${monthNames[currentSunday.getMonth()]} ${currentSunday.getFullYear()})`;
+      if (labelEl) {
+        const weekNum = 36 + currentWeekOffset;
+        labelEl.innerText = `Week ${weekNum}`;
+      }
+
+      renderMiniCalendar(currentSunday);
+    }
+
+    function renderMiniCalendar(refSunday) {
+      const container = document.getElementById('sch-mini-calendar-grid');
+      if (!container) return;
+
+      const daysHeader = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+      let html = daysHeader.map(d => `<div style="font-weight:bold; color:var(--text-muted); padding:2px;">${d}</div>`).join('');
+
+      for (let i = 1; i <= 30; i++) {
+        const isSel = i === refSunday.getDate();
+        html += `<div style="padding:4px; border-radius:4px; ${isSel ? 'background:var(--accent-orange); color:white; font-weight:bold;' : 'color:var(--text-main);'}">${i}</div>`;
+      }
+      container.innerHTML = html;
+    }
+
+    function openReservationModal(slot, dateStr, resId = null) {
+      document.getElementById('res-id').value = resId || '';
+      document.getElementById('res-date').value = dateStr;
+      document.getElementById('res-slot').value = slot;
+
+      const times = slot.split(' - ');
+      document.getElementById('res-time-start').value = `${dateStr} ${times[0] || '10:00'}`;
+      document.getElementById('res-time-end').value = `${dateStr} ${times[1] || '10:45'}`;
+
+      if (resId) {
+        const res = db.reservations.find(r => r.id === resId);
+        if (res) {
+          document.getElementById('res-pname').value = res.patient_name;
+          document.getElementById('res-pmobile').value = res.mobile_no || '';
+          if (document.getElementById('res-room-select')) document.getElementById('res-room-select').value = res.room_name;
+        }
+      } else {
+        document.getElementById('res-pname').value = '';
+        document.getElementById('res-pmobile').value = '';
+      }
+
+      openModal('md-reservation');
+    }
+
+    async function saveReservation(e) {
+      e.preventDefault();
+      const resId = document.getElementById('res-id').value;
+      const dateStr = document.getElementById('res-date').value;
+      const slot = document.getElementById('res-slot').value;
+      const apptId = 'APP-' + Math.floor(100 + Math.random() * 900);
+
+      const payload = {
+        appt_id: resId ? (db.reservations.find(r=>r.id===resId)?.appt_id || apptId) : apptId,
+        patient_name: document.getElementById('res-pname').value,
+        mobile_no: document.getElementById('res-pmobile').value,
+        time_start: document.getElementById('res-time-start').value,
+        time_end: document.getElementById('res-time-end').value,
+        day_date: dateStr,
+        time_slot: slot,
+        room_name: document.getElementById('res-room-select').value,
+        status: 'CONFIRMED'
+      };
+
+      if (sbClient) {
+        try {
+          if (resId) await sbClient.from('reservations').update(payload).eq('id', resId);
+          else await sbClient.from('reservations').insert([payload]);
+        } catch(err){}
+      }
+
+      if (resId) {
+        const idx = db.reservations.findIndex(r => r.id === resId);
+        if (idx !== -1) db.reservations[idx] = { id: resId, ...payload };
+      } else {
+        db.reservations.unshift({ id: 'res-' + Date.now(), ...payload });
+      }
+
+      alert('✅ Reservation Created Successfully!');
+      closeModal('md-reservation');
+      renderScheduleGrid();
+      if (document.getElementById('sch-view-supervise').style.display !== 'none') renderSuperviseReservations();
+    }
+
+    function renderSuperviseReservations() {
+      const tbl = document.getElementById('tbl-sch-supervise');
+      if (!tbl) return;
+
+      tbl.innerHTML = (db.reservations || []).map(r => `
+        <tr>
+          <td><b>${r.appt_id || 'APP-201'}</b></td>
+          <td><b>${r.patient_name}</b></td>
+          <td>${r.mobile_no || 'N/A'}</td>
+          <td>${r.time_start}</td>
+          <td>${r.time_end}</td>
+          <td>${r.room_name}</td>
+          <td><span style="background:rgba(16,185,129,0.15); color:#10b981; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:0.7rem;">${r.status || 'CONFIRMED'}</span></td>
+          <td>
+            <div style="display:flex; gap:0.4rem;">
+              <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="openReservationModal('${r.time_slot}', '${r.day_date}', '${r.id}')">Modify</button>
+              <button class="btn btn-green" style="padding:2px 8px; font-size:0.75rem;" onclick="whatsappReservation('${r.id}')">💬 WhatsApp</button>
+              <button class="btn btn-danger" style="padding:2px 8px; font-size:0.75rem;" onclick="delReservation('${r.id}')">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `).join('') || '<tr><td colspan="8" style="text-align:center;">No reservations found. Click "+ New Reservation".</td></tr>';
+    }
+
+    function whatsappReservation(id) {
+      const r = db.reservations.find(x => x.id === id); if (!r || !r.mobile_no) return alert('Mobile number missing');
+      let msg = `📅 *AASU AROGYAM - THERAPY RESERVATION* 📅%0A`;
+      msg += `*Appt ID:* ${r.appt_id}%0A`;
+      msg += `*Patient:* ${r.patient_name}%0A`;
+      msg += `*Therapy / Room:* ${r.room_name}%0A`;
+      msg += `*Time Start:* ${r.time_start}%0A`;
+      msg += `*Time End:* ${r.time_end}%0A`;
+      msg += `*Status:* ${r.status}%0A%0A`;
+      msg += `_Please arrive 10 minutes prior to your therapy session._`;
+      window.open(`https://api.whatsapp.com/send?phone=91${r.mobile_no}&text=${msg}`);
+    }
+
+    async function delReservation(id) {
+      if (!confirm('Cancel and delete this reservation?')) return;
+      if (sbClient) try { await sbClient.from('reservations').delete().eq('id', id); } catch(err){}
+      db.reservations = db.reservations.filter(r => r.id !== id);
+      renderScheduleGrid();
+      renderSuperviseReservations();
+    }
+
+    function renderScheduleRooms() {
+      const tbl = document.getElementById('tbl-sch-rooms');
+      if (!tbl) return;
+
+      const defaultRooms = [
+        { room_id: 'ROOM-01', room_name: 'Room 1 (Panchakarma)' },
+        { room_id: 'ROOM-02', room_name: 'Room 2 (Shirodhara)' },
+        { room_id: 'ROOM-03', room_name: 'Room 3 (Consultation)' }
+      ];
+      const rooms = (db.rooms && db.rooms.length > 0) ? db.rooms : defaultRooms;
+
+      tbl.innerHTML = rooms.map(r => `
+        <tr>
+          <td><b>${r.room_id}</b></td>
+          <td><b>${r.room_name}</b></td>
+          <td><button class="btn btn-danger" style="padding:2px 8px; font-size:0.75rem;" onclick="delScheduleRoom('${r.id||r.room_id}')">Delete Room</button></td>
+        </tr>
+      `).join('');
+    }
+
+    async function saveScheduleRoom(e) {
+      e.preventDefault();
+      const roomName = document.getElementById('sch-new-room-name').value;
+      const roomId = 'ROOM-0' + (((db.rooms||[]).length) + 1);
+      const payload = { room_id: roomId, room_name: roomName };
+
+      if (sbClient) try { await sbClient.from('therapy_rooms').insert([payload]); } catch(err){}
+      if (!db.rooms) db.rooms = [];
+      db.rooms.push({ id: 'rm-' + Date.now(), ...payload });
+      document.getElementById('sch-new-room-name').value = '';
+      renderScheduleRooms();
+      renderScheduleGrid();
+    }
+
+    async function delScheduleRoom(id) {
+      if (!confirm('Delete this room from schedule options?')) return;
+      if (sbClient) try { await sbClient.from('therapy_rooms').delete().eq('room_id', id); } catch(err){}
+      if (db.rooms) db.rooms = db.rooms.filter(r => r.id !== id && r.room_id !== id);
+      renderScheduleRooms();
+      renderScheduleGrid();
     }
 
     /* AUSHADHI NIRMAN ENGINE */
@@ -1851,6 +2212,7 @@ Print receipt now?`)) printPosInvoice(billNo);
           const { data: emp } = await sbClient.from('employees').select('*'); if (emp) db.emp = emp;
           const { data: pr } = await sbClient.from('payroll').select('*'); if (pr && pr.length) db.payroll = pr;
           const { data: res } = await sbClient.from('reservations').select('*'); if (res && res.length) db.reservations = res;
+          const { data: rms } = await sbClient.from('therapy_rooms').select('*'); if (rms && rms.length) db.rooms = rms;
           const { data: doc } = await sbClient.from('clinic_documents').select('*'); if (doc && doc.length) db.documents = doc;
           const { data: stf } = await sbClient.from('staff_users').select('*'); if (stf && stf.length) db.staffUsers = stf;
         } catch(err) { console.error('Supabase fetch error:', err); }
@@ -1876,16 +2238,46 @@ Print receipt now?`)) printPosInvoice(billNo);
     window.onload = init;
   </script>
 
-  <!-- MODAL: RESERVATION BOOKING -->
+    <!-- MODAL: NEW / MODIFY RESERVATION -->
   <div id="md-reservation" class="modal-overlay">
-    <div class="modal-container" style="max-width: 450px;">
-      <div class="modal-header"><h3>📅 Book Therapy Slot</h3><button class="modal-close" onclick="closeModal('md-reservation')">✕</button></div>
+    <div class="modal-container" style="max-width: 520px; background:#ffffff; color:#0f172a;">
+      <div class="modal-header" style="border-bottom:1px solid #e2e8f0;">
+        <h3 style="color:var(--accent-orange); font-size:1.1rem; text-transform:uppercase;">NEW RESERVATION</h3>
+        <button class="modal-close" style="color:#64748b;" onclick="closeModal('md-reservation')">✕</button>
+      </div>
       <form onsubmit="saveReservation(event)">
-        <input type="hidden" id="res-slot" />
+        <input type="hidden" id="res-id" />
         <input type="hidden" id="res-date" />
-        <div class="form-group" style="margin-bottom:0.75rem;"><label>PATIENT NAME *</label><input type="text" id="res-pname" class="form-control" required /></div>
-        <div class="form-group" style="margin-bottom:1rem;"><label>THERAPY ROOM *</label><select id="res-room" class="form-control"><option>Shirodhara Room</option><option>Panchakarma Suite 1</option><option>Abhyanga Room</option></select></div>
-        <button type="submit" class="btn btn-orange" style="width:100%;">Confirm Reservation</button>
+        <input type="hidden" id="res-slot" />
+
+        <div style="margin-bottom:0.85rem;">
+          <label style="font-size:0.65rem; font-weight:bold; color:#64748b; display:block; margin-bottom:0.3rem;">TIME RANGE (45 MIN THERAPY + 15 MIN REST)</label>
+          <div style="display:flex; gap:0.5rem; align-items:center;">
+            <input type="text" id="res-time-start" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" required />
+            <span style="font-size:0.75rem; color:#64748b;">to</span>
+            <input type="text" id="res-time-end" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" required />
+          </div>
+        </div>
+
+        <div style="margin-bottom:0.85rem;">
+          <label style="font-size:0.65rem; font-weight:bold; color:#64748b; display:block; margin-bottom:0.3rem;">👤 PATIENT NAME</label>
+          <input type="text" id="res-pname" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" placeholder="Enter patient name..." required />
+        </div>
+
+        <div style="margin-bottom:0.85rem;">
+          <label style="font-size:0.65rem; font-weight:bold; color:#64748b; display:block; margin-bottom:0.3rem;">📱 MOBILE NUMBER</label>
+          <input type="text" id="res-pmobile" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" placeholder="10-digit mobile" />
+        </div>
+
+        <div style="margin-bottom:1.25rem;">
+          <label style="font-size:0.65rem; font-weight:bold; color:#64748b; display:block; margin-bottom:0.3rem;">THERAPY / ROOM</label>
+          <select id="res-room-select" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" required></select>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
+          <button type="button" class="btn btn-secondary" style="background:#94a3b8;" onclick="closeModal('md-reservation')">Cancel</button>
+          <button type="submit" class="btn btn-orange">Create reservation</button>
+        </div>
       </form>
     </div>
   </div>
