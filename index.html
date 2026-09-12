@@ -2570,50 +2570,114 @@ ${instructions}
 
     function openRawMaterialModal() { document.getElementById('rm-id').value = ''; document.getElementById('rm-name').value = ''; document.getElementById('rm-stock').value = ''; document.getElementById('rm-reorder').value = ''; openModal('md-raw-mat'); }
     function editRawMaterial(id) { const rm = db.rawMaterials.find(r => r.id === id); if (!rm) return; document.getElementById('rm-id').value = rm.id; document.getElementById('rm-name').value = rm.name; document.getElementById('rm-stock').value = rm.stock; document.getElementById('rm-reorder').value = rm.reorder; openModal('md-raw-mat'); }
-    async function saveRawMaterial(e) {
-      e.preventDefault();
-      const id = document.getElementById('rm-id').value;
-      const matName = document.getElementById('rm-name').value.trim();
-      const category = document.getElementById('rm-category').value;
-      const unit = document.getElementById('rm-unit').value;
-      const stock = parseFloat(document.getElementById('rm-stock').value) || 0;
-      const reorder = parseFloat(document.getElementById('rm-reorder').value) || 0;
+    // --- MODULE 5 DATABASE SAVE HANDLERS ---
 
-      const payload = {
-        name: matName,
-        category: category,
-        unit: unit,
-        stock: stock,
-        reorder: reorder
-      };
+// Save Raw Material to Supabase
+async function saveRawMaterial() {
+  try {
+    const name = document.getElementById('rm-name')?.value.trim();
+    const category = document.getElementById('rm-category')?.value;
+    const unit = document.getElementById('rm-unit')?.value;
+    const stock = parseFloat(document.getElementById('rm-stock')?.value) || 0;
+    const reorder = parseFloat(document.getElementById('rm-reorder')?.value) || 0;
+    const rate = parseFloat(document.getElementById('rm-cost')?.value) || 0;
 
-      if (id) {
-        const idx = db.rawMaterials.findIndex(r => r.id === id);
-        if (idx !== -1) db.rawMaterials[idx] = { ...db.rawMaterials[idx], ...payload };
-        if (sbClient) {
-          try { await sbClient.from('raw_materials').update(payload).eq('id', id); } catch(err){ console.error(err); }
-        }
-      } else {
-        const newObj = { id: 'RAW-' + Date.now(), ...payload };
-        db.rawMaterials.unshift(newObj);
-        if (sbClient) {
-          try {
-            const { data, error } = await sbClient.from('raw_materials').insert([payload]).select();
-            if (data && data[0]) newObj.id = data[0].id;
-          } catch(err){ console.error(err); }
-        }
-      }
-
-      closeModal('md-raw-mat');
-      renderAushadhiNirman();
-      alert(`✅ Raw Material "${matName}" saved successfully!`);
+    if (!name) {
+      alert("Please enter a Material Name.");
+      return;
     }
-    async function delRawMaterial(id) { if (!confirm('Delete item?')) return; if (sbClient) await sbClient.from('raw_materials').delete().eq('id', id); else db.rawMaterials = db.rawMaterials.filter(r => r.id !== id); init(); }
 
-    function openRecipeModal() { document.getElementById('rc-id').value = ''; document.getElementById('rc-name').value = ''; generateAutoBarcode(); currentRecipeIngredients = []; const sel = document.getElementById('rc-add-raw-id'); if (sel) sel.innerHTML = db.rawMaterials.map(r => `<option value="${r.id}">${r.id} - ${r.name}</option>`).join(''); renderRecipeIngredientsTable(); openModal('md-recipe'); }
-    function addRecipeIngredientRow() { const rawId = document.getElementById('rc-add-raw-id').value; const qty = Number(document.getElementById('rc-add-qty').value) || 0; const raw = db.rawMaterials.find(r => r.id === rawId); if (!raw || qty <= 0) return alert('Select material and valid quantity'); currentRecipeIngredients.push({ raw_id: raw.id, raw_name: raw.name, unit: raw.unit, qty_per_unit: qty }); renderRecipeIngredientsTable(); }
-    function renderRecipeIngredientsTable() { const tbl = document.getElementById('tbl-rc-ingredients'); if (!tbl) return; tbl.innerHTML = currentRecipeIngredients.map((i, idx) => `<tr><td><b>${i.raw_id} - ${i.raw_name}</b></td><td><b>${i.qty_per_unit} ${i.unit}</b></td><td><button type="button" onclick="currentRecipeIngredients.splice(${idx},1);renderRecipeIngredientsTable();" style="color:red;border:none;background:none;cursor:pointer;">✕</button></td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;">No ingredients added.</td></tr>'; }
-    async function saveMasterRecipe(e) { e.preventDefault(); if (!currentRecipeIngredients.length) return alert('Add at least 1 ingredient'); const id = document.getElementById('rc-id').value; const payload = { name: document.getElementById('rc-name').value, barcode: document.getElementById('rc-barcode').value, ingredients: JSON.stringify(currentRecipeIngredients) }; if (!id) payload.id = 'REC-0' + (db.recipes.length + 1); if (sbClient) { if (id) await sbClient.from('master_recipes').update(payload).eq('id', id); else await sbClient.from('master_recipes').insert([payload]); } else { if (id) { const idx = db.recipes.findIndex(r => r.id === id); if (idx !== -1) db.recipes[idx] = { id, ...payload }; } else db.recipes.push(payload); } closeModal('md-recipe'); init(); }
+    const payload = {
+      name: name,
+      category: category || 'Herbs',
+      unit: unit || 'kg',
+      current_stock: stock,
+      reorder_limit: reorder,
+      purchase_rate: rate
+    };
+
+    const { data, error } = await supabaseClient
+      .from('raw_materials')
+      .insert([payload])
+      .select();
+
+    if (error) throw error;
+
+    alert("Raw Material saved successfully!");
+    
+    // Close modal & refresh dropdowns/table
+    const modal = document.getElementById('modal-raw-material') || document.querySelector('.modal');
+    if (modal) modal.style.display = 'none';
+    
+    if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+    if (typeof syncRawMaterialsToRecipeBuilder === 'function') syncRawMaterialsToRecipeBuilder();
+
+  } catch (err) {
+    console.error("Save Raw Material Error:", err);
+    alert("Failed to save Raw Material: " + (err.message || JSON.stringify(err)));
+  }
+}
+
+// Save Master Recipe + Relational Ingredients to Supabase
+async function saveMasterRecipe() {
+  try {
+    const name = document.getElementById('recipe-medicine-name')?.value.trim();
+    const barcode = document.getElementById('recipe-barcode')?.value.trim();
+    const yieldQty = parseFloat(document.getElementById('recipe-standard-yield')?.value) || 1;
+    const mrp = parseFloat(document.getElementById('calc-suggested-mrp')?.value) || 0;
+
+    if (!name) {
+      alert("Please enter Output Medicine Name.");
+      return;
+    }
+
+    if (!window.currentRecipeIngredients || window.currentRecipeIngredients.length === 0) {
+      alert("Please add at least one ingredient to the recipe.");
+      return;
+    }
+
+    // Step 1: Insert into master_recipes header table
+    const { data: recipeData, error: recipeErr } = await supabaseClient
+      .from('master_recipes')
+      .insert([{
+        medicine_name: name,
+        barcode: barcode || ('BC-' + Date.now()),
+        standard_yield: yieldQty,
+        suggested_mrp: mrp
+      }])
+      .select()
+      .single();
+
+    if (recipeErr) throw recipeErr;
+
+    // Step 2: Insert array items into recipe_ingredients relational child table
+    const ingredientRows = window.currentRecipeIngredients.map(item => ({
+      recipe_id: recipeData.id,
+      raw_material_id: item.id,
+      qty_required: item.qty,
+      unit_cost: item.rate
+    }));
+
+    const { error: ingErr } = await supabaseClient
+      .from('recipe_ingredients')
+      .insert(ingredientRows);
+
+    if (ingErr) throw ingErr;
+
+    alert("Master Recipe & Ingredients saved successfully!");
+    
+    // Reset state & close modal
+    window.currentRecipeIngredients = [];
+    const modal = document.getElementById('modal-master-recipe') || document.querySelector('.modal');
+    if (modal) modal.style.display = 'none';
+
+    if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+
+  } catch (err) {
+    console.error("Save Master Recipe Error:", err);
+    alert("Failed to save Master Recipe: " + (err.message || JSON.stringify(err)));
+  }
+}; if (!id) payload.id = 'REC-0' + (db.recipes.length + 1); if (sbClient) { if (id) await sbClient.from('master_recipes').update(payload).eq('id', id); else await sbClient.from('master_recipes').insert([payload]); } else { if (id) { const idx = db.recipes.findIndex(r => r.id === id); if (idx !== -1) db.recipes[idx] = { id, ...payload }; } else db.recipes.push(payload); } closeModal('md-recipe'); init(); }
     async function delMasterRecipe(id) { if (!confirm('Delete recipe?')) return; if (sbClient) await sbClient.from('master_recipes').delete().eq('id', id); else db.recipes = db.recipes.filter(r => r.id !== id); init(); }
 
     async function runProductionEngine(e) {
