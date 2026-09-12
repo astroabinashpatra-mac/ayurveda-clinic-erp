@@ -107,10 +107,25 @@
 
     #print-rx-sheet { display: none; }
     @media print {
-      @page { size: A4; margin: 0; }
-      body * { visibility: hidden; }
-      #print-rx-sheet, #print-rx-sheet * { visibility: visible; }
-      #print-rx-sheet { display: block !important; position: absolute; left: 0; top: 0; width: 100%; color: #000 !important; background: #fff !important; padding: 15mm !important; }
+      @page { size: A4 portrait; margin: 10mm; }
+      body * { visibility: hidden !important; }
+      #print-rx-sheet, #print-rx-sheet *, 
+      #print-pos-sheet, #print-pos-sheet *, 
+      #print-payroll-sheet, #print-payroll-sheet * { 
+        visibility: visible !important; 
+      }
+      #print-pos-sheet { 
+        display: block !important; 
+        position: absolute !important; 
+        left: 0 !important; 
+        top: 0 !important; 
+        width: 100% !important; 
+        color: #000 !important; 
+        background: #fff !important; 
+        font-family: Arial, sans-serif !important;
+        padding: 10mm !important;
+        z-index: 999999 !important;
+      }
       #sidebar, #main-content, .modal-overlay { display: none !important; }
     }
   </style>
@@ -556,7 +571,7 @@
           </div>
           <div class="form-group">
             <label>AMOUNT PAYING NOW (₹) *</label>
-            <input type="number" step="0.01" id="pos-paid-amt" class="form-control" style="font-weight:bold; color:var(--accent-green);" onkeyup="calculatePosTotals()" onchange="calculatePosTotals()" />
+            <input type="number" step="0.01" id="pos-paid-amt" oninput="userEditedPaidAmt=true; calculatePosTotals();" class="form-control" style="font-weight:bold; color:var(--accent-green);" onkeyup="calculatePosTotals()" onchange="calculatePosTotals()" />
           </div>
         </div>
 
@@ -1143,131 +1158,241 @@ Required: ${reqQty}, Available: ${avail}`);
       init();
     }
 
-    function populatePosMedDropdown() {
-      document.getElementById('pos-med-select').innerHTML = db.pharmacy.map(p => `<option value="${p.barcode}">${p.name} (₹${p.price}) - Stock: ${p.stock}</option>`).join('');
-    }
+        let userEditedPaidAmt = false;
 
-    function togglePosCustType(type) {
-      document.getElementById('pos-otc-box').style.display = type === 'otc' ? 'grid' : 'none';
-      document.getElementById('pos-reg-box').style.display = type === 'registered' ? 'block' : 'none';
+    function populatePosMedDropdown() {
+      const sel = document.getElementById('pos-med-select');
+      if (!sel) return;
+      if (!db.pharmacy || db.pharmacy.length === 0) {
+        sel.innerHTML = '<option value="">No stock available in pharmacy</option>';
+        return;
+      }
+      sel.innerHTML = db.pharmacy.map(p => `
+        <option value="${p.barcode}">${p.name} (Batch: ${p.batch_code || 'N/A'}) - ₹${p.price} | Stock: ${p.stock}</option>
+      `).join('');
     }
 
     function addPosCartItem() {
-      const barcode = document.getElementById('pos-med-select').value;
-      const med = db.pharmacy.find(p => p.barcode === barcode); if (!med) return;
+      const barcode = document.getElementById('pos-med-select')?.value;
+      if (!barcode) return alert('Select a valid medicine item from stock.');
+
+      const med = db.pharmacy.find(p => p.barcode === barcode);
+      if (!med) return alert('Selected medicine not found in inventory.');
+
       const qty = Number(document.getElementById('pos-qty').value) || 1;
-      posCart.push({ barcode: med.barcode, name: med.name, price: med.price, qty: qty, total: qty * med.price });
-      renderPosCart(); calculatePosTotals();
+      const availStock = Number(med.stock) || 0;
+
+      if (availStock < qty) {
+        return alert(`Insufficient Stock! Only ${availStock} units available for ${med.name}.`);
+      }
+
+      const existingIdx = posCart.findIndex(c => c.barcode === barcode);
+      if (existingIdx !== -1) {
+        if (availStock < posCart[existingIdx].qty + qty) {
+          return alert(`Cannot add more! Reached total available stock limit (${availStock} units).`);
+        }
+        posCart[existingIdx].qty += qty;
+        posCart[existingIdx].total = posCart[existingIdx].qty * med.price;
+      } else {
+        posCart.push({
+          barcode: med.barcode,
+          name: med.name,
+          batch_code: med.batch_code || 'N/A',
+          price: Number(med.price) || 0,
+          qty: qty,
+          total: qty * (Number(med.price) || 0)
+        });
+      }
+
+      userEditedPaidAmt = false;
+      renderPosCart();
     }
 
     function renderPosCart() {
-      let tot = 0;
-      document.getElementById('tbl-pos-cart').innerHTML = posCart.map((c, i) => {
-        tot += c.total;
-        return `<tr><td>${c.name}</td><td>₹${c.price}</td><td>${c.qty}</td><td>₹${c.total}</td><td><button onclick="posCart.splice(${i},1);renderPosCart(); calculatePosTotals();">✕</button></td></tr>`;
-      }).join('');
-      document.getElementById('pos-grand-total').innerText = '₹' + tot.toFixed(2);
-    }
-
-    
-    function switchPharmacyView(view, btn) {
-      document.getElementById('ph-view-stock').style.display = view === 'stock' ? 'block' : 'none';
-      document.getElementById('ph-view-sales').style.display = view === 'sales' ? 'block' : 'none';
-      document.getElementById('btn-ph-tab-stock').classList.remove('active');
-      document.getElementById('btn-ph-tab-sales').classList.remove('active');
-      if (btn) btn.classList.add('active');
-      if (view === 'sales') renderPharmacySalesHistory();
-    }
-
-    function renderPharmacy() {
-      const tbl = document.getElementById('tbl-pharmacy');
+      const tbl = document.getElementById('tbl-pos-cart');
       if (!tbl) return;
-      tbl.innerHTML = db.pharmacy.map(p => `
-        <tr>
-          <td><code>${p.barcode}</code></td>
-          <td><b>${p.name}</b></td>
-          <td>${p.batch_code}</td>
-          <td>${p.expiry}</td>
-          <td>${p.vendor_name || 'General Supplier'}</td>
-          <td>₹${p.purchase_rate || 0}</td>
-          <td><b>₹${p.price}</b></td>
-          <td><b>${p.stock} units</b></td>
-          <td>
-            <button class="btn btn-blue" style="padding:2px 8px; font-size:0.75rem;" onclick="editPharmacyStock('${p.id||p.barcode}')">Edit</button>
-            <button class="btn btn-danger" style="padding:2px 8px; font-size:0.75rem;" onclick="delPharmacyStock('${p.id||p.barcode}')">Delete</button>
-          </td>
-        </tr>
-      `).join('') || '<tr><td colspan="9" style="text-align:center;">No stock items found.</td></tr>';
-    }
 
-    function editPharmacyStock(id) {
-      const item = db.pharmacy.find(p => (p.id && p.id === id) || p.barcode === id);
-      if (!item) return alert('Stock item not found');
-      document.getElementById('ph-item-id').value = item.id || item.barcode;
-      document.getElementById('ph-name').value = item.name;
-      document.getElementById('ph-barcode').value = item.barcode;
-      document.getElementById('ph-batch').value = item.batch_code;
-      document.getElementById('ph-expiry').value = item.expiry;
-      if (document.getElementById('ph-purchase-rate')) document.getElementById('ph-purchase-rate').value = item.purchase_rate || 0;
-      document.getElementById('ph-price').value = item.price;
-      document.getElementById('ph-stock-qty').value = item.stock;
-      populateVendorDropdown();
-      if (document.getElementById('ph-vendor-select') && item.vendor_name) {
-        document.getElementById('ph-vendor-select').value = item.vendor_name;
+      if (posCart.length === 0) {
+        tbl.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:1rem;">Cart is empty. Select item above and click "+ Add to Bill".</td></tr>';
+      } else {
+        tbl.innerHTML = posCart.map((item, idx) => `
+          <tr>
+            <td><b>${item.name}</b></td>
+            <td>${item.batch_code}</td>
+            <td>₹${item.price.toFixed(2)}</td>
+            <td>${item.qty}</td>
+            <td><b>₹${item.total.toFixed(2)}</b></td>
+            <td><button type="button" onclick="posCart.splice(${idx},1);userEditedPaidAmt=false;renderPosCart();" style="color:#ef4444; background:none; border:none; cursor:pointer; font-weight:bold;">✕ Remove</button></td>
+          </tr>
+        `).join('');
       }
-      openModal('md-pharmacy-stock');
+
+      calculatePosTotals();
     }
 
-    function renderPharmacySalesHistory() {
-      const q = (document.getElementById('ph-sales-search')?.value || '').toLowerCase();
-      const tbl = document.getElementById('tbl-pharmacy-sales');
-      if (!tbl) return;
+    function calculatePosTotals() {
+      const subtotal = posCart.reduce((acc, c) => acc + c.total, 0);
+      const discMode = document.getElementById('pos-disc-type')?.value || 'percent';
+      let discVal = Number(document.getElementById('pos-disc-val')?.value) || 0;
+      let taxPercent = Number(document.getElementById('pos-tax-percent')?.value) || 0;
 
-      const sales = db.billing.filter(b => b.bill_type === 'POS Retail' || b.rx_no === 'POS');
-      const filtered = sales.filter(s => 
-        (s.bill_no || '').toLowerCase().includes(q) ||
-        (s.patient_name || '').toLowerCase().includes(q) ||
-        (s.mobile_no || '').includes(q)
-      );
+      let discAmt = 0;
+      let discPct = 0;
 
-      tbl.innerHTML = filtered.map(s => `
-        <tr>
-          <td><b>${s.bill_no}</b></td>
-          <td>${s.created_at ? new Date(s.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</td>
-          <td><b>${s.patient_name}</b></td>
-          <td>${s.mobile_no || 'N/A'}</td>
-          <td><span class="tab-btn" style="padding:2px 6px; font-size:0.65rem;">${s.pay_mode || 'Cash'}</span></td>
-          <td><b>₹${s.total_amount}</b></td>
-          <td>
-            <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="printPosInvoice('${s.bill_no}')">🖨️ Print Bill</button>
-            <button class="btn btn-green" style="padding:2px 8px; font-size:0.75rem;" onclick="whatsappPosInvoice('${s.bill_no}')">💬 WhatsApp</button>
-          </td>
-        </tr>
-      `).join('') || '<tr><td colspan="7" style="text-align:center;">No POS sales recorded yet.</td></tr>';
+      if (discMode === 'percent') {
+        discPct = discVal;
+        discAmt = (subtotal * discPct) / 100;
+      } else {
+        discAmt = discVal;
+        discPct = subtotal > 0 ? (discAmt / subtotal) * 100 : 0;
+      }
+
+      if (discAmt > subtotal) discAmt = subtotal;
+
+      const taxableAmt = subtotal - discAmt;
+      const taxAmt = (taxableAmt * taxPercent) / 100;
+      const grandTotal = Math.max(0, taxableAmt + taxAmt);
+
+      let paidAmtInput = document.getElementById('pos-paid-amt');
+      
+      if (!userEditedPaidAmt && paidAmtInput) {
+        paidAmtInput.value = grandTotal.toFixed(2);
+      }
+
+      let paidAmt = Number(paidAmtInput?.value) || 0;
+      const balanceDue = Math.max(0, grandTotal - paidAmt);
+
+      if (document.getElementById('pos-lbl-subtotal')) document.getElementById('pos-lbl-subtotal').innerText = '₹' + subtotal.toFixed(2);
+      if (document.getElementById('pos-lbl-discount')) document.getElementById('pos-lbl-discount').innerText = `-₹${discAmt.toFixed(2)} (${discPct.toFixed(1)}%)`;
+      if (document.getElementById('pos-lbl-tax')) document.getElementById('pos-lbl-tax').innerText = `+₹${taxAmt.toFixed(2)} (${taxPercent}%)`;
+      if (document.getElementById('pos-lbl-grandtotal')) document.getElementById('pos-lbl-grandtotal').innerText = '₹' + grandTotal.toFixed(2);
+      if (document.getElementById('pos-lbl-paid')) document.getElementById('pos-lbl-paid').innerText = '₹' + paidAmt.toFixed(2);
+      if (document.getElementById('pos-lbl-due')) document.getElementById('pos-lbl-due').innerText = '₹' + balanceDue.toFixed(2);
+
+      return { subtotal, discPct, discAmt, taxPercent, taxAmt, grandTotal, paidAmt, balanceDue };
+    }
+
+    async function checkoutPosSale() {
+      if (!posCart || posCart.length === 0) {
+        return alert('⚠️ CANNOT COMPLETE SALE: Cart is empty!
+Select a medicine item from dropdown and click "+ Add to Bill" before completing checkout.');
+      }
+
+      const custName = document.getElementById('pos-cust-name')?.value || 'Walk-in Customer';
+      const custMobile = document.getElementById('pos-cust-mobile')?.value || 'N/A';
+      const patientId = document.getElementById('pos-patient-id')?.value || null;
+      const payMode = document.getElementById('pos-pay-mode')?.value || 'Cash';
+
+      const calc = calculatePosTotals();
+      const billNo = 'POS-' + Math.floor(100000 + Math.random() * 900000);
+      const status = calc.balanceDue === 0 ? 'Paid' : (calc.paidAmt > 0 ? 'Partial' : 'Unpaid');
+
+      // 1. Deduct Stock from Pharmacy Database
+      for (let item of posCart) {
+        const med = db.pharmacy.find(p => p.barcode === item.barcode);
+        if (med) {
+          med.stock = Math.max(0, Number(med.stock) - item.qty);
+          if (sbClient) {
+            try { await sbClient.from('pharmacy_stock').update({ stock: med.stock }).eq('barcode', item.barcode); } catch(e){}
+          }
+        }
+      }
+
+      // 2. Insert Invoice to Billing Ledger
+      const billPayload = {
+        bill_no: billNo,
+        rx_no: 'POS',
+        patient_id: patientId,
+        patient_name: custName,
+        mobile_no: custMobile,
+        bill_type: 'POS Retail',
+        subtotal: calc.subtotal,
+        discount_percent: calc.discPct,
+        discount_amount: calc.discAmt,
+        tax_percent: calc.taxPercent,
+        tax_amount: calc.taxAmt,
+        total_amount: calc.grandTotal,
+        paid_amount: calc.paidAmt,
+        balance_due: calc.balanceDue,
+        payment_status: status,
+        items: posCart
+      };
+
+      if (sbClient) {
+        try { await sbClient.from('billing').insert([billPayload]); } catch(e){}
+      }
+
+      db.billing.unshift({ 
+        ...billPayload, 
+        id: 'b-' + Date.now(), 
+        created_at: new Date().toISOString(),
+        pay_mode: payMode 
+      });
+
+      if (confirm(`✅ POS Sale Completed!
+• Invoice No: ${billNo}
+• Grand Total: ₹${calc.grandTotal.toFixed(2)}
+• Paid: ₹${calc.paidAmt.toFixed(2)}
+
+Would you like to PRINT the customer receipt right now?`)) {
+        printPosInvoice(billNo);
+      }
+
+      posCart = [];
+      userEditedPaidAmt = false;
+      closeModal('md-pos');
+      init();
     }
 
     function printPosInvoice(billNo) {
       const sale = db.billing.find(b => b.bill_no === billNo);
-      if (!sale) return alert('Bill record not found');
+      if (!sale) return alert('Invoice record not found');
 
       document.getElementById('pos-pr-billno').innerText = sale.bill_no;
       document.getElementById('pos-pr-custname').innerText = sale.patient_name;
       document.getElementById('pos-pr-date').innerText = sale.created_at ? new Date(sale.created_at).toLocaleDateString() : new Date().toLocaleDateString();
       document.getElementById('pos-pr-mobile').innerText = sale.mobile_no || 'N/A';
-      document.getElementById('pos-pr-total').innerText = '₹' + sale.total_amount;
 
-      let items = sale.items || [];
-      let html = items.map(i => `
-        <tr>
-          <td style="padding:4px;">${i.name}</td>
-          <td style="padding:4px;">${i.batch_code || '-'}</td>
-          <td style="padding:4px;">₹${i.price}</td>
-          <td style="padding:4px;">${i.qty}</td>
-          <td style="padding:4px;">₹${i.total}</td>
+      let items = sale.items;
+      if (typeof items === 'string') {
+        try { items = JSON.parse(items); } catch(e) { items = []; }
+      }
+      items = items || [];
+
+      let html = items.map((i, idx) => `
+        <tr style="border-bottom: 1px solid #ddd;">
+          <td style="padding: 6px;">${idx + 1}</td>
+          <td style="padding: 6px;"><b>${i.name}</b></td>
+          <td style="padding: 6px;">${i.batch_code || '-'}</td>
+          <td style="padding: 6px;">₹${Number(i.price).toFixed(2)}</td>
+          <td style="padding: 6px;">${i.qty}</td>
+          <td style="padding: 6px; text-align:right;">₹${Number(i.total).toFixed(2)}</td>
         </tr>
       `).join('');
 
-      document.getElementById('pos-pr-tbl-body').innerHTML = html || `<tr><td colspan="5">Retail Medicines Purchase</td></tr>`;
+      if (items.length === 0) {
+        html = `<tr><td colspan="6" style="padding:10px; text-align:center;">Herbal Medicines Purchase</td></tr>`;
+      }
+
+      // Append summary breakdown rows
+      const sub = Number(sale.subtotal || sale.total_amount || 0);
+      const disc = Number(sale.discount_amount || 0);
+      const tax = Number(sale.tax_amount || 0);
+      const grand = Number(sale.total_amount || 0);
+      const paid = Number(sale.paid_amount || 0);
+      const due = Number(sale.balance_due || 0);
+
+      html += `
+        <tr style="border-top: 2px solid #000;"><td colspan="5" style="padding:4px; text-align:right;">Subtotal:</td><td style="padding:4px; text-align:right;">₹${sub.toFixed(2)}</td></tr>
+        ${disc > 0 ? `<tr><td colspan="5" style="padding:4px; text-align:right;">Discount:</td><td style="padding:4px; text-align:right;">-₹${disc.toFixed(2)}</td></tr>` : ''}
+        ${tax > 0 ? `<tr><td colspan="5" style="padding:4px; text-align:right;">Tax (GST):</td><td style="padding:4px; text-align:right;">+₹${tax.toFixed(2)}</td></tr>` : ''}
+        <tr style="font-weight:bold; font-size:1.05rem;"><td colspan="5" style="padding:6px; text-align:right;">Grand Total:</td><td style="padding:6px; text-align:right;">₹${grand.toFixed(2)}</td></tr>
+        <tr><td colspan="5" style="padding:4px; text-align:right;">Amount Paid:</td><td style="padding:4px; text-align:right; color:green;">₹${paid.toFixed(2)}</td></tr>
+        ${due > 0 ? `<tr style="font-weight:bold; color:red;"><td colspan="5" style="padding:4px; text-align:right;">Balance Due:</td><td style="padding:4px; text-align:right;">₹${due.toFixed(2)}</td></tr>` : ''}
+      `;
+
+      document.getElementById('pos-pr-tbl-body').innerHTML = html;
+      document.getElementById('pos-pr-total').innerText = '₹' + grand.toFixed(2);
 
       const printArea = document.getElementById('print-pos-sheet');
       printArea.style.display = 'block';
