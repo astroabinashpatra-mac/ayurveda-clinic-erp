@@ -1,5 +1,7 @@
 // --- MODULE 5: AUSHADHI NIRMAN DEDICATED ENGINE ---
 window.currentRecipeIngredients = [];
+window.availableRawMaterials = [];
+window.availableMasterRecipes = [];
 
 function getDb() {
   if (typeof sbClient !== 'undefined' && sbClient) return sbClient;
@@ -9,33 +11,47 @@ function getDb() {
   return null;
 }
 
-// Locate element by button text content across DOM
-function findButtonByText(text) {
-  const buttons = document.querySelectorAll('button');
-  for (let btn of buttons) {
-    if (btn.innerText && btn.innerText.toLowerCase().includes(text.toLowerCase())) {
-      return btn;
+// Locate the specific Master Recipe Modal element container
+function getRecipeModalContainer() {
+  const containers = document.querySelectorAll('div');
+  for (let c of containers) {
+    if (c.innerText && c.innerText.includes('Register Master Recipe') && c.innerText.includes('ADD RAW INGREDIENTS')) {
+      return c;
     }
   }
-  return null;
+  return document.querySelector('#modal-master-recipe');
 }
 
-// 1. Modal Toggle Handlers
+// Populate ONLY the raw material select dropdown inside the modal
+function populateModalRawMaterialDropdown() {
+  const modal = getRecipeModalContainer();
+  if (!modal) return;
+
+  const selects = modal.querySelectorAll('select');
+  const rawData = window.availableRawMaterials || [];
+
+  selects.forEach(selectEl => {
+    selectEl.innerHTML = '<option value="">-- Select Raw Material --</option>' + 
+      rawData.map(m => `<option value="${m.id}">${m.id} - ${m.name} (${m.stock} ${m.unit || 'kg'})</option>`).join('');
+  });
+}
+
+// 1. Open Modal Handler
 function openMasterRecipeModal() {
-  const modal = document.querySelector('#modal-master-recipe') || 
-                Array.from(document.querySelectorAll('div')).find(d => d.innerText && d.innerText.includes('Register Master Recipe'));
+  const modal = getRecipeModalContainer();
   if (modal) {
     modal.style.display = 'flex';
     modal.style.opacity = '1';
     modal.style.visibility = 'visible';
     window.currentRecipeIngredients = [];
     renderRecipeTable();
+    populateModalRawMaterialDropdown();
   } else {
-    alert("Could not locate Master Recipe modal.");
+    alert("Could not locate Master Recipe modal in DOM.");
   }
 }
 
-// 2. Fetch & Display Data
+// 2. Fetch Inventory Data & Sync UI Tables
 async function loadAushadhiNirmanData() {
   const db = getDb();
   if (!db) return;
@@ -44,6 +60,8 @@ async function loadAushadhiNirmanData() {
     const { data: rawData } = await db.from('raw_materials').select('*').order('created_at', { ascending: false });
     if (rawData) {
       window.availableRawMaterials = rawData;
+      
+      // Update Main Inventory Table
       const rmTbody = document.querySelector('#module-aushadhi-nirman table tbody') || document.querySelector('table tbody');
       if (rmTbody) {
         rmTbody.innerHTML = rawData.map(item => `
@@ -62,12 +80,7 @@ async function loadAushadhiNirmanData() {
         `).join('');
       }
 
-      const modal = document.querySelector('#modal-master-recipe') || document;
-      const selectEl = modal.querySelector('select');
-      if (selectEl) {
-        selectEl.innerHTML = '<option value="">-- Select Raw Material --</option>' + 
-          rawData.map(m => `<option value="${m.id}">${m.id} - ${m.name} (${m.stock} ${m.unit})</option>`).join('');
-      }
+      populateModalRawMaterialDropdown();
     }
 
     const { data: recData } = await db.from('master_recipes').select('*, recipe_ingredients(*, raw_materials(*))');
@@ -96,13 +109,15 @@ async function loadAushadhiNirmanData() {
 
 // 3. Add Ingredient Handler
 function addIngredientToRecipe() {
-  const modal = document.querySelector('#modal-master-recipe') || document;
+  const modal = getRecipeModalContainer();
+  if (!modal) return alert("Modal not found.");
+
   const selectEl = modal.querySelector('select');
   const qtyEl = modal.querySelector('input[type="number"]');
 
-  if (!selectEl || !selectEl.value) return alert("Select a Raw Material first.");
+  if (!selectEl || !selectEl.value) return alert("Please select a Raw Material from the dropdown.");
   const qty = parseFloat(qtyEl ? qtyEl.value : 0);
-  if (!qty || qty <= 0) return alert("Enter a valid quantity (> 0).");
+  if (isNaN(qty) || qty <= 0) return alert("Please enter a valid quantity (> 0).");
 
   const matId = selectEl.value;
   const matName = selectEl.options[selectEl.selectedIndex].text;
@@ -116,7 +131,8 @@ function addIngredientToRecipe() {
 }
 
 function renderRecipeTable() {
-  const modal = document.querySelector('#modal-master-recipe') || document;
+  const modal = getRecipeModalContainer();
+  if (!modal) return;
   const tbody = modal.querySelector('tbody');
   if (!tbody) return;
 
@@ -141,12 +157,14 @@ async function saveMasterRecipe() {
   const db = getDb();
   if (!db) return alert("sbClient missing.");
 
-  const modal = document.querySelector('#modal-master-recipe') || document;
+  const modal = getRecipeModalContainer();
+  if (!modal) return alert("Modal missing.");
+
   const medNameEl = modal.querySelector('input[type="text"]:not([readonly])');
   const medName = medNameEl ? medNameEl.value.trim() : '';
 
   if (!medName) return alert("Please enter Output Medicine Name.");
-  if (!window.currentRecipeIngredients.length) return alert("Add at least 1 raw material ingredient.");
+  if (!window.currentRecipeIngredients.length) return alert("Please add at least 1 raw material ingredient.");
 
   const recipeId = 'REC-' + Date.now().toString().slice(-6);
   const barcodeVal = 'BC-' + Math.floor(100000 + Math.random() * 900000);
@@ -169,28 +187,39 @@ async function saveMasterRecipe() {
   renderRecipeTable();
   if (medNameEl) medNameEl.value = '';
 
-  if (modal && modal.style) modal.style.display = 'none';
+  modal.style.display = 'none';
   loadAushadhiNirmanData();
 }
 
-// 5. Attach Programmatic Event Listeners
-function bindNirmanEventListeners() {
-  const addRecipeBtn = findButtonByText('Add Master Recipe');
-  if (addRecipeBtn) addRecipeBtn.onclick = openMasterRecipeModal;
+// 5. Save Raw Material Handler
+async function saveRawMaterial() {
+  const db = getDb();
+  if (!db) return alert("sbClient missing.");
 
-  const addIngredientBtn = findButtonByText('Add Ingredient');
-  if (addIngredientBtn) addIngredientBtn.onclick = addIngredientToRecipe;
+  const modal = document.querySelector('#modal-raw-material') || document.querySelector('.modal');
+  const nameInp = document.getElementById('rm-name') || modal?.querySelector('input[type="text"]');
+  const name = nameInp ? nameInp.value.trim() : '';
+  if (!name) return alert("Please enter a Material Name.");
 
-  const saveRecipeBtn = findButtonByText('Save Master Recipe');
-  if (saveRecipeBtn) saveRecipeBtn.onclick = saveMasterRecipe;
+  const payload = {
+    id: 'RAW-' + Date.now(),
+    name: name,
+    category: document.getElementById('rm-category')?.value || 'Herbs',
+    unit: document.getElementById('rm-unit')?.value || 'kg',
+    stock: parseFloat(document.getElementById('rm-stock')?.value) || 0,
+    reorder: parseFloat(document.getElementById('rm-reorder')?.value) || 0,
+    purchase_rate: parseFloat(document.getElementById('rm-cost')?.value) || 0
+  };
 
-  const batchBtn = findButtonByText('Execute Batch Production');
-  if (batchBtn) batchBtn.onclick = executeBatchProduction;
+  const { error } = await db.from('raw_materials').insert([payload]);
+  if (error) return alert("Save Raw Material Failed: " + error.message);
 
+  alert("Raw Material saved successfully!");
+  if (modal) modal.style.display = 'none';
   loadAushadhiNirmanData();
 }
 
-// Execute Batch Production
+// 6. Execute Batch Production (Stock Auto-Deduction)
 async function executeBatchProduction() {
   const db = getDb();
   if (!db) return alert("sbClient missing.");
@@ -198,8 +227,10 @@ async function executeBatchProduction() {
   const { data: recipes } = await db.from('master_recipes').select('*, recipe_ingredients(*, raw_materials(*))');
   if (!recipes || !recipes.length) return alert("No recipes found.");
 
-  const menu = recipes.map((r, i) => `${i + 1}. ${r.medicine_name} (${r.id})`).join('\n');
-  const sel = prompt("Select Master Recipe Number for Batch Production:\n" + menu);
+  const menu = recipes.map((r, i) => `${i + 1}. ${r.medicine_name} (${r.id})`).join('
+');
+  const sel = prompt("Select Master Recipe Number for Batch Production:
+" + menu);
   if (!sel) return;
 
   const target = recipes[parseInt(sel) - 1];
@@ -225,11 +256,41 @@ async function executeBatchProduction() {
     }
   }
 
-  alert(`Batch Production Complete for ${units} units of ${target.medicine_name}!\n\nStock Deducted:\n` + log.join('\n'));
+  alert(`Batch Production Complete for ${units} units of ${target.medicine_name}!
+
+Stock Deducted:
+` + log.join('
+'));
   loadAushadhiNirmanData();
 }
 
-// Bind on load
+// Helper: Bind click handlers by inner text
+function findBtnByText(txt) {
+  for (let b of document.querySelectorAll('button')) {
+    if (b.innerText && b.innerText.toLowerCase().includes(txt.toLowerCase())) return b;
+  }
+  return null;
+}
+
+function bindNirmanEventListeners() {
+  const addRecipeBtn = findBtnByText('Add Master Recipe');
+  if (addRecipeBtn) addRecipeBtn.onclick = openMasterRecipeModal;
+
+  const addIngredientBtn = findBtnByText('Add Ingredient');
+  if (addIngredientBtn) addIngredientBtn.onclick = addIngredientToRecipe;
+
+  const saveRecipeBtn = findBtnByText('Save Master Recipe');
+  if (saveRecipeBtn) saveRecipeBtn.onclick = saveMasterRecipe;
+
+  const saveRmBtn = findBtnByText('Save Raw Material');
+  if (saveRmBtn) saveRmBtn.onclick = saveRawMaterial;
+
+  const batchBtn = findBtnByText('Execute Batch Production');
+  if (batchBtn) batchBtn.onclick = executeBatchProduction;
+
+  loadAushadhiNirmanData();
+}
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', bindNirmanEventListeners);
 } else {
