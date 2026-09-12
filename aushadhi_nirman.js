@@ -1,8 +1,3 @@
-/**
- * MODULE 5: AUSHADHI NIRMAN (MEDICINE PRODUCTION ENGINE)
- * Direct DOM ID targeting & dynamic modal fallback recovery.
- */
-
 window.nirmanState = {
   currentIngredients: [],
   rawMaterials: [],
@@ -22,7 +17,6 @@ function el(id) {
   return document.getElementById(id);
 }
 
-// Guarantee modal existence in DOM
 function ensureModalsExist() {
   if (!el('modal-master-recipe')) {
     const recipeModalDiv = document.createElement('div');
@@ -117,7 +111,6 @@ function ensureModalsExist() {
   }
 }
 
-// Modal Controllers
 function openMasterRecipeModal() {
   ensureModalsExist();
   const modal = el('modal-master-recipe');
@@ -161,7 +154,6 @@ function closeRawMaterialModal() {
   window.nirmanState.editingRmId = null;
 }
 
-// Data Fetch & Table Renderers
 async function loadAushadhiNirmanData() {
   ensureModalsExist();
   const db = getDb();
@@ -255,7 +247,6 @@ function populateRawMaterialsSelect() {
     list.map(m => `<option value="${m.id}">${m.id} - ${m.name} (${m.stock} ${m.unit || 'kg'})</option>`).join('');
 }
 
-// Actions
 async function saveRawMaterial() {
   const db = getDb();
   if (!db) return alert("Database client unavailable.");
