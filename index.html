@@ -728,7 +728,7 @@ function removeRecipeIngredient(index) {
       <div style="background:var(--panel-dark); border:1px solid var(--border-dark); border-radius:8px; padding:1.25rem; margin-bottom:1.5rem;">
         <div class="section-header">
           <h3 style="color:var(--accent-orange);">🌱 RAW MATERIALS INVENTORY</h3>
-          <button class="btn btn-orange" onclick="openRawMaterialModal()">+ Add Raw Material</button>
+          <button type="button" id="btn-add-raw-material" onclick="openRawMaterialModal()"  class="btn btn-orange" onclick="openRawMaterialModal()">+ Add Raw Material</button>
         </div>
         <table class="data-table">
           <thead><tr><th>Item ID</th><th>Material Name</th><th>Category</th><th>Available Stock</th><th>Reorder Limit</th><th>Status</th><th>Actions</th></tr></thead>

@@ -415,3 +415,6 @@ if (document.readyState === 'loading') {
 } else {
   bindNirmanEvents();
 }
+
+window.openRawMaterialModal = openRawMaterialModal;
+window.openMasterRecipeModal = openMasterRecipeModal;
