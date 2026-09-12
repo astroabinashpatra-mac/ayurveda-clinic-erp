@@ -3487,5 +3487,56 @@ function removeRecipeIngredient(index) {
     </div>
   </div>
 
+
+<script id="force-rm-payload-fix">
+async function saveRawMaterial() {
+  try {
+    if (!supabaseClient) throw new Error("Supabase client is not initialized.");
+
+    const modal = document.querySelector('#modal-raw-material') || document.querySelector('.modal');
+    
+    const name = document.getElementById('rm-name')?.value.trim() || 
+                 modal?.querySelector('input[placeholder*="Material"], input[type="text"]')?.value.trim();
+    const category = document.getElementById('rm-category')?.value || 'Herbs';
+    const unit = document.getElementById('rm-unit')?.value || 'kg';
+    const stock = parseFloat(document.getElementById('rm-stock')?.value) || 0;
+    const reorder = parseFloat(document.getElementById('rm-reorder')?.value) || 0;
+    const rate = parseFloat(document.getElementById('rm-cost')?.value) || 0;
+
+    if (!name) {
+      alert("Please enter a Material Name.");
+      return;
+    }
+
+    const payload = {
+      id: 'RAW-' + Date.now(),
+      name: name,
+      category: category,
+      unit: unit,
+      stock: stock,
+      reorder: reorder,
+      purchase_rate: rate
+    };
+
+    const { data, error } = await supabaseClient
+      .from('raw_materials')
+      .insert([payload])
+      .select();
+
+    if (error) throw error;
+
+    alert("Raw Material saved successfully to Supabase!");
+    
+    if (modal) modal.style.display = 'none';
+    if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+    if (typeof syncRawMaterialsToRecipeBuilder === 'function') syncRawMaterialsToRecipeBuilder();
+
+  } catch (err) {
+    console.error("Supabase Save Error:", err);
+    alert("Failed to save to Supabase: " + (err.message || JSON.stringify(err)));
+  }
+}
+</script>
+
 </body>
 </html>
