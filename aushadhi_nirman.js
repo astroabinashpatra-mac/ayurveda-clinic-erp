@@ -1,5 +1,5 @@
 /**
- * MODULE 5: AUSHADHI NIRMAN (DIRECT EVENT BINDING ENGINE)
+ * MODULE 5: AUSHADHI NIRMAN (GLOBAL EVENT DELEGATION ENGINE)
  */
 window.nirmanState = {
   currentIngredients: [],
@@ -20,18 +20,115 @@ function el(id) {
   return document.getElementById(id);
 }
 
-// 1. MODAL CONTROLLERS
-function openMasterRecipeModal() {
-  const modal = el('modal-master-recipe');
-  if (!modal) return alert("Modal container #modal-master-recipe missing.");
-  modal.style.display = 'flex';
-  modal.style.opacity = '1';
-  modal.style.visibility = 'visible';
+// 1. DYNAMIC MODAL INJECTION & RECOVERY
+function ensureModalsExist() {
+  if (!el('modal-master-recipe')) {
+    const m = document.createElement('div');
+    m.id = 'modal-master-recipe';
+    m.className = 'modal';
+    m.style.cssText = 'display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 99999; padding: 1rem;';
+    m.innerHTML = `
+      <div style="background: #1e293b; width: 100%; max-width: 580px; padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: white; box-sizing: border-box;">
+        <h3 style="margin-top: 0; color: white;">+ Register Master Recipe</h3>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Output Medicine Name *</label>
+          <input type="text" id="input-recipe-name" placeholder="e.g. Mahanarayani Tailam" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+        </div>
+        <div style="background: rgba(15, 23, 42, 0.8); padding: 1rem; border-radius: 6px; margin-bottom: 1rem; box-sizing: border-box;">
+          <h4 style="margin-top: 0; margin-bottom: 0.8rem; color: #ea580c;">Add Raw Ingredients (BOM)</h4>
+          <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.8rem; width: 100%; box-sizing: border-box;">
+            <select id="select-recipe-raw-material" style="flex: 2; min-width: 0; padding: 0.5rem; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;"></select>
+            <input type="number" id="input-recipe-qty" placeholder="Qty/unit" style="flex: 1; min-width: 0; padding: 0.5rem; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+            <button type="button" data-action="add-ingredient" style="background: #ea580c; color: white; border: none; padding: 0.5rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; white-space: nowrap; flex-shrink: 0;">+ Add Ingredient</button>
+          </div>
+          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.2); color: #9ca3af;">
+                <th style="padding: 0.4rem;">Raw Material</th>
+                <th style="padding: 0.4rem;">Qty Required (per unit)</th>
+                <th style="padding: 0.4rem; text-align: center;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-modal-ingredients"></tbody>
+          </table>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+          <button type="button" data-action="close-recipe-modal" style="background: #475569; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Cancel</button>
+          <button type="button" data-action="save-recipe" style="background: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold;">Save Master Recipe</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(m);
+  }
 
-  window.nirmanState.currentIngredients = [];
-  renderModalIngredientsTable();
-  populateRawMaterialsSelect();
-  if (el('input-recipe-name')) el('input-recipe-name').value = '';
+  if (!el('modal-raw-material')) {
+    const rm = document.createElement('div');
+    rm.id = 'modal-raw-material';
+    rm.className = 'modal';
+    rm.style.cssText = 'display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 99999; padding: 1rem;';
+    rm.innerHTML = `
+      <div style="background: #1e293b; width: 100%; max-width: 480px; padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: white; box-sizing: border-box;">
+        <h3 style="margin-top: 0;">Raw Material Record</h3>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem;">Material Name *</label>
+          <input type="text" id="input-rm-name" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem;">Category</label>
+            <select id="select-rm-category" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+              <option value="Herbs">Herbs</option>
+              <option value="Base Oil/Ghee">Base Oil/Ghee</option>
+              <option value="Bhasma & Minerals">Bhasma & Minerals</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem;">Unit</label>
+            <select id="select-rm-unit" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+              <option value="kg">kg</option>
+              <option value="L">L</option>
+              <option value="g">g</option>
+            </select>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.8rem; margin-bottom: 1.5rem;">
+          <div>
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem;">Stock</label>
+            <input type="number" id="input-rm-stock" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem;">Reorder</label>
+            <input type="number" id="input-rm-reorder" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem;">Cost/Unit</label>
+            <input type="number" id="input-rm-cost" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+          <button type="button" data-action="close-rm-modal" style="background: #475569; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Cancel</button>
+          <button type="button" data-action="save-rm" style="background: #ea580c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold;">Save Raw Material</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(rm);
+  }
+}
+
+// 2. MODAL VISIBILITY HANDLERS
+function openMasterRecipeModal() {
+  ensureModalsExist();
+  const modal = el('modal-master-recipe');
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.style.opacity = '1';
+    modal.style.visibility = 'visible';
+
+    window.nirmanState.currentIngredients = [];
+    renderModalIngredientsTable();
+    populateRawMaterialsSelect();
+    if (el('input-recipe-name')) el('input-recipe-name').value = '';
+  }
 }
 
 function closeMasterRecipeModal() {
@@ -41,27 +138,27 @@ function closeMasterRecipeModal() {
 }
 
 function openRawMaterialModal(editItem = null) {
+  ensureModalsExist();
   const modal = el('modal-raw-material');
-  if (!modal) return alert("Modal container #modal-raw-material missing.");
-  
-  window.nirmanState.editingRmId = editItem ? editItem.id : null;
-  modal.style.display = 'flex';
-  modal.style.opacity = '1';
-  modal.style.visibility = 'visible';
+  if (modal) {
+    window.nirmanState.editingRmId = editItem ? editItem.id : null;
+    modal.style.display = 'flex';
+    modal.style.opacity = '1';
+    modal.style.visibility = 'visible';
 
-  const modalEl = modal;
-  const nameInp = el('input-rm-name') || el('rm-name') || modalEl.querySelector('input[type="text"]');
-  const catInp = el('select-rm-category') || el('rm-category') || modalEl.querySelectorAll('select')[0];
-  const unitInp = el('select-rm-unit') || el('rm-unit') || modalEl.querySelectorAll('select')[1];
-  const numInputs = modalEl.querySelectorAll('input[type="number"]');
+    const modalEl = modal;
+    const nameInp = el('input-rm-name') || el('rm-name') || modalEl.querySelector('input[type="text"]');
+    const catInp = el('select-rm-category') || el('rm-category') || modalEl.querySelectorAll('select')[0];
+    const unitInp = el('select-rm-unit') || el('rm-unit') || modalEl.querySelectorAll('select')[1];
+    const numInputs = modalEl.querySelectorAll('input[type="number"]');
 
-  if (nameInp) nameInp.value = editItem ? editItem.name : '';
-  if (catInp && editItem) catInp.value = editItem.category || 'Herbs';
-  if (unitInp && editItem) unitInp.value = editItem.unit || 'kg';
-  
-  if (numInputs[0]) numInputs[0].value = editItem ? editItem.stock : '';
-  if (numInputs[1]) numInputs[1].value = editItem ? editItem.reorder : '';
-  if (numInputs[2]) numInputs[2].value = editItem ? (editItem.purchase_rate || '') : '';
+    if (nameInp) nameInp.value = editItem ? editItem.name : '';
+    if (catInp && editItem) catInp.value = editItem.category || 'Herbs';
+    if (unitInp && editItem) unitInp.value = editItem.unit || 'kg';
+    if (numInputs[0]) numInputs[0].value = editItem ? editItem.stock : '';
+    if (numInputs[1]) numInputs[1].value = editItem ? editItem.reorder : '';
+    if (numInputs[2]) numInputs[2].value = editItem ? (editItem.purchase_rate || '') : '';
+  }
 }
 
 function closeRawMaterialModal() {
@@ -70,8 +167,9 @@ function closeRawMaterialModal() {
   window.nirmanState.editingRmId = null;
 }
 
-// 2. DATA FETCH & RENDER
+// 3. DATA FETCHING & UI RENDER
 async function loadAushadhiNirmanData() {
+  ensureModalsExist();
   const db = getDb();
   if (!db) return;
 
@@ -89,7 +187,7 @@ async function loadAushadhiNirmanData() {
       renderMasterRecipesTable(recData);
     }
   } catch (err) {
-    console.error("Data load exception:", err);
+    console.error("Aushadhi Nirman fetch error:", err);
   }
 }
 
@@ -106,8 +204,8 @@ function renderRawMaterialsTable(data) {
       <td style="padding: 0.6rem; color: white;">${item.reorder || 0} ${item.unit || 'kg'}</td>
       <td style="padding: 0.6rem;"><span style="color:#10b981; font-weight:bold;">SUFFICIENT</span></td>
       <td style="padding: 0.6rem; text-align: center;">
-        <button type="button" onclick="window.editRawMaterial('${item.id}')" style="background:#2563eb; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; margin-right:4px; cursor:pointer;">Edit</button>
-        <button type="button" onclick="window.deleteRawMaterial('${item.id}')" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
+        <button type="button" data-action="edit-rm" data-id="${item.id}" style="background:#2563eb; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; margin-right:4px; cursor:pointer;">Edit</button>
+        <button type="button" data-action="delete-rm" data-id="${item.id}" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
       </td>
     </tr>
   `).join('');
@@ -149,7 +247,7 @@ function renderMasterRecipesTable(data) {
         <td style="padding: 0.6rem; color: white;">${r.barcode || 'N/A'}</td>
         <td style="padding: 0.6rem; color: #9ca3af;">${ingText}</td>
         <td style="padding: 0.6rem; text-align: center;">
-          <button type="button" onclick="window.deleteMasterRecipe('${r.id}')" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
+          <button type="button" data-action="delete-recipe" data-id="${r.id}" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
         </td>
       </tr>
     `;
@@ -165,7 +263,7 @@ function populateRawMaterialsSelect() {
     list.map(m => `<option value="${m.id}">${m.name} (${m.stock} ${m.unit || 'kg'})</option>`).join('');
 }
 
-// 3. ACTION HANDLERS
+// 4. ACTION HANDLERS
 async function saveRawMaterial() {
   const db = getDb();
   if (!db) return alert("Database client unavailable.");
@@ -256,7 +354,7 @@ function renderModalIngredientsTable() {
       <td style="padding:0.5rem; color:white;">${item.name}</td>
       <td style="padding:0.5rem; color:white; font-weight:bold;">${item.qty}</td>
       <td style="padding:0.5rem; text-align:center;">
-        <button type="button" onclick="window.nirmanState.currentIngredients.splice(${idx},1); renderModalIngredientsTable();" style="background:#dc2626; color:white; border:none; padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
+        <button type="button" data-action="delete-bom-item" data-idx="${idx}" style="background:#dc2626; color:white; border:none; padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
       </td>
     </tr>
   `).join('');
@@ -352,41 +450,60 @@ Stock Deductions:
   loadAushadhiNirmanData();
 }
 
-// EXPOSE TO GLOBAL WINDOW SCOPE IMMEDIATELY
-window.openMasterRecipeModal = openMasterRecipeModal;
-window.closeMasterRecipeModal = closeMasterRecipeModal;
-window.openRawMaterialModal = openRawMaterialModal;
-window.closeRawMaterialModal = closeRawMaterialModal;
-window.saveRawMaterial = saveRawMaterial;
-window.editRawMaterial = editRawMaterial;
-window.deleteRawMaterial = deleteRawMaterial;
-window.addIngredientToRecipe = addIngredientToRecipe;
-window.renderModalIngredientsTable = renderModalIngredientsTable;
-window.saveMasterRecipe = saveMasterRecipe;
-window.deleteMasterRecipe = deleteMasterRecipe;
-window.executeBatchProduction = executeBatchProduction;
-window.loadAushadhiNirmanData = loadAushadhiNirmanData;
+// 5. GLOBAL EVENT DELEGATION LISTENER (CATCHES ALL CLICKS AT RUNTIME)
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('button');
+  if (!btn) return;
 
-// BIND HARD EVENT LISTENERS TO DOM BUTTONS
-function bindNirmanButtonsDirectly() {
-  const btns = Array.from(document.querySelectorAll('button'));
-  
-  btns.forEach(b => {
-    const txt = (b.innerText || '').toLowerCase().trim();
-    if (txt.includes('add raw material')) b.onclick = () => window.openRawMaterialModal(null);
-    else if (txt.includes('add master recipe')) b.onclick = window.openMasterRecipeModal;
-    else if (txt.includes('execute batch production')) b.onclick = window.executeBatchProduction;
-    else if (txt.includes('add ingredient')) b.onclick = window.addIngredientToRecipe;
-    else if (txt.includes('save raw material')) b.onclick = window.saveRawMaterial;
-    else if (txt.includes('save master recipe')) b.onclick = window.saveMasterRecipe;
-  });
+  const txt = (btn.innerText || '').toLowerCase().trim();
+  const action = btn.getAttribute('data-action') || '';
+  const dataId = btn.getAttribute('data-id') || '';
 
+  if (action === 'save-rm' || txt.includes('save raw material')) {
+    e.preventDefault();
+    saveRawMaterial();
+  } else if (action === 'save-recipe' || txt.includes('save master recipe')) {
+    e.preventDefault();
+    saveMasterRecipe();
+  } else if (action === 'add-ingredient' || txt.includes('add ingredient')) {
+    e.preventDefault();
+    addIngredientToRecipe();
+  } else if (action === 'close-rm-modal' || (txt === 'cancel' && btn.closest('#modal-raw-material'))) {
+    e.preventDefault();
+    closeRawMaterialModal();
+  } else if (action === 'close-recipe-modal' || (txt === 'cancel' && btn.closest('#modal-master-recipe'))) {
+    e.preventDefault();
+    closeMasterRecipeModal();
+  } else if (action === 'edit-rm') {
+    e.preventDefault();
+    editRawMaterial(dataId);
+  } else if (action === 'delete-rm') {
+    e.preventDefault();
+    deleteRawMaterial(dataId);
+  } else if (action === 'delete-recipe') {
+    e.preventDefault();
+    deleteMasterRecipe(dataId);
+  } else if (action === 'delete-bom-item') {
+    e.preventDefault();
+    const idx = parseInt(btn.getAttribute('data-idx') || 0);
+    window.nirmanState.currentIngredients.splice(idx, 1);
+    renderModalIngredientsTable();
+  } else if (txt.includes('add raw material')) {
+    e.preventDefault();
+    openRawMaterialModal(null);
+  } else if (txt.includes('add master recipe')) {
+    e.preventDefault();
+    openMasterRecipeModal();
+  } else if (txt.includes('execute batch production')) {
+    e.preventDefault();
+    executeBatchProduction();
+  }
+});
+
+// Auto-Load Data
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadAushadhiNirmanData);
+} else {
   loadAushadhiNirmanData();
 }
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', bindNirmanButtonsDirectly);
-} else {
-  bindNirmanButtonsDirectly();
-}
-window.addEventListener('load', bindNirmanButtonsDirectly);
+window.addEventListener('load', loadAushadhiNirmanData);
