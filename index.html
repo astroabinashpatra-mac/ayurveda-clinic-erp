@@ -1081,7 +1081,11 @@ function calculateRecipeCost() {
         </div>
         <div class="form-grid grid-2">
           <div class="form-group"><label>STOCK</label><input type="number" step="0.01" id="rm-stock" class="form-control" required /></div>
-          <div class="form-group"><label>REORDER LIMIT</label><input type="number" step="0.01" id="rm-reorder" class="form-control" required /></div>
+          <div class="form-group"><label>REORDER LIMIT</label><input type="number" step="0.01" id="rm-reorder" class="form-control" required />
+            </div>
+            <div>
+              <label>PURCHASE RATE (₹/UNIT)</label>
+              <input type="number" step="0.01" id="rm-cost" placeholder="0.00"></div>
         </div>
         <button type="submit" class="btn btn-orange" style="width:100%; margin-top:1rem;">Save Raw Material</button>
       </form>
