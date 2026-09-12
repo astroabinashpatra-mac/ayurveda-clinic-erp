@@ -1340,7 +1340,7 @@ function removeRecipeIngredient(index) {
           <div class="form-grid grid-3" style="align-items:end;">
             <div class="form-group"><label>RAW MATERIAL *</label><select id="rc-add-raw-id" class="form-control"></select></div>
             <div class="form-group"><label>QTY PER UNIT *</label><input type="number" step="0.001" id="rc-add-qty" class="form-control" placeholder="e.g. 0.25" /></div>
-            <button type="button"  type="button" class="btn btn-orange" onclick="addRecipeIngredientRow()" onclick="addIngredientToRecipeTable()">+ Add Ingredient</button>
+            <button type="button"  type="button"  type="button" class="btn btn-orange" onclick="addRecipeIngredientRow()" onclick="addIngredientToRecipeTable()" onclick="handleAddIngredient()">+ Add Ingredient</button>
           </div>
           <table class="data-table" style="margin-top:0.75rem;">
             <thead><tr><th>Raw Material</th><th>Qty Required (per unit)</th><th>Action</th></tr></thead>
