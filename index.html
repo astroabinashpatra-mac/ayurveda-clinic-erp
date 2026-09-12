@@ -3880,5 +3880,76 @@ async function saveMasterRecipe() {
 }
 </script>
 
+
+<script id="inventory-live-sync-engine">
+function getDb() {
+  if (typeof sbClient !== 'undefined' && sbClient) return sbClient;
+  if (window.sbClient) return window.sbClient;
+  if (typeof supabaseClient !== 'undefined' && supabaseClient) return supabaseClient;
+  if (typeof supabase !== 'undefined' && supabase) return supabase;
+  return null;
+}
+
+// Fetch all raw materials from Supabase and force UI table & dropdown update
+async function loadAushadhiNirmanData() {
+  const db = getDb();
+  if (!db) return;
+
+  try {
+    const { data: rawData, error: rawErr } = await db.from('raw_materials').select('*').order('created_at', { ascending: false });
+    if (rawErr) {
+      console.error("Error fetching raw materials:", rawErr);
+      return;
+    }
+
+    if (rawData) {
+      window.availableRawMaterials = rawData;
+      
+      // Target Raw Materials table inside Module 5
+      const rmContainer = document.querySelector('#module-aushadhi-nirman') || document.querySelector('[id*="aushadhi"]');
+      const rmTbody = rmContainer ? rmContainer.querySelector('table tbody') : document.querySelector('table tbody');
+
+      if (rmTbody) {
+        rmTbody.innerHTML = rawData.map(item => `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <td style="padding: 0.6rem; color: white;">${item.id}</td>
+            <td style="padding: 0.6rem; color: white; font-weight: bold;">${item.name}</td>
+            <td style="padding: 0.6rem; color: white;">${item.category || 'Herbs'}</td>
+            <td style="padding: 0.6rem; color: white;">${parseFloat(item.stock || 0).toFixed(2)} ${item.unit || 'kg'}</td>
+            <td style="padding: 0.6rem; color: white;">${item.reorder || 0} ${item.unit || 'kg'}</td>
+            <td style="padding: 0.6rem;"><span style="color:#10b981; font-weight:bold;">SUFFICIENT</span></td>
+            <td style="padding: 0.6rem; text-align: center;">
+              <button style="background:#2563eb; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; margin-right:4px;">Edit</button>
+              <button style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px;">Delete</button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      // Sync select options in recipe modals
+      const selects = document.querySelectorAll('.modal select, select');
+      selects.forEach(sel => {
+        if (sel.closest('.modal') || (sel.id && sel.id.includes('raw')) || sel.innerHTML.includes('Raw Material')) {
+          sel.innerHTML = '<option value="">-- Select Raw Material --</option>' + 
+            rawData.map(m => `<option value="${m.id}">${m.id} - ${m.name} (${m.stock} ${m.unit})</option>`).join('');
+        }
+      });
+    }
+  } catch (err) {
+    console.error("loadAushadhiNirmanData Exception:", err);
+  }
+}
+
+// Initial fetch on page load
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(loadAushadhiNirmanData, 600);
+});
+
+// Fallback window listener
+window.addEventListener('load', () => {
+  setTimeout(loadAushadhiNirmanData, 800);
+});
+</script>
+
 </body>
 </html>
