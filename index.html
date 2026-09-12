@@ -938,6 +938,7 @@
           const { data: b } = await sbClient.from('billing').select('*'); if (b) db.billing = b;
           const { data: th } = await sbClient.from('therapies').select('*'); if (th && th.length) db.therapies = th;
           const { data: ip } = await sbClient.from('ipd_beds').select('*'); if (ip && ip.length) db.ipd = ip;
+          const { data: pr } = await sbClient.from('payroll').select('*'); if (pr && pr.length) db.payroll = pr;
         } catch(err) {}
       }
       renderAushadhiNirman();
