@@ -823,3 +823,76 @@ window.nrmRenderBOM = function() {
   if (copPreview) copPreview.innerText = `Est. COP: ₹${cop.toFixed(2)}`;
   if (mrpPreview) mrpPreview.innerText = `Est. MRP: ₹${mrp.toFixed(2)}`;
 };
+
+
+// ==========================================
+// ROBUST MASTER RECIPE RENDER ENGINE
+// ==========================================
+
+function parseRecipeIngredients(r) {
+  if (!r) return '-';
+  let ing = r.ingredients;
+  if (typeof ing === 'string') {
+    try { ing = JSON.parse(ing); } catch(e) { ing = null; }
+  }
+  if (Array.isArray(ing)) {
+    return ing.map(i => `${i.name || i.id}: ${i.qty || 1}${i.unit || ''}`).join(', ') || '-';
+  }
+  if (ing && typeof ing === 'object') {
+    return `${ing.name || ing.id || 'Material'}: ${ing.qty || 1}${ing.unit || ''}`;
+  }
+  if (r.raw_req_id) {
+    return `${r.raw_req_id} (${r.req_qty_per_unit || 1})`;
+  }
+  return '-';
+}
+
+async function renderMasterRecipesTable() {
+  const db = window.supabaseClient || window.sbClient || window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+  if (!db || typeof db.from !== 'function') return;
+
+  try {
+    const { data: rec, error } = await db.from('master_recipes').select('*').order('created_at', { ascending: false });
+    if (error) return console.error("Fetch master recipes error:", error.message);
+    
+    window.nrmState = window.nrmState || {};
+    window.nrmState.recipes = rec || [];
+
+    // Find table body dynamically across all DOM structures
+    const tbRec = document.getElementById('tbody-master-recipes') || 
+                  document.getElementById('nrm-tb-recipes') || 
+                  document.querySelector('#module-aushadhi-nirman table:nth-of-type(2) tbody') ||
+                  document.querySelectorAll('table tbody')[1];
+
+    if (!tbRec) return;
+
+    tbRec.innerHTML = (rec || []).map(r => {
+      const ingText = parseRecipeIngredients(r);
+      return `
+        <tr style="border-bottom:1px solid rgba(255,255,255,0.05); color:white;">
+          <td style="padding:0.6rem;">${r.id || '-'}</td>
+          <td style="padding:0.6rem; font-weight:bold;">${r.name || r.medicine_name || 'Unnamed Recipe'}</td>
+          <td style="padding:0.6rem;">${r.barcode || '-'}</td>
+          <td style="padding:0.6rem; color:#cbd5e1; font-size:0.85rem;">${ingText}</td>
+          <td style="padding:0.6rem; text-align:center;">
+            <button onclick="window.editMasterRecipe('${r.id}')" style="background:#2563eb; color:white; border:none; padding:0.25rem 0.5rem; border-radius:3px; cursor:pointer; margin-right:4px;">Edit</button>
+            <button onclick="window.deleteMasterRecipe('${r.id}')" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:3px; cursor:pointer;">Delete</button>
+          </td>
+        </tr>
+      `;
+    }).join('') || '<tr><td colspan="5" style="text-align:center; padding:1rem; color:white;">No master recipes found.</td></tr>';
+  } catch (err) {
+    console.error("Master Recipe Render Exception:", err);
+  }
+}
+
+window.loadMasterRecipesTable = renderMasterRecipesTable;
+
+// Hook into master load cycle
+if (typeof loadAushadhiNirmanData === 'function') {
+  const prevLoad = window.loadAushadhiNirmanData;
+  window.loadAushadhiNirmanData = function() {
+    prevLoad();
+    renderMasterRecipesTable();
+  };
+}
