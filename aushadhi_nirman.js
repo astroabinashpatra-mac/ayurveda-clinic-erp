@@ -343,21 +343,15 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 
 // 1. Brute-force Database Finder
 function getDbRobust() {
-    // Check known names first
-    if (window.sbClient && typeof window.sbClient.from === 'function') return window.sbClient;
-    if (window.supabaseClient && typeof window.supabaseClient.from === 'function') return window.supabaseClient;
+    // 1. Check bare variables safely (Catches const/let declarations)
+    try { if (typeof supabaseClient !== 'undefined' && supabaseClient.from) return supabaseClient; } catch(e) {}
+    try { if (typeof sbClient !== 'undefined' && sbClient.from) return sbClient; } catch(e) {}
+    try { if (typeof supabase !== 'undefined' && supabase.from) return supabase; } catch(e) {}
     
-    // Scan all global variables for the Supabase SDK signature
-    for (let key of Object.keys(window)) {
-        try {
-            let obj = window[key];
-            if (obj && typeof obj === 'object' && typeof obj.from === 'function' && typeof obj.auth === 'object') {
-                console.log("Found Supabase client at window." + key);
-                window.sbClient = obj; // Cache it so we don't have to scan again
-                return obj;
-            }
-        } catch(e) {} // Ignore cross-origin frame access errors
-    }
+    // 2. Check window properties as fallback
+    if (window.supabaseClient && window.supabaseClient.from) return window.supabaseClient;
+    if (window.sbClient && window.sbClient.from) return window.sbClient;
+    
     return null;
 }
 
@@ -476,7 +470,18 @@ window.nrmExecBatch = async function() {
     }
 };
 
-// Re-trigger load with robust DB finder
-setTimeout(() => {
-    if (getDbRobust() && typeof loadNirman === 'function') loadNirman();
-}, 500);
+
+// 5. RESILIENT DB POLLING
+let dbPollCount = 0;
+function initNirmanWhenReady() {
+    if (getDbRobust()) {
+        console.log("[Aushadhi Nirman] Database connection established.");
+        if (typeof loadNirman === 'function') loadNirman();
+    } else if (dbPollCount < 30) {
+        dbPollCount++;
+        setTimeout(initNirmanWhenReady, 200);
+    } else {
+        console.warn("[Aushadhi Nirman] Database connection timeout.");
+    }
+}
+initNirmanWhenReady();
