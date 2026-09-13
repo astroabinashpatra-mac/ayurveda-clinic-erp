@@ -65,3 +65,98 @@
 
   document.addEventListener('DOMContentLoaded', loadNirmanData);
 })();
+
+
+// ==========================================
+// UNIFIED BUTTON HANDLERS FOR MODULE 5
+// ==========================================
+
+// 1. Raw Material Modal Handlers
+window.openRawMaterialModal = function(id = null) {
+  if (typeof injectNirmanModals === 'function') injectNirmanModals();
+  const modal = document.getElementById('nrm-modal-rm') || document.getElementById('modal-raw-material');
+  if (!modal) return alert("Modal element not found.");
+
+  if (id && window.nrmState && window.nrmState.raw) {
+    const item = window.nrmState.raw.find(r => r.id === id);
+    if (item) {
+      if (document.getElementById('nrm-rm-name')) document.getElementById('nrm-rm-name').value = item.name || '';
+      if (document.getElementById('nrm-rm-cat')) document.getElementById('nrm-rm-cat').value = item.category || 'Herbs';
+      if (document.getElementById('nrm-rm-unit')) document.getElementById('nrm-rm-unit').value = item.unit || 'gms';
+      if (document.getElementById('nrm-rm-qty')) document.getElementById('nrm-rm-qty').value = item.stock || 0;
+      if (document.getElementById('nrm-rm-reorder')) document.getElementById('nrm-rm-reorder').value = item.reorder || 10;
+      if (document.getElementById('nrm-rm-cost')) document.getElementById('nrm-rm-cost').value = item.purchase_rate || 0;
+      window.nrmEditingRMId = id;
+    }
+  } else {
+    window.nrmEditingRMId = null;
+    if (document.getElementById('nrm-rm-name')) document.getElementById('nrm-rm-name').value = '';
+    if (document.getElementById('nrm-rm-qty')) document.getElementById('nrm-rm-qty').value = '';
+    if (document.getElementById('nrm-rm-cost')) document.getElementById('nrm-rm-cost').value = '';
+  }
+  modal.style.display = 'flex';
+};
+
+window.closeRawMaterialModal = function() {
+  const modal = document.getElementById('nrm-modal-rm') || document.getElementById('modal-raw-material');
+  if (modal) modal.style.display = 'none';
+};
+
+window.editRawMaterial = function(id) {
+  window.openRawMaterialModal(id);
+};
+
+window.deleteRawMaterial = function(id) {
+  if (!confirm("Are you sure you want to delete this raw material?")) return;
+  const db = window.supabaseClient || window.sbClient || window.supabase;
+  if (!db) return alert("Database connection not ready.");
+  db.from('raw_materials').delete().eq('id', id).then(() => {
+    alert("Raw Material deleted.");
+    if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+    else if (typeof loadNirmanData === 'function') loadNirmanData();
+  }).catch(err => alert("Delete failed: " + err.message));
+};
+
+// 2. Master Recipe Modal Handlers
+window.openMasterRecipeModal = function(id = null) {
+  if (typeof injectNirmanModals === 'function') injectNirmanModals();
+  const modal = document.getElementById('nrm-modal-recipe') || document.getElementById('modal-master-recipe');
+  if (modal) modal.style.display = 'flex';
+};
+
+window.closeMasterRecipeModal = function() {
+  const modal = document.getElementById('nrm-modal-recipe') || document.getElementById('modal-master-recipe');
+  if (modal) modal.style.display = 'none';
+};
+
+window.editMasterRecipe = function(id) {
+  window.openMasterRecipeModal(id);
+};
+
+window.deleteMasterRecipe = function(id) {
+  if (!confirm("Are you sure you want to delete this master recipe?")) return;
+  const db = window.supabaseClient || window.sbClient || window.supabase;
+  if (!db) return alert("Database connection not ready.");
+  db.from('master_recipes').delete().eq('id', id).then(() => {
+    alert("Master recipe deleted.");
+    if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+    else if (typeof loadNirmanData === 'function') loadNirmanData();
+  }).catch(err => alert("Delete failed: " + err.message));
+};
+
+// 3. Batch Production Handlers
+window.executeBatchProduction = function(id = null) {
+  if (id && typeof nrmOpenBatch === 'function') {
+    nrmOpenBatch(id);
+  } else {
+    const recipes = (window.nrmState && window.nrmState.recipes) ? window.nrmState.recipes : [];
+    if (recipes.length === 0) return alert("No master recipes found to execute production.");
+    const text = recipes.map((r, i) => `${i+1}. ${r.name || r.medicine_name}`).join('\n');
+    const sel = prompt("Enter Recipe Number for batch production:\n" + text);
+    if (!sel) return;
+    const target = recipes[parseInt(sel) - 1];
+    if (target && typeof nrmOpenBatch === 'function') nrmOpenBatch(target.id);
+  }
+};
+
+window.openBatchProductionModal = window.executeBatchProduction;
