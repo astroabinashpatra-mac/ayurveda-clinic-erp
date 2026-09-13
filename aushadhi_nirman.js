@@ -435,3 +435,77 @@ window.nrmSaveRecipe = async function() {
     alert("Save Error: " + err.message);
   }
 };
+
+
+// ==========================================
+// LIVE AUTOCOMPLETE RECIPE BUILDER
+// ==========================================
+
+window.openMasterRecipeModal = async function() {
+  if (typeof ensureNirmanModals === 'function') ensureNirmanModals();
+  window.nrmState = window.nrmState || { raw: [], recipes: [], bom: [], activeRecipe: null };
+  window.nrmState.bom = [];
+
+  // Live Sync with Supabase on Modal Open
+  const db = window.supabaseClient || window.sbClient || window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+  if (db && typeof db.from === 'function') {
+    try {
+      const { data } = await db.from('raw_materials').select('*').order('name', { ascending: true });
+      if (data) window.nrmState.raw = data;
+    } catch(e) {}
+  }
+
+  if (document.getElementById('nrm-rec-name')) document.getElementById('nrm-rec-name').value = '';
+  if (document.getElementById('nrm-rec-margin')) document.getElementById('nrm-rec-margin').value = '20';
+  if (document.getElementById('nrm-rec-sel')) document.getElementById('nrm-rec-sel').value = '';
+
+  // Populate Autocomplete Datalist
+  const dl = document.getElementById('nrm-raw-datalist');
+  if (dl && window.nrmState.raw) {
+    dl.innerHTML = window.nrmState.raw.map(r => 
+      `<option value="${r.name} [ID: ${r.id}] (${r.stock} ${r.unit} available)"></option>`
+    ).join('');
+  }
+
+  if (typeof window.nrmRenderBOM === 'function') window.nrmRenderBOM();
+  const modal = document.getElementById('nrm-modal-recipe');
+  if (modal) modal.style.display = 'flex';
+};
+
+window.nrmAddBOM = function() {
+  window.nrmState = window.nrmState || { raw: [], recipes: [], bom: [] };
+  window.nrmState.bom = window.nrmState.bom || [];
+  
+  const input = document.getElementById('nrm-rec-sel');
+  const qtyInput = document.getElementById('nrm-rec-qty');
+  if (!input || !qtyInput) return;
+
+  const val = input.value.trim();
+  const qty = parseFloat(qtyInput.value);
+
+  if (!val || isNaN(qty) || qty <= 0) return alert("Select a raw material from autocomplete search and enter a valid quantity.");
+
+  // Match raw material by ID or Name
+  const rm = (window.nrmState.raw || []).find(r => val.includes(r.id) || r.name.toLowerCase() === val.toLowerCase() || val.startsWith(r.name));
+  if (!rm) return alert("Raw material not found. Please choose an item from the autocomplete list.");
+
+  if (qty > parseFloat(rm.stock)) return alert(`Quantity exceeds stock! Available: ${rm.stock} ${rm.unit}`);
+
+  const exist = window.nrmState.bom.find(b => b.id === rm.id);
+  if (exist) {
+    if ((exist.qty + qty) > parseFloat(rm.stock)) return alert(`Exceeds total available stock! Max: ${rm.stock} ${rm.unit}`);
+    exist.qty += qty;
+  } else {
+    window.nrmState.bom.push({
+      id: rm.id,
+      name: rm.name,
+      qty: qty,
+      unit: rm.unit,
+      unit_cost: parseFloat(rm.stock) > 0 ? (parseFloat(rm.purchase_rate || 0) / parseFloat(rm.stock)) : 0
+    });
+  }
+
+  input.value = '';
+  qtyInput.value = '';
+  window.nrmRenderBOM();
+};
