@@ -616,3 +616,210 @@ document.addEventListener('click', function(e) {
     }
   }
 }, true);
+
+
+// ==========================================
+// REBUILT MASTER RECIPE MODAL & HANDLERS
+// ==========================================
+
+function ensureNirmanModals() {
+  let container = document.getElementById('nrm-modals-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'nrm-modals-container';
+    document.body.appendChild(container);
+  }
+
+  container.innerHTML = `
+    <!-- MODAL: RAW MATERIAL -->
+    <div id="nrm-modal-rm" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999;">
+      <div style="background: #1e293b; width: 450px; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+        <h3 style="color: white; margin-top: 0; margin-bottom: 1rem;">Add / Edit Raw Material</h3>
+        <input type="text" id="nrm-rm-name" placeholder="Material Name (e.g., Ashwagandha)" style="width: 100%; padding: 0.6rem; margin-bottom: 1rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Category</label>
+            <select id="nrm-rm-cat" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+              <option value="Herbs">Herbs</option><option value="Roots">Roots</option><option value="Oil/Ghee">Oil/Ghee</option>
+              <option value="Powder/Bhasma">Powder/Bhasma</option><option value="Mineral">Mineral</option><option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Unit</label>
+            <select id="nrm-rm-unit" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+              <option value="gms">gms</option><option value="kg">kg</option><option value="ltrs">ltrs</option>
+              <option value="counts">counts</option><option value="Ozs">Ozs</option><option value="mtrs">mtrs</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 1.5rem;">
+          <div><label style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Init Qty</label><input type="number" id="nrm-rm-qty" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius:4px; box-sizing: border-box;"></div>
+          <div><label style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Reorder</label><input type="number" id="nrm-rm-reorder" value="10" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius:4px; box-sizing: border-box;"></div>
+          <div><label style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Total Cost (₹)</label><input type="number" id="nrm-rm-cost" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius:4px; box-sizing: border-box;"></div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+          <button onclick="window.closeRawMaterialModal()" style="padding: 0.5rem 1rem; cursor: pointer; background: #475569; color: white; border: none; border-radius: 4px;">Cancel</button>
+          <button onclick="window.nrmSaveRM()" style="background: #ea580c; color: white; padding: 0.5rem 1rem; border: none; cursor: pointer; border-radius:4px; font-weight: bold;">Save & Sync Expense</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: MASTER RECIPE -->
+    <div id="nrm-modal-recipe" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999;">
+      <div style="background: #1e293b; width: 560px; max-width:92vw; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+        <h3 style="color: white; margin-top: 0; margin-bottom: 1rem;">Create Master Recipe</h3>
+        
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
+          <div>
+            <label style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Medicine / Output Name</label>
+            <input type="text" id="nrm-rec-name" placeholder="e.g. Swarna Bhasma Mix" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Profit Margin %</label>
+            <input type="number" id="nrm-rec-margin" placeholder="20" value="20" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing:border-box;">
+          </div>
+        </div>
+
+        <div style="background: #0f172a; padding: 1rem; border-radius: 6px; border: 1px solid #1e293b; margin-bottom: 1.2rem;">
+          <h4 style="color: #cbd5e1; margin-top: 0; margin-bottom: 0.8rem; font-size:0.95rem;">Bill of Materials (BOM Ingredients)</h4>
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+            <select id="nrm-rec-sel" style="flex: 2; min-width: 0; padding: 0.6rem; background: #1e293b; color: white; border: 1px solid #334155; border-radius: 4px; outline:none; font-size:0.9rem;">
+              <option value="">-- Select Raw Material --</option>
+            </select>
+            <input type="number" id="nrm-rec-qty" placeholder="Qty" style="width: 90px; padding: 0.6rem; background: #1e293b; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing:border-box;">
+            <button onclick="window.nrmAddBOM()" style="background: #ea580c; color: white; border: none; padding: 0.6rem 1.2rem; cursor: pointer; border-radius:4px; font-weight: bold; white-space:nowrap;">+ Add</button>
+          </div>
+          <div style="max-height: 180px; overflow-y: auto;">
+            <table style="width: 100%; color: white; text-align: left; font-size: 0.85rem; border-collapse: collapse;">
+              <thead>
+                <tr style="color: #9ca3af; border-bottom: 1px solid #334155;">
+                  <th style="padding: 0.5rem;">Item</th>
+                  <th style="padding: 0.5rem;">Qty</th>
+                  <th style="padding: 0.5rem;">Cost</th>
+                  <th style="padding: 0.5rem; text-align: center;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="nrm-tb-bom"></tbody>
+            </table>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 0.8rem; pt: 0.5rem; border-top: 1px dashed #334155;">
+            <span id="nrm-cop-preview" style="color: #f59e0b; font-weight: bold; font-size: 0.9rem;">Est. COP: ₹0.00</span>
+            <span id="nrm-mrp-preview" style="color: #10b981; font-weight: bold; font-size: 0.9rem;">Est. MRP: ₹0.00</span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+          <button onclick="window.closeMasterRecipeModal()" style="padding: 0.6rem 1.2rem; cursor: pointer; background: #475569; color: white; border: none; border-radius: 4px;">Cancel</button>
+          <button onclick="window.nrmSaveRecipe()" style="background: #2563eb; color: white; padding: 0.6rem 1.2rem; border: none; cursor: pointer; border-radius:4px; font-weight: bold;">Save Recipe</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+window.openMasterRecipeModal = async function() {
+  ensureNirmanModals();
+  window.nrmState = window.nrmState || { raw: [], recipes: [], bom: [] };
+  window.nrmState.bom = [];
+
+  // Live Fetch from Supabase
+  const db = window.supabaseClient || window.sbClient || window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+  if (db && typeof db.from === 'function') {
+    try {
+      const { data } = await db.from('raw_materials').select('*').order('name', { ascending: true });
+      if (data) window.nrmState.raw = data;
+    } catch(e) {}
+  }
+
+  // Populate HTML select element cleanly
+  const sel = document.getElementById('nrm-rec-sel');
+  if (sel) {
+    if (window.nrmState.raw && window.nrmState.raw.length > 0) {
+      sel.innerHTML = '<option value="">-- Select Raw Material --</option>' + 
+        window.nrmState.raw.map(r => `<option value="${r.id}">${r.name} (Stock: ${r.stock} ${r.unit})</option>`).join('');
+    } else {
+      sel.innerHTML = '<option value="">No Raw Materials Found in DB</option>';
+    }
+  }
+
+  if (document.getElementById('nrm-rec-name')) document.getElementById('nrm-rec-name').value = '';
+  if (document.getElementById('nrm-rec-margin')) document.getElementById('nrm-rec-margin').value = '20';
+  if (document.getElementById('nrm-rec-qty')) document.getElementById('nrm-rec-qty').value = '';
+
+  window.nrmRenderBOM();
+  
+  const modal = document.getElementById('nrm-modal-recipe');
+  if (modal) modal.style.display = 'flex';
+};
+
+window.closeMasterRecipeModal = function() {
+  const modal = document.getElementById('nrm-modal-recipe');
+  if (modal) modal.style.display = 'none';
+};
+
+window.nrmAddBOM = function() {
+  window.nrmState = window.nrmState || { raw: [], recipes: [], bom: [] };
+  window.nrmState.bom = window.nrmState.bom || [];
+
+  const sel = document.getElementById('nrm-rec-sel');
+  const qtyInput = document.getElementById('nrm-rec-qty');
+  if (!sel || !qtyInput) return;
+
+  const rmId = sel.value;
+  const qty = parseFloat(qtyInput.value);
+
+  if (!rmId || isNaN(qty) || qty <= 0) return alert("Please select a raw material and enter a valid quantity.");
+
+  const rm = (window.nrmState.raw || []).find(r => r.id === rmId);
+  if (!rm) return alert("Raw material details missing.");
+
+  if (qty > parseFloat(rm.stock)) return alert(`Quantity exceeds stock! Available: ${rm.stock} ${rm.unit}`);
+
+  const unitCost = parseFloat(rm.stock) > 0 ? (parseFloat(rm.purchase_rate || 0) / parseFloat(rm.stock)) : 0;
+  const exist = window.nrmState.bom.find(b => b.id === rmId);
+
+  if (exist) {
+    if ((exist.qty + qty) > parseFloat(rm.stock)) return alert(`Exceeds total stock! Max: ${rm.stock} ${rm.unit}`);
+    exist.qty += qty;
+  } else {
+    window.nrmState.bom.push({
+      id: rm.id,
+      name: rm.name,
+      qty: qty,
+      unit: rm.unit,
+      unit_cost: unitCost
+    });
+  }
+
+  qtyInput.value = '';
+  window.nrmRenderBOM();
+};
+
+window.nrmRenderBOM = function() {
+  const tb = document.getElementById('nrm-tb-bom');
+  const copPreview = document.getElementById('nrm-cop-preview');
+  const mrpPreview = document.getElementById('nrm-mrp-preview');
+  const marginInput = document.getElementById('nrm-rec-margin');
+  if (!tb) return;
+
+  let cop = 0;
+  tb.innerHTML = (window.nrmState.bom || []).map((b, i) => {
+    const itemCost = b.qty * b.unit_cost;
+    cop += itemCost;
+    return `<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+      <td style="padding:0.4rem; font-weight:bold;">${b.name}</td>
+      <td style="padding:0.4rem;">${b.qty} ${b.unit}</td>
+      <td style="padding:0.4rem; color:#10b981;">₹${itemCost.toFixed(2)}</td>
+      <td style="padding:0.4rem; text-align:center;"><button onclick="window.nrmState.bom.splice(${i},1); window.nrmRenderBOM();" style="color:#ef4444; border:none; background:none; cursor:pointer; font-weight:bold; font-size:1.1rem;">✕</button></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="4" style="color:#9ca3af; padding:0.8rem; text-align:center;">No ingredients added yet.</td></tr>';
+
+  const margin = marginInput ? (parseFloat(marginInput.value) || 20) : 20;
+  const mrp = cop + (cop * (margin / 100));
+
+  if (copPreview) copPreview.innerText = `Est. COP: ₹${cop.toFixed(2)}`;
+  if (mrpPreview) mrpPreview.innerText = `Est. MRP: ₹${mrp.toFixed(2)}`;
+};
