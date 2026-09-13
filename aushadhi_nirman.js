@@ -1,11 +1,12 @@
 /**
- * MODULE 5: AUSHADHI NIRMAN (TOP-LEVEL BODY MODALS & GLOBAL CAPTURE)
+ * MODULE 5: AUSHADHI NIRMAN (COMPLETE ENGINE WITH ACCOUNTS & PHARMACY SYNC)
  */
 window.nirmanState = {
   currentIngredients: [],
   rawMaterials: [],
   masterRecipes: [],
-  editingRmId: null
+  editingRmId: null,
+  activeRecipeForBatch: null
 };
 
 function getDb() {
@@ -20,160 +21,205 @@ function el(id) {
   return document.getElementById(id);
 }
 
-// 1. TOP-LEVEL BODY MODAL INJECTOR (Prevents Z-Index & Parent Overflow Clipping)
+// --- DYNAMIC MODAL INJECTOR (TOP-LEVEL BODY MOUNT) ---
 function ensureModalsExist() {
-  let mRm = el('modal-raw-material');
-  if (mRm && mRm.parentElement !== document.body) {
-    mRm.remove();
-    mRm = null;
-  }
-
-  if (!mRm) {
-    mRm = document.createElement('div');
-    mRm.id = 'modal-raw-material';
-    mRm.className = 'modal';
-    mRm.style.cssText = 'display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999; padding: 1rem;';
-    mRm.innerHTML = `
+  // 1. Raw Material Modal
+  if (!el('nirman-modal-raw-material')) {
+    const div = document.createElement('div');
+    div.id = 'nirman-modal-raw-material';
+    div.style.cssText = 'display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999; padding: 1rem;';
+    div.innerHTML = `
       <div style="background: #1e293b; width: 100%; max-width: 480px; padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: white; box-sizing: border-box;">
-        <h3 style="margin-top: 0; color: white;">Raw Material Record</h3>
+        <h3 style="margin-top: 0; color: white;">Raw Material Entry</h3>
         <div style="margin-bottom: 1rem;">
           <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Material Name *</label>
-          <input type="text" id="input-rm-name" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+          <input type="text" id="nirman-rm-name" placeholder="e.g. Ashwagandha" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
           <div>
             <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Category</label>
-            <select id="select-rm-category" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+            <select id="nirman-rm-category" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
               <option value="Herbs">Herbs</option>
-              <option value="Base Oil/Ghee">Base Oil/Ghee</option>
-              <option value="Bhasma & Minerals">Bhasma & Minerals</option>
+              <option value="Roots">Roots</option>
+              <option value="Oil/Ghee">Oil/Ghee</option>
+              <option value="Powder/Bhasma">Powder/Bhasma</option>
+              <option value="Mineral">Mineral</option>
+              <option value="Other">Other</option>
             </select>
           </div>
           <div>
-            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Unit</label>
-            <select id="select-rm-unit" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Measurement Unit</label>
+            <select id="nirman-rm-unit" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+              <option value="gms">gms</option>
               <option value="kg">kg</option>
-              <option value="L">L</option>
-              <option value="g">g</option>
+              <option value="ltrs">ltrs</option>
+              <option value="counts">counts</option>
+              <option value="Ozs">Ozs</option>
+              <option value="mtrs">mtrs</option>
             </select>
           </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.8rem; margin-bottom: 1.5rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
           <div>
-            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Stock</label>
-            <input type="number" id="input-rm-stock" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Initial Quantity</label>
+            <input type="number" id="nirman-rm-stock" placeholder="e.g. 1000" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
           </div>
           <div>
-            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Reorder</label>
-            <input type="number" id="input-rm-reorder" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
-          </div>
-          <div>
-            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Cost/Unit</label>
-            <input type="number" id="input-rm-cost" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Total Purchase Cost (₹)</label>
+            <input type="number" id="nirman-rm-cost" placeholder="e.g. 5000" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
           </div>
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-          <button type="button" onclick="closeRawMaterialModal()" style="background: #475569; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Cancel</button>
-          <button type="button" onclick="saveRawMaterial()" style="background: #ea580c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold;">Save Raw Material</button>
+          <button type="button" onclick="nirmanCloseRawMaterialModal()" style="background: #475569; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Cancel</button>
+          <button type="button" onclick="nirmanSaveRawMaterial()" style="background: #ea580c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold;">Save & Sync Expense</button>
         </div>
       </div>
     `;
-    document.body.appendChild(mRm);
+    document.body.appendChild(div);
   }
 
-  let mRec = el('modal-master-recipe');
-  if (mRec && mRec.parentElement !== document.body) {
-    mRec.remove();
-    mRec = null;
-  }
-
-  if (!mRec) {
-    mRec = document.createElement('div');
-    mRec.id = 'modal-master-recipe';
-    mRec.className = 'modal';
-    mRec.style.cssText = 'display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999; padding: 1rem;';
-    mRec.innerHTML = `
-      <div style="background: #1e293b; width: 100%; max-width: 580px; padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: white; box-sizing: border-box;">
+  // 2. Master Recipe Modal
+  if (!el('nirman-modal-master-recipe')) {
+    const div = document.createElement('div');
+    div.id = 'nirman-modal-master-recipe';
+    div.style.cssText = 'display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999; padding: 1rem;';
+    div.innerHTML = `
+      <div style="background: #1e293b; width: 100%; max-width: 600px; padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: white; box-sizing: border-box;">
         <h3 style="margin-top: 0; color: white;">+ Register Master Recipe</h3>
-        <div style="margin-bottom: 1rem;">
-          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Output Medicine Name *</label>
-          <input type="text" id="input-recipe-name" placeholder="e.g. Mahanarayani Tailam" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Output Medicine Name *</label>
+            <input type="text" id="nirman-recipe-name" placeholder="e.g. Mahanarayani Tailam" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Profit Margin (%) *</label>
+            <input type="number" id="nirman-recipe-margin" value="20" placeholder="e.g. 20" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+          </div>
         </div>
+
         <div style="background: rgba(15, 23, 42, 0.8); padding: 1rem; border-radius: 6px; margin-bottom: 1rem; box-sizing: border-box;">
-          <h4 style="margin-top: 0; margin-bottom: 0.8rem; color: #ea580c;">Add Raw Ingredients (BOM)</h4>
-          <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.8rem; width: 100%; box-sizing: border-box;">
-            <select id="select-recipe-raw-material" style="flex: 2; min-width: 0; padding: 0.5rem; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;"></select>
-            <input type="number" id="input-recipe-qty" placeholder="Qty/unit" style="flex: 1; min-width: 0; padding: 0.5rem; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
-            <button type="button" onclick="addIngredientToRecipe()" style="background: #ea580c; color: white; border: none; padding: 0.5rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; white-space: nowrap; flex-shrink: 0;">+ Add Ingredient</button>
+          <h4 style="margin-top: 0; margin-bottom: 0.8rem; color: #ea580c;">Add Ingredients (BOM)</h4>
+          <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.8rem;">
+            <select id="nirman-select-recipe-rm" style="flex: 2; min-width: 0; padding: 0.5rem; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 4px;"></select>
+            <input type="number" id="nirman-recipe-qty" placeholder="Qty per unit" style="flex: 1; min-width: 0; padding: 0.5rem; background: #1e293b; border: 1px solid #334155; color: white; border-radius: 4px;">
+            <button type="button" onclick="nirmanAddIngredientToRecipe()" style="background: #ea580c; color: white; border: none; padding: 0.5rem 0.8rem; border-radius: 4px; cursor: pointer; font-weight: bold; white-space: nowrap;">+ Add</button>
           </div>
           <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
             <thead>
               <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.2); color: #9ca3af;">
-                <th style="padding: 0.4rem;">Raw Material</th>
-                <th style="padding: 0.4rem;">Qty Required (per unit)</th>
+                <th style="padding: 0.4rem;">Material</th>
+                <th style="padding: 0.4rem;">Qty Req.</th>
                 <th style="padding: 0.4rem; text-align: center;">Action</th>
               </tr>
             </thead>
-            <tbody id="tbody-modal-ingredients"></tbody>
+            <tbody id="nirman-tbody-modal-ingredients"></tbody>
           </table>
         </div>
+
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-          <button type="button" onclick="closeMasterRecipeModal()" style="background: #475569; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Cancel</button>
-          <button type="button" onclick="saveMasterRecipe()" style="background: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold;">Save Master Recipe</button>
+          <button type="button" onclick="nirmanCloseMasterRecipeModal()" style="background: #475569; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Cancel</button>
+          <button type="button" onclick="nirmanSaveMasterRecipe()" style="background: #2563eb; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold;">Save Recipe</button>
         </div>
       </div>
     `;
-    document.body.appendChild(mRec);
+    document.body.appendChild(div);
+  }
+
+  // 3. Batch Production Execution Modal
+  if (!el('nirman-modal-batch-exec')) {
+    const div = document.createElement('div');
+    div.id = 'nirman-modal-batch-exec';
+    div.style.cssText = 'display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999; padding: 1rem;';
+    div.innerHTML = `
+      <div style="background: #1e293b; width: 100%; max-width: 450px; padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); color: white; box-sizing: border-box;">
+        <h3 style="margin-top: 0; color: #16a34a;">Execute Batch Production</h3>
+        <p id="nirman-batch-recipe-title" style="color: #cbd5e1; font-weight: bold; margin-bottom: 1rem;"></p>
+        <div style="margin-bottom: 1rem;">
+          <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Batch Code (Auto-Generated)</label>
+          <input type="text" id="nirman-batch-code" readonly style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: #10b981; border-radius: 4px; font-weight: bold;">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+          <div>
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Production Units *</label>
+            <input type="number" id="nirman-batch-qty" value="10" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Expiry Date (MM/YYYY) *</label>
+            <input type="text" id="nirman-batch-expiry" placeholder="12/2028" value="12/2028" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px;">
+          </div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+          <button type="button" onclick="nirmanCloseBatchModal()" style="background: #475569; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Cancel</button>
+          <button type="button" onclick="nirmanConfirmBatchProduction()" style="background: #16a34a; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: bold;">Execute & Push to Pharmacy</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(div);
   }
 }
 
-// 2. MODAL CONTROLLERS
-function openRawMaterialModal(editItem = null) {
+// --- MODAL DISPLAY HANDLERS ---
+function nirmanOpenRawMaterialModal(item = null) {
   ensureModalsExist();
-  const modal = el('modal-raw-material');
-  if (modal) {
-    window.nirmanState.editingRmId = editItem ? editItem.id : null;
-    modal.style.display = 'flex';
-    modal.style.opacity = '1';
-    modal.style.visibility = 'visible';
+  window.nirmanState.editingRmId = item ? item.id : null;
+  const modal = el('nirman-modal-raw-material');
+  modal.style.display = 'flex';
 
-    if (el('input-rm-name')) el('input-rm-name').value = editItem ? editItem.name : '';
-    if (el('select-rm-category')) el('select-rm-category').value = editItem ? (editItem.category || 'Herbs') : 'Herbs';
-    if (el('select-rm-unit')) el('select-rm-unit').value = editItem ? (editItem.unit || 'kg') : 'kg';
-    if (el('input-rm-stock')) el('input-rm-stock').value = editItem ? editItem.stock : '';
-    if (el('input-rm-reorder')) el('input-rm-reorder').value = editItem ? editItem.reorder : '';
-    if (el('input-rm-cost')) el('input-rm-cost').value = editItem ? (editItem.purchase_rate || '') : '';
-  }
+  el('nirman-rm-name').value = item ? item.name : '';
+  el('nirman-rm-category').value = item ? (item.category || 'Herbs') : 'Herbs';
+  el('nirman-rm-unit').value = item ? (item.unit || 'gms') : 'gms';
+  el('nirman-rm-stock').value = item ? item.stock : '';
+  el('nirman-rm-cost').value = item ? (item.purchase_rate || '') : '';
 }
 
-function closeRawMaterialModal() {
-  const modal = el('modal-raw-material');
+function nirmanCloseRawMaterialModal() {
+  const modal = el('nirman-modal-raw-material');
   if (modal) modal.style.display = 'none';
   window.nirmanState.editingRmId = null;
 }
 
-function openMasterRecipeModal() {
+function nirmanOpenMasterRecipeModal() {
   ensureModalsExist();
-  const modal = el('modal-master-recipe');
-  if (modal) {
-    modal.style.display = 'flex';
-    modal.style.opacity = '1';
-    modal.style.visibility = 'visible';
-
-    window.nirmanState.currentIngredients = [];
-    renderModalIngredientsTable();
-    populateRawMaterialsSelect();
-    if (el('input-recipe-name')) el('input-recipe-name').value = '';
-  }
+  const modal = el('nirman-modal-master-recipe');
+  modal.style.display = 'flex';
+  window.nirmanState.currentIngredients = [];
+  nirmanRenderModalIngredientsTable();
+  nirmanPopulateRawMaterialsSelect();
+  el('nirman-recipe-name').value = '';
+  el('nirman-recipe-margin').value = '20';
 }
 
-function closeMasterRecipeModal() {
-  const modal = el('modal-master-recipe');
+function nirmanCloseMasterRecipeModal() {
+  const modal = el('nirman-modal-master-recipe');
   if (modal) modal.style.display = 'none';
   window.nirmanState.currentIngredients = [];
 }
 
-// 3. FETCH & RENDER
+function nirmanOpenBatchModal(recipeId) {
+  ensureModalsExist();
+  const recipe = (window.nirmanState.masterRecipes || []).find(r => r.id === recipeId);
+  if (!recipe) return alert("Recipe record not found.");
+
+  window.nirmanState.activeRecipeForBatch = recipe;
+  const modal = el('nirman-modal-batch-exec');
+  modal.style.display = 'flex';
+
+  const d = new Date();
+  const yrStr = d.getFullYear().toString();
+  const monStr = String(d.getMonth() + 1).padStart(2, '0');
+  const randNum = Math.floor(100 + Math.random() * 900);
+  
+  el('nirman-batch-recipe-title').innerText = `Formulation: ${recipe.name || recipe.medicine_name}`;
+  el('nirman-batch-code').value = `BATCH-${yrStr}${monStr}-${randNum}`;
+}
+
+function nirmanCloseBatchModal() {
+  const modal = el('nirman-modal-batch-exec');
+  if (modal) modal.style.display = 'none';
+  window.nirmanState.activeRecipeForBatch = null;
+}
+
+// --- FETCH & RENDERERS ---
 async function loadAushadhiNirmanData() {
   ensureModalsExist();
   const db = getDb();
@@ -183,43 +229,57 @@ async function loadAushadhiNirmanData() {
     const { data: rawData } = await db.from('raw_materials').select('*').order('created_at', { ascending: false });
     if (rawData) {
       window.nirmanState.rawMaterials = rawData;
-      renderRawMaterialsTable(rawData);
-      populateRawMaterialsSelect();
+      nirmanRenderRawMaterialsTable(rawData);
+      nirmanPopulateRawMaterialsSelect();
     }
 
     const { data: recData } = await db.from('master_recipes').select('*').order('created_at', { ascending: false });
     if (recData) {
       window.nirmanState.masterRecipes = recData;
-      renderMasterRecipesTable(recData);
+      nirmanRenderMasterRecipesTable(recData);
     }
   } catch (err) {
-    console.error("Data fetch error:", err);
+    console.error("Data load exception:", err);
   }
 }
 
-function renderRawMaterialsTable(data) {
-  const tbody = el('tbody-raw-materials');
+function nirmanRenderRawMaterialsTable(data) {
+  const tbody = el('nirman-tbody-raw-materials');
   if (!tbody) return;
 
-  tbody.innerHTML = data.map(item => `
-    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
-      <td style="padding: 0.6rem; color: white;">${item.id}</td>
-      <td style="padding: 0.6rem; color: white; font-weight: bold;">${item.name}</td>
-      <td style="padding: 0.6rem; color: white;">${item.category || 'Herbs'}</td>
-      <td style="padding: 0.6rem; color: white;">${parseFloat(item.stock || 0).toFixed(2)} ${item.unit || 'kg'}</td>
-      <td style="padding: 0.6rem; color: white;">${item.reorder || 0} ${item.unit || 'kg'}</td>
-      <td style="padding: 0.6rem;"><span style="color:#10b981; font-weight:bold;">SUFFICIENT</span></td>
-      <td style="padding: 0.6rem; text-align: center;">
-        <button type="button" onclick="editRawMaterial('${item.id}')" style="background:#2563eb; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; margin-right:4px; cursor:pointer;">Edit</button>
-        <button type="button" onclick="deleteRawMaterial('${item.id}')" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
-      </td>
-    </tr>
-  `).join('');
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1rem; color:#9ca3af;">No raw materials found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(item => {
+    const stockVal = parseFloat(item.stock || 0);
+    const costVal = parseFloat(item.purchase_rate || 0);
+    const unitRate = stockVal > 0 ? (costVal / stockVal).toFixed(2) : '0.00';
+
+    return `
+      <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <td style="padding: 0.6rem; color: white;">${item.id}</td>
+        <td style="padding: 0.6rem; color: white; font-weight: bold;">${item.name}</td>
+        <td style="padding: 0.6rem; color: white;">${item.category || 'Herbs'}</td>
+        <td style="padding: 0.6rem; color: white;">${stockVal.toFixed(2)} ${item.unit || 'gms'}</td>
+        <td style="padding: 0.6rem; color: #10b981; font-weight: bold;">₹${unitRate} / ${item.unit || 'gms'}</td>
+        <td style="padding: 0.6rem; text-align: center;">
+          <button type="button" onclick="nirmanDeleteRawMaterial('${item.id}')" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
 }
 
-function renderMasterRecipesTable(data) {
-  const tbody = el('tbody-master-recipes');
+function nirmanRenderMasterRecipesTable(data) {
+  const tbody = el('nirman-tbody-master-recipes');
   if (!tbody) return;
+
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:1rem; color:#9ca3af;">No master recipes registered.</td></tr>';
+    return;
+  }
 
   const rawMap = {};
   (window.nirmanState.rawMaterials || []).forEach(rm => { rawMap[rm.id] = rm; });
@@ -233,108 +293,127 @@ function renderMasterRecipesTable(data) {
           ingText = parsed.map(i => {
             const rawItem = rawMap[i.id];
             const name = i.name || (rawItem ? rawItem.name : i.id);
-            const qty = i.qty || 1;
-            const unit = rawItem ? (rawItem.unit || '') : '';
-            return `${name} (${qty}${unit})`;
+            const unit = rawItem ? rawItem.unit : 'gms';
+            return `${name} (${i.qty}${unit})`;
           }).join(', ');
         }
       } catch (e) { ingText = String(r.ingredients); }
-    } else if (r.raw_req_id) {
-      const rawItem = rawMap[r.raw_req_id];
-      const name = rawItem ? rawItem.name : r.raw_req_id;
-      const unit = rawItem ? (rawItem.unit || '') : '';
-      ingText = `${name} (${r.req_qty_per_unit || 1}${unit})`;
     }
+
+    const cop = parseFloat(r.cop || 0).toFixed(2);
+    const sp = parseFloat(r.selling_price || 0).toFixed(2);
 
     return `
       <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
         <td style="padding: 0.6rem; color: white;">${r.id}</td>
         <td style="padding: 0.6rem; color: white; font-weight: bold;">${r.name || r.medicine_name || 'Unnamed'}</td>
         <td style="padding: 0.6rem; color: white;">${r.barcode || 'N/A'}</td>
+        <td style="padding: 0.6rem; color: #ef4444; font-weight: bold;">₹${cop}</td>
+        <td style="padding: 0.6rem; color: #10b981; font-weight: bold;">₹${sp}</td>
         <td style="padding: 0.6rem; color: #9ca3af;">${ingText}</td>
         <td style="padding: 0.6rem; text-align: center;">
-          <button type="button" onclick="deleteMasterRecipe('${r.id}')" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
+          <button type="button" onclick="nirmanOpenBatchModal('${r.id}')" style="background:#16a34a; color:white; border:none; padding:0.25rem 0.6rem; border-radius:4px; margin-right:4px; cursor:pointer; font-weight:bold;">Produce Batch</button>
+          <button type="button" onclick="nirmanDeleteMasterRecipe('${r.id}')" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
         </td>
       </tr>
     `;
   }).join('');
 }
 
-function populateRawMaterialsSelect() {
-  const select = el('select-recipe-raw-material');
+function nirmanPopulateRawMaterialsSelect() {
+  const select = el('nirman-select-recipe-rm');
   if (!select) return;
 
   const list = window.nirmanState.rawMaterials || [];
   select.innerHTML = '<option value="">-- Select Raw Material --</option>' +
-    list.map(m => `<option value="${m.id}">${m.name} (${m.stock} ${m.unit || 'kg'})</option>`).join('');
+    list.map(m => `<option value="${m.id}">${m.name} (Avail: ${m.stock} ${m.unit || 'gms'})</option>`).join('');
 }
 
-// 4. CRUD & ACTIONS
-async function saveRawMaterial() {
+// --- RAW MATERIALS & ACCOUNTS SYNC ---
+async function nirmanSaveRawMaterial() {
   const db = getDb();
   if (!db) return alert("Database client unavailable.");
 
-  const name = el('input-rm-name')?.value.trim();
+  const name = el('nirman-rm-name')?.value.trim();
   if (!name) return alert("Material Name is required.");
 
+  const category = el('nirman-rm-category')?.value || 'Herbs';
+  const unit = el('nirman-rm-unit')?.value || 'gms';
+  const stock = parseFloat(el('nirman-rm-stock')?.value || 0);
+  const cost = parseFloat(el('nirman-rm-cost')?.value || 0);
+
+  if (isNaN(stock) || stock <= 0) return alert("Initial Quantity must be > 0.");
+  if (isNaN(cost) || cost < 0) return alert("Purchase Cost must be valid.");
+
   const payload = {
+    id: 'RAW-' + Date.now(),
     name: name,
-    category: el('select-rm-category')?.value || 'Herbs',
-    unit: el('select-rm-unit')?.value || 'kg',
-    stock: parseFloat(el('input-rm-stock')?.value || 0),
-    reorder: parseFloat(el('input-rm-reorder')?.value || 0),
-    purchase_rate: parseFloat(el('input-rm-cost')?.value || 0)
+    category: category,
+    unit: unit,
+    stock: stock,
+    reorder: 10,
+    purchase_rate: cost
   };
 
-  if (window.nirmanState.editingRmId) {
-    const { error } = await db.from('raw_materials').update(payload).eq('id', window.nirmanState.editingRmId);
-    if (error) return alert("Update failed: " + error.message);
-    alert("Raw Material updated successfully!");
-  } else {
-    payload.id = 'RAW-' + Date.now();
-    const { error } = await db.from('raw_materials').insert([payload]);
-    if (error) return alert("Save failed: " + error.message);
-    alert("Raw Material saved successfully to Supabase!");
-  }
+  // 1. Insert into raw_materials
+  const { error: rawErr } = await db.from('raw_materials').insert([payload]);
+  if (rawErr) return alert("Save failed: " + rawErr.message);
 
-  closeRawMaterialModal();
+  // 2. Auto Sync to Accounts Expenses (public.accounts_vendors)
+  try {
+    await db.from('accounts_vendors').insert([{
+      type: 'Expense',
+      title: `Raw Material Purchase: ${name}`,
+      category: 'Raw Materials',
+      amount: cost,
+      status: 'Paid'
+    }]);
+  } catch (e) { console.error("Accounts auto-sync warning:", e); }
+
+  alert("Raw Material saved & Purchase Expense recorded in Accounts!");
+  nirmanCloseRawMaterialModal();
   loadAushadhiNirmanData();
 }
 
-function editRawMaterial(id) {
-  const item = (window.nirmanState.rawMaterials || []).find(r => r.id === id);
-  if (item) openRawMaterialModal(item);
-}
-
-async function deleteRawMaterial(id) {
+async function nirmanDeleteRawMaterial(id) {
   if (!confirm(`Delete raw material ${id}?`)) return;
   const db = getDb();
   await db.from('raw_materials').delete().eq('id', id);
   loadAushadhiNirmanData();
 }
 
-function addIngredientToRecipe() {
-  const select = el('select-recipe-raw-material');
-  const qtyInp = el('input-recipe-qty');
+// --- BOM & MASTER RECIPE FORMULATION ---
+function nirmanAddIngredientToRecipe() {
+  const select = el('nirman-select-recipe-rm');
+  const qtyInp = el('nirman-recipe-qty');
 
   if (!select || !select.value) return alert("Select a Raw Material first.");
   const qty = parseFloat(qtyInp ? qtyInp.value : 0);
-  if (isNaN(qty) || qty <= 0) return alert("Quantity per unit must be > 0.");
+  if (isNaN(qty) || qty <= 0) return alert("Ingredient Qty must be > 0.");
 
   const matId = select.value;
   const rawItem = (window.nirmanState.rawMaterials || []).find(r => r.id === matId);
   const matName = rawItem ? rawItem.name : matId;
+  const availStock = rawItem ? parseFloat(rawItem.stock || 0) : 0;
+
+  if (qty > availStock) {
+    return alert(`Cannot add ${qty} ${rawItem.unit || ''}. Only ${availStock} available in inventory!`);
+  }
 
   const existing = window.nirmanState.currentIngredients.find(i => i.id === matId);
-  if (existing) existing.qty += qty;
-  else window.nirmanState.currentIngredients.push({ id: matId, name: matName, qty: qty });
+  if (existing) {
+    if (existing.qty + qty > availStock) return alert("Total ingredient qty exceeds available inventory stock!");
+    existing.qty += qty;
+  } else {
+    window.nirmanState.currentIngredients.push({ id: matId, name: matName, qty: qty });
+  }
 
-  renderModalIngredientsTable();
+  nirmanRenderModalIngredientsTable();
   if (qtyInp) qtyInp.value = '';
 }
 
-function renderModalIngredientsTable() {
-  const tbody = el('tbody-modal-ingredients');
+function nirmanRenderModalIngredientsTable() {
+  const tbody = el('nirman-tbody-modal-ingredients');
   if (!tbody) return;
 
   const list = window.nirmanState.currentIngredients;
@@ -348,19 +427,43 @@ function renderModalIngredientsTable() {
       <td style="padding:0.5rem; color:white;">${item.name}</td>
       <td style="padding:0.5rem; color:white; font-weight:bold;">${item.qty}</td>
       <td style="padding:0.5rem; text-align:center;">
-        <button type="button" onclick="window.nirmanState.currentIngredients.splice(${idx},1); renderModalIngredientsTable();" style="background:#dc2626; color:white; border:none; padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
+        <button type="button" onclick="window.nirmanState.currentIngredients.splice(${idx},1); nirmanRenderModalIngredientsTable();" style="background:#dc2626; color:white; border:none; padding:0.2rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
       </td>
     </tr>
   `).join('');
 }
 
-async function saveMasterRecipe() {
+async function nirmanSaveMasterRecipe() {
   const db = getDb();
   if (!db) return alert("Database client unavailable.");
 
-  const medicineName = el('input-recipe-name')?.value.trim();
+  const medicineName = el('nirman-recipe-name')?.value.trim();
+  const marginPct = parseFloat(el('nirman-recipe-margin')?.value || 0);
+
   if (!medicineName) return alert("Output Medicine Name is required.");
   if (window.nirmanState.currentIngredients.length === 0) return alert("Add at least 1 raw material ingredient.");
+
+  // Calculate Cost of Production (COP)
+  const rawMap = {};
+  (window.nirmanState.rawMaterials || []).forEach(rm => { rawMap[rm.id] = rm; });
+
+  let totalCOP = 0;
+  for (const ing of window.nirmanState.currentIngredients) {
+    const raw = rawMap[ing.id];
+    if (raw) {
+      const stock = parseFloat(raw.stock || 1);
+      const cost = parseFloat(raw.purchase_rate || 0);
+      const unitCost = stock > 0 ? (cost / stock) : 0;
+      totalCOP += unitCost * (parseFloat(ing.qty) || 0);
+    }
+  }
+
+  // Calculate Selling Price (MRP)
+  const sellingPrice = totalCOP + (totalCOP * (marginPct / 100));
+
+  if (sellingPrice <= totalCOP) {
+    return alert(`Selling Price (₹${sellingPrice.toFixed(2)}) must be greater than Production Cost (₹${totalCOP.toFixed(2)}). Increase profit margin!`);
+  }
 
   const recipeId = 'REC-' + Date.now().toString().slice(-6);
   const barcodeVal = 'BC-' + Math.floor(100000 + Math.random() * 900000);
@@ -372,111 +475,106 @@ async function saveMasterRecipe() {
     barcode: barcodeVal,
     raw_req_id: firstIng ? firstIng.id : null,
     req_qty_per_unit: firstIng ? firstIng.qty : 0,
+    cop: totalCOP,
+    profit_margin: marginPct,
+    selling_price: sellingPrice,
     ingredients: JSON.stringify(window.nirmanState.currentIngredients)
   };
 
   const { error } = await db.from('master_recipes').insert([payload]);
   if (error) return alert("Recipe save failed: " + error.message);
 
-  alert("Master Recipe saved successfully!");
-  closeMasterRecipeModal();
+  alert(`Master Recipe Saved!\nCOP: ₹${totalCOP.toFixed(2)} | MRP: ₹${sellingPrice.toFixed(2)} (${marginPct}% Profit)`);
+  nirmanCloseMasterRecipeModal();
   loadAushadhiNirmanData();
 }
 
-async function deleteMasterRecipe(id) {
+async function nirmanDeleteMasterRecipe(id) {
   if (!confirm(`Delete master recipe ${id}?`)) return;
   const db = getDb();
   await db.from('master_recipes').delete().eq('id', id);
   loadAushadhiNirmanData();
 }
 
-async function executeBatchProduction() {
+// --- BATCH MANUFACTURING & PHARMACY STOCK AUTO-PUSH ---
+async function nirmanConfirmBatchProduction() {
   const db = getDb();
   if (!db) return alert("Database client unavailable.");
 
-  const { data: recipes } = await db.from('master_recipes').select('*');
-  if (!recipes || recipes.length === 0) return alert("No master recipes registered.");
+  const recipe = window.nirmanState.activeRecipeForBatch;
+  if (!recipe) return alert("No active recipe selected.");
 
-  const menu = recipes.map((r, i) => `${i + 1}. ${r.name || r.medicine_name || r.id}`).join('
-');
-  const sel = prompt("Select Master Recipe Number for Batch Production:
-" + menu);
-  if (!sel) return;
+  const batchCode = el('nirman-batch-code')?.value.trim();
+  const expiryDate = el('nirman-batch-expiry')?.value.trim();
+  const batchQty = parseFloat(el('nirman-batch-qty')?.value || 0);
 
-  const target = recipes[parseInt(sel) - 1];
-  if (!target) return alert("Invalid recipe choice.");
-
-  const batchQty = parseFloat(prompt(`Enter production units for '${target.name || target.id}':`, "10"));
-  if (isNaN(batchQty) || batchQty <= 0) return alert("Invalid production quantity.");
+  if (isNaN(batchQty) || batchQty <= 0) return alert("Production Units must be > 0.");
+  if (!expiryDate) return alert("Expiry Date is required.");
 
   let ingredients = [];
-  if (target.ingredients) {
+  if (recipe.ingredients) {
     try {
-      ingredients = typeof target.ingredients === 'string' ? JSON.parse(target.ingredients) : target.ingredients;
+      ingredients = typeof recipe.ingredients === 'string' ? JSON.parse(recipe.ingredients) : recipe.ingredients;
     } catch (e) {}
-  } else if (target.raw_req_id) {
-    ingredients = [{ id: target.raw_req_id, qty: target.req_qty_per_unit || 0 }];
+  } else if (recipe.raw_req_id) {
+    ingredients = [{ id: recipe.raw_req_id, qty: recipe.req_qty_per_unit || 0 }];
   }
 
   if (!ingredients.length) return alert("No raw materials mapped to this master recipe.");
 
-  let log = [];
+  // 1. Stock Pre-Check
   for (const ing of ingredients) {
-    const rawId = ing.id;
     const qtyNeeded = (parseFloat(ing.qty) || 0) * batchQty;
-    const { data: raw } = await db.from('raw_materials').select('stock, name, unit').eq('id', rawId).single();
-    if (raw) {
-      const curStock = parseFloat(raw.stock || 0);
-      const newStock = Math.max(0, curStock - qtyNeeded);
-      await db.from('raw_materials').update({ stock: newStock }).eq('id', rawId);
-      log.push(`${raw.name}: ${curStock} -> ${newStock} ${raw.unit || ''} (-${qtyNeeded})`);
+    const { data: raw } = await db.from('raw_materials').select('stock, name, unit').eq('id', ing.id).single();
+    if (!raw || parseFloat(raw.stock || 0) < qtyNeeded) {
+      const avail = raw ? raw.stock : 0;
+      return alert(`Insufficient Stock for '${raw ? raw.name : ing.id}'. Required: ${qtyNeeded}, Available: ${avail}`);
     }
   }
 
-  alert(`Batch Production Successful!
-Manufactured ${batchQty} units of ${target.name}.
+  // 2. Deduct Raw Materials Inventory
+  for (const ing of ingredients) {
+    const qtyNeeded = (parseFloat(ing.qty) || 0) * batchQty;
+    const { data: raw } = await db.from('raw_materials').select('stock').eq('id', ing.id).single();
+    const curStock = parseFloat(raw.stock || 0);
+    await db.from('raw_materials').update({ stock: Math.max(0, curStock - qtyNeeded) }).eq('id', ing.id);
+  }
 
-Stock Deductions:
-` + log.join('
-'));
+  // 3. Push Finished Medicine Batch into public.pharmacy_stock
+  const medicineName = recipe.name || recipe.medicine_name || 'Ayurvedic Medicine';
+  const mrpPrice = parseFloat(recipe.selling_price || recipe.cop || 0);
+
+  const pharmacyPayload = {
+    barcode: recipe.barcode || ('BC-' + Date.now().toString().slice(-6)),
+    name: medicineName,
+    batch_code: batchCode,
+    expiry: expiryDate,
+    price: mrpPrice,
+    stock: batchQty
+  };
+
+  const { error: pharmErr } = await db.from('pharmacy_stock').insert([pharmacyPayload]);
+  if (pharmErr) return alert("Stock update error: " + pharmErr.message);
+
+  alert(`Batch Manufactured Successfully!\n\nMedicine: ${medicineName}\nBatch: ${batchCode}\nUnits Added: ${batchQty}\nMRP: ₹${mrpPrice}\n\nInventory deducted and Pharmacy Stock updated!`);
+  nirmanCloseBatchModal();
   loadAushadhiNirmanData();
 }
 
-// Global Exports
-window.openMasterRecipeModal = openMasterRecipeModal;
-window.closeMasterRecipeModal = closeMasterRecipeModal;
-window.openRawMaterialModal = openRawMaterialModal;
-window.closeRawMaterialModal = closeRawMaterialModal;
-window.saveRawMaterial = saveRawMaterial;
-window.editRawMaterial = editRawMaterial;
-window.deleteRawMaterial = deleteRawMaterial;
-window.addIngredientToRecipe = addIngredientToRecipe;
-window.saveMasterRecipe = saveMasterRecipe;
-window.deleteMasterRecipe = deleteMasterRecipe;
-window.executeBatchProduction = executeBatchProduction;
+// Global Exposures
+window.nirmanOpenRawMaterialModal = nirmanOpenRawMaterialModal;
+window.nirmanCloseRawMaterialModal = nirmanCloseRawMaterialModal;
+window.nirmanSaveRawMaterial = nirmanSaveRawMaterial;
+window.nirmanDeleteRawMaterial = nirmanDeleteRawMaterial;
+window.nirmanOpenMasterRecipeModal = nirmanOpenMasterRecipeModal;
+window.nirmanCloseMasterRecipeModal = nirmanCloseMasterRecipeModal;
+window.nirmanAddIngredientToRecipe = nirmanAddIngredientToRecipe;
+window.nirmanSaveMasterRecipe = nirmanSaveMasterRecipe;
+window.nirmanDeleteMasterRecipe = nirmanDeleteMasterRecipe;
+window.nirmanOpenBatchModal = nirmanOpenBatchModal;
+window.nirmanCloseBatchModal = nirmanCloseBatchModal;
+window.nirmanConfirmBatchProduction = nirmanConfirmBatchProduction;
 window.loadAushadhiNirmanData = loadAushadhiNirmanData;
-
-// 5. DOCUMENT-LEVEL CLICK INTERCEPTOR (CAPTURES ANY CLICK ON BUTTON)
-document.addEventListener('click', function(e) {
-  const targetBtn = e.target.closest('button');
-  if (!targetBtn) return;
-
-  const txt = (targetBtn.innerText || targetBtn.textContent || '').toLowerCase().trim();
-
-  if (txt.includes('add raw material')) {
-    e.preventDefault();
-    e.stopPropagation();
-    openRawMaterialModal(null);
-  } else if (txt.includes('add master recipe')) {
-    e.preventDefault();
-    e.stopPropagation();
-    openMasterRecipeModal();
-  } else if (txt.includes('execute batch production')) {
-    e.preventDefault();
-    e.stopPropagation();
-    executeBatchProduction();
-  }
-}, true);
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', loadAushadhiNirmanData);
