@@ -279,3 +279,150 @@ window.closeMasterRecipeModal = function() {
   const modal = document.getElementById('nrm-modal-recipe');
   if (modal) modal.style.display = 'none';
 };
+
+// ==========================================
+// EXPLICIT GLOBAL BINDINGS FOR SAVE & RECIPES
+// ==========================================
+
+window.nrmSaveRM = async function() {
+  try {
+    const db = window.supabaseClient || window.sbClient || window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+    if (!db) return alert("Database connection not ready.");
+
+    const name = document.getElementById('nrm-rm-name') ? document.getElementById('nrm-rm-name').value.trim() : '';
+    const cat = document.getElementById('nrm-rm-cat') ? document.getElementById('nrm-rm-cat').value : 'Herbs';
+    const unit = document.getElementById('nrm-rm-unit') ? document.getElementById('nrm-rm-unit').value : 'gms';
+    const qty = document.getElementById('nrm-rm-qty') ? parseFloat(document.getElementById('nrm-rm-qty').value) : 0;
+    const reorder = document.getElementById('nrm-rm-reorder') ? parseFloat(document.getElementById('nrm-rm-reorder').value) : 10;
+    const cost = document.getElementById('nrm-rm-cost') ? parseFloat(document.getElementById('nrm-rm-cost').value) : 0;
+
+    if (!name || isNaN(qty) || isNaN(cost)) {
+      return alert("Please fill in Material Name, Initial Quantity, and Total Cost.");
+    }
+
+    const payload = {
+      id: 'RAW-' + Date.now(),
+      name: name,
+      category: cat,
+      unit: unit,
+      stock: qty,
+      reorder: reorder,
+      purchase_rate: cost
+    };
+
+    const { error } = await db.from('raw_materials').insert([payload]);
+    if (error) return alert("Database Error: " + error.message);
+
+    try {
+      await db.from('accounts_vendors').insert([{
+        type: 'Expense',
+        title: `RM Purchase: ${name}`,
+        category: 'Raw Materials',
+        amount: cost,
+        status: 'Paid'
+      }]);
+    } catch (e) { console.warn("Accounts sync skipped", e); }
+
+    alert("Raw Material saved & Expense synced to Accounts!");
+    const modal = document.getElementById('nrm-modal-rm');
+    if (modal) modal.style.display = 'none';
+
+    if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+    else if (typeof loadNirmanData === 'function') loadNirmanData();
+  } catch (err) {
+    alert("Save Error: " + err.message);
+  }
+};
+
+window.nrmAddBOM = function() {
+  window.nrmState = window.nrmState || { raw: [], recipes: [], bom: [] };
+  window.nrmState.bom = window.nrmState.bom || [];
+  
+  const sel = document.getElementById('nrm-rec-sel');
+  const qtyInput = document.getElementById('nrm-rec-qty');
+  if (!sel || !qtyInput) return;
+  
+  const qty = parseFloat(qtyInput.value);
+  if (!sel.value || isNaN(qty) || qty <= 0) return alert("Select a raw material and enter a valid quantity.");
+
+  const rm = (window.nrmState.raw || []).find(r => r.id === sel.value);
+  if (rm && qty > parseFloat(rm.stock)) return alert(`Quantity exceeds stock! Available: ${rm.stock}${rm.unit}`);
+
+  const exist = window.nrmState.bom.find(b => b.id === sel.value);
+  if (exist) {
+    if (rm && (exist.qty + qty) > parseFloat(rm.stock)) return alert(`Exceeds stock! Total available: ${rm.stock}${rm.unit}`);
+    exist.qty += qty;
+  } else if (rm) {
+    window.nrmState.bom.push({
+      id: rm.id,
+      name: rm.name,
+      qty: qty,
+      unit: rm.unit,
+      unit_cost: parseFloat(rm.stock) > 0 ? (parseFloat(rm.purchase_rate || 0) / parseFloat(rm.stock)) : 0
+    });
+  }
+
+  qtyInput.value = '';
+  window.nrmRenderBOM();
+};
+
+window.nrmRenderBOM = function() {
+  const tb = document.getElementById('nrm-tb-bom');
+  const copPreview = document.getElementById('nrm-cop-preview');
+  if (!tb) return;
+
+  let cop = 0;
+  tb.innerHTML = (window.nrmState.bom || []).map((b, i) => {
+    const itemCost = b.qty * b.unit_cost;
+    cop += itemCost;
+    return `<tr>
+      <td style="padding:0.4rem;">${b.name}</td>
+      <td style="padding:0.4rem;">${b.qty}${b.unit}</td>
+      <td style="padding:0.4rem;"><button onclick="window.nrmState.bom.splice(${i},1); window.nrmRenderBOM();" style="color:#ef4444; border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="3" style="color:#9ca3af; padding:0.5rem; text-align:center;">No ingredients added.</td></tr>';
+
+  if (copPreview) copPreview.innerText = `Est. COP: ₹${cop.toFixed(2)}`;
+};
+
+window.nrmSaveRecipe = async function() {
+  try {
+    const db = window.supabaseClient || window.sbClient || window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+    if (!db) return alert("Database connection not ready.");
+
+    const name = document.getElementById('nrm-rec-name') ? document.getElementById('nrm-rec-name').value.trim() : '';
+    const margin = document.getElementById('nrm-rec-margin') ? parseFloat(document.getElementById('nrm-rec-margin').value) : 20;
+
+    if (!name || !window.nrmState.bom || window.nrmState.bom.length === 0) {
+      return alert("Recipe Name and at least one BOM ingredient are required.");
+    }
+
+    let cop = 0;
+    window.nrmState.bom.forEach(b => cop += (b.qty * b.unit_cost));
+    const mrp = cop + (cop * (margin / 100));
+
+    if (mrp <= cop) return alert("Selling price must strictly exceed production cost (COP).");
+
+    const payload = {
+      id: 'REC-' + Date.now(),
+      name: name,
+      barcode: 'BC-' + Math.floor(100000 + Math.random() * 900000),
+      cop: cop,
+      profit_margin: margin,
+      selling_price: mrp,
+      ingredients: JSON.stringify(window.nrmState.bom)
+    };
+
+    const { error } = await db.from('master_recipes').insert([payload]);
+    if (error) return alert("DB Error: " + error.message);
+
+    alert(`Master Recipe Saved!\nCost of Production (COP): ₹${cop.toFixed(2)}\nSelling Price (MRP): ₹${mrp.toFixed(2)}`);
+    const modal = document.getElementById('nrm-modal-recipe');
+    if (modal) modal.style.display = 'none';
+
+    if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+    else if (typeof loadNirmanData === 'function') loadNirmanData();
+  } catch (err) {
+    alert("Save Error: " + err.message);
+  }
+};
