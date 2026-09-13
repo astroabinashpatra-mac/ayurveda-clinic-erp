@@ -598,3 +598,21 @@ window.openMasterRecipeModal = async function() {
 };
 
 window.nrmOpenMasterRecipeModal = window.openMasterRecipeModal;
+
+
+// GLOBAL EVENT DELEGATION FOR MASTER RECIPE & MODAL BUTTONS
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('button, .btn');
+  if (!btn) return;
+
+  const text = (btn.innerText || btn.textContent || '').trim();
+  const onclickAttr = btn.getAttribute('onclick') || '';
+
+  if (text.includes('Add Master Recipe') || onclickAttr.includes('MasterRecipeModal') || onclickAttr.includes('openMasterRecipe')) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof window.openMasterRecipeModal === 'function') {
+      window.openMasterRecipeModal();
+    }
+  }
+}, true);
