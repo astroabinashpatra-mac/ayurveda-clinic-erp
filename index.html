@@ -157,19 +157,13 @@ document.addEventListener('keydown', function(event) {
 
 // 1. Fetch live raw materials from Supabase and sync into recipe dropdowns
 async function syncRawMaterialsToRecipeBuilder() {
-  if (!(window.sbClient || window.supabaseClient || window.supabase)) return;
-  const { data: materials, error } = await (window.sbClient || window.supabaseClient || window.supabase)
-    .from('raw_materials')
-    .select('*')
-    .order('name');
-  
-  if (error) {
-    console.error("Error fetching raw materials:", error);
-    return;
-  }
-  
-  window.availableRawMaterials = materials || [];
-  updateAllRecipeDropdowns();
+  const client = window.sbClient || window.supabaseClient;
+  if (!client || typeof client.from !== 'function') return;
+  client.from('raw_materials').select('*').then(({ data }) => {
+    if (data && typeof window.loadAushadhiNirmanData === 'function') {
+      window.loadAushadhiNirmanData();
+    }
+  }).catch(function() {});
 }
 
 // 2. Refresh dropdown options across all recipe ingredient rows
@@ -2630,19 +2624,13 @@ document.addEventListener('keydown', function(event) {
 
 // 1. Fetch live raw materials from Supabase and sync into recipe dropdowns
 async function syncRawMaterialsToRecipeBuilder() {
-  if (!(window.sbClient || window.supabaseClient || window.supabase)) return;
-  const { data: materials, error } = await (window.sbClient || window.supabaseClient || window.supabase)
-    .from('raw_materials')
-    .select('*')
-    .order('name');
-  
-  if (error) {
-    console.error("Error fetching raw materials:", error);
-    return;
-  }
-  
-  window.availableRawMaterials = materials || [];
-  updateAllRecipeDropdowns();
+  const client = window.sbClient || window.supabaseClient;
+  if (!client || typeof client.from !== 'function') return;
+  client.from('raw_materials').select('*').then(({ data }) => {
+    if (data && typeof window.loadAushadhiNirmanData === 'function') {
+      window.loadAushadhiNirmanData();
+    }
+  }).catch(function() {});
 }
 
 // 2. Refresh dropdown options across all recipe ingredient rows
