@@ -2933,18 +2933,7 @@ window.getErpDb = function() {
   return window.sbClient || (typeof sbClient !== 'undefined' ? sbClient : null) || (typeof (window.sbClient || window.supabaseClient || window.supabase) !== 'undefined' ? (window.sbClient || window.supabaseClient || window.supabase) : null);
 };
 
-window.openRawMaterialModal = function(item = null) {
-  const modal = document.getElementById('nirman-modal-raw-material') || document.getElementById('modal-raw-material') || document.getElementById('rawMaterialModal');
-  if (modal) {
-    modal.style.display = 'flex';
-  } else {
-    alert("Raw Material Modal not found in DOM.");
-    return;
-  }
-  const setVal = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) el.value = val;
-  };
+/* removed */
   setVal('nirman-rm-name', item ? item.name : '');
   setVal('raw-name', item ? item.name : '');
   setVal('nirman-rm-category', item ? (item.category || 'Herbs') : 'Herbs');
@@ -2964,14 +2953,7 @@ window.closeRawMaterialModal = function() {
   if (modal) modal.style.display = 'none';
 };
 
-window.openMasterRecipeModal = function() {
-  const modal = document.getElementById('nirman-modal-master-recipe') || document.getElementById('modal-master-recipe') || document.getElementById('masterRecipeModal');
-  if (modal) {
-    modal.style.display = 'flex';
-  } else {
-    alert("Master Recipe Modal not found in DOM.");
-  }
-};
+/* removed */
 
 window.closeMasterRecipeModal = function() {
   const modal = document.getElementById('nirman-modal-master-recipe') || document.getElementById('modal-master-recipe') || document.getElementById('masterRecipeModal');
@@ -2985,18 +2967,7 @@ window.getErpDb = function() {
   return window.sbClient || (typeof sbClient !== 'undefined' ? sbClient : null) || (typeof (window.sbClient || window.supabaseClient || window.supabase) !== 'undefined' ? (window.sbClient || window.supabaseClient || window.supabase) : null);
 };
 
-window.openRawMaterialModal = function(item = null) {
-  const modal = document.getElementById('nirman-modal-raw-material') || document.getElementById('modal-raw-material') || document.getElementById('rawMaterialModal');
-  if (modal) {
-    modal.style.display = 'flex';
-  } else {
-    alert("Raw Material Modal not found in DOM.");
-    return;
-  }
-  const setVal = (id, val) => {
-    const el = document.getElementById(id);
-    if (el) el.value = val;
-  };
+/* removed */
   setVal('nirman-rm-name', item ? item.name : '');
   setVal('raw-name', item ? item.name : '');
   setVal('nirman-rm-category', item ? (item.category || 'Herbs') : 'Herbs');
@@ -3016,14 +2987,7 @@ window.closeRawMaterialModal = function() {
   if (modal) modal.style.display = 'none';
 };
 
-window.openMasterRecipeModal = function() {
-  const modal = document.getElementById('nirman-modal-master-recipe') || document.getElementById('modal-master-recipe') || document.getElementById('masterRecipeModal');
-  if (modal) {
-    modal.style.display = 'flex';
-  } else {
-    alert("Master Recipe Modal not found in DOM.");
-  }
-};
+/* removed */
 
 window.closeMasterRecipeModal = function() {
   const modal = document.getElementById('nirman-modal-master-recipe') || document.getElementById('modal-master-recipe') || document.getElementById('masterRecipeModal');
