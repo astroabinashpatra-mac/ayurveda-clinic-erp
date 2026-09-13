@@ -343,15 +343,9 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 
 // 1. Brute-force Database Finder
 function getDbRobust() {
-    // 1. Check bare variables safely (Catches const/let declarations)
-    try { if (typeof supabaseClient !== 'undefined' && supabaseClient.from) return supabaseClient; } catch(e) {}
-    try { if (typeof sbClient !== 'undefined' && sbClient.from) return sbClient; } catch(e) {}
-    try { if (typeof supabase !== 'undefined' && supabase.from) return supabase; } catch(e) {}
-    
-    // 2. Check window properties as fallback
-    if (window.supabaseClient && window.supabaseClient.from) return window.supabaseClient;
-    if (window.sbClient && window.sbClient.from) return window.sbClient;
-    
+    if (window.supabase && typeof window.supabase.from === 'function') return window.supabase;
+    if (window.sbClient && typeof window.sbClient.from === 'function') return window.sbClient;
+    if (window.supabaseClient && typeof window.supabaseClient.from === 'function') return window.supabaseClient;
     return null;
 }
 
