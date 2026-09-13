@@ -509,3 +509,32 @@ window.nrmAddBOM = function() {
   qtyInput.value = '';
   window.nrmRenderBOM();
 };
+
+// Ensure live datalist population on openMasterRecipeModal
+window.openMasterRecipeModal = async function() {
+  const modal = document.getElementById('nrm-modal-recipe') || document.getElementById('modal-master-recipe');
+  window.nrmState = window.nrmState || { raw: [], recipes: [], bom: [] };
+  window.nrmState.bom = [];
+
+  const db = window.supabaseClient || window.sbClient || window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+  if (db && typeof db.from === 'function') {
+    try {
+      const { data } = await db.from('raw_materials').select('*').order('name', { ascending: true });
+      if (data) window.nrmState.raw = data;
+    } catch(e) {}
+  }
+
+  if (document.getElementById('nrm-rec-name')) document.getElementById('nrm-rec-name').value = '';
+  if (document.getElementById('nrm-rec-margin')) document.getElementById('nrm-rec-margin').value = '20';
+  if (document.getElementById('nrm-rec-sel')) document.getElementById('nrm-rec-sel').value = '';
+
+  const dl = document.getElementById('nrm-raw-datalist');
+  if (dl && window.nrmState.raw) {
+    dl.innerHTML = window.nrmState.raw.map(r => 
+      `<option value="${r.name} [ID: ${r.id}] (${r.stock} ${r.unit} available)"></option>`
+    ).join('');
+  }
+
+  if (typeof window.nrmRenderBOM === 'function') window.nrmRenderBOM();
+  if (modal) modal.style.display = 'flex';
+};
