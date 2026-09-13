@@ -120,3 +120,34 @@
   }
   window.addEventListener('load', loadNirmanData);
 })();
+
+// RESTORE GLOBAL ERP ROUTER (switchTab)
+window.switchTab = window.switchTab || function(tabId, element) {
+  try {
+    // Hide all module containers
+    document.querySelectorAll('.module-container, .module-section, [id^="module-"]').forEach(el => {
+      el.style.display = 'none';
+    });
+
+    // Show target module container
+    let target = document.getElementById(tabId) || document.getElementById('module-' + tabId);
+    if (target) {
+      target.style.display = 'block';
+    }
+
+    // Update active sidebar states
+    document.querySelectorAll('.sidebar-item, .nav-link, sidebar li').forEach(li => {
+      li.classList.remove('active');
+    });
+    if (element) {
+      element.classList.add('active');
+    }
+
+    // Trigger specific module loaders if available
+    if (tabId === 'aushadhi-nirman' || tabId === '5') {
+      if (typeof loadNirmanData === 'function') loadNirmanData();
+    }
+  } catch (err) {
+    console.error("Navigation error:", err);
+  }
+};
