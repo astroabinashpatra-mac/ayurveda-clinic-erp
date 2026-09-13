@@ -538,3 +538,63 @@ window.openMasterRecipeModal = async function() {
   if (typeof window.nrmRenderBOM === 'function') window.nrmRenderBOM();
   if (modal) modal.style.display = 'flex';
 };
+
+
+// ==========================================
+// BULLETPROOF MASTER RECIPE MODAL OPENER
+// ==========================================
+window.openMasterRecipeModal = async function() {
+  try {
+    if (typeof ensureNirmanModals === 'function') ensureNirmanModals();
+    
+    let modal = document.getElementById('nrm-modal-recipe') || document.getElementById('modal-master-recipe');
+    if (!modal) {
+      ensureNirmanModals();
+      modal = document.getElementById('nrm-modal-recipe');
+    }
+
+    window.nrmState = window.nrmState || { raw: [], recipes: [], bom: [] };
+    window.nrmState.bom = [];
+
+    // Fetch latest raw materials from Supabase to refresh datalist
+    const db = window.supabaseClient || window.sbClient || window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+    if (db && typeof db.from === 'function') {
+      try {
+        const { data } = await db.from('raw_materials').select('*').order('name', { ascending: true });
+        if (data) window.nrmState.raw = data;
+      } catch(e) {}
+    }
+
+    // Reset Form Fields
+    const nameEl = document.getElementById('nrm-rec-name') || document.getElementById('rec-name');
+    const marginEl = document.getElementById('nrm-rec-margin') || document.getElementById('rec-margin');
+    const selEl = document.getElementById('nrm-rec-sel');
+    
+    if (nameEl) nameEl.value = '';
+    if (marginEl) marginEl.value = '20';
+    if (selEl) selEl.value = '';
+
+    // Populate Autocomplete Datalist
+    const dl = document.getElementById('nrm-raw-datalist');
+    if (dl && window.nrmState.raw) {
+      dl.innerHTML = window.nrmState.raw.map(r => 
+        `<option value="${r.name} [ID: ${r.id}] (${r.stock} ${r.unit} available)"></option>`
+      ).join('');
+    }
+
+    if (typeof window.nrmRenderBOM === 'function') window.nrmRenderBOM();
+
+    if (modal) {
+      modal.style.display = 'flex';
+      modal.style.visibility = 'visible';
+      modal.style.opacity = '1';
+    } else {
+      alert("Error: Master Recipe Modal element not found in DOM.");
+    }
+  } catch (err) {
+    console.error("Crash in openMasterRecipeModal:", err);
+    alert("Modal Error: " + err.message);
+  }
+};
+
+window.nrmOpenMasterRecipeModal = window.openMasterRecipeModal;
