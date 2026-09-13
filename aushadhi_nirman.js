@@ -335,3 +335,148 @@ window.nrmExecBatch = async function() {
 
 window.addEventListener('DOMContentLoaded', loadNirman);
 if (document.readyState === 'complete' || document.readyState === 'interactive') loadNirman();
+
+
+// ==========================================
+// EMERGENCY ERROR BOUNDARY & DB FINDER PATCH
+// ==========================================
+
+// 1. Brute-force Database Finder
+function getDbRobust() {
+    // Check known names first
+    if (window.sbClient && typeof window.sbClient.from === 'function') return window.sbClient;
+    if (window.supabaseClient && typeof window.supabaseClient.from === 'function') return window.supabaseClient;
+    
+    // Scan all global variables for the Supabase SDK signature
+    for (let key of Object.keys(window)) {
+        try {
+            let obj = window[key];
+            if (obj && typeof obj === 'object' && typeof obj.from === 'function' && typeof obj.auth === 'object') {
+                console.log("Found Supabase client at window." + key);
+                window.sbClient = obj; // Cache it so we don't have to scan again
+                return obj;
+            }
+        } catch(e) {} // Ignore cross-origin frame access errors
+    }
+    return null;
+}
+
+// 2. Safe Save Raw Material
+window.nrmSaveRM = async function() {
+    try {
+        const db = getDbRobust();
+        if (!db) return alert("System Error: Supabase database connection could not be found anywhere on the page!");
+
+        const name = document.getElementById('nrm-rm-name').value;
+        const cat = document.getElementById('nrm-rm-cat').value;
+        const unit = document.getElementById('nrm-rm-unit').value;
+        const qty = parseFloat(document.getElementById('nrm-rm-qty').value);
+        const reorder = parseFloat(document.getElementById('nrm-rm-reorder').value);
+        const cost = parseFloat(document.getElementById('nrm-rm-cost').value);
+
+        if(!name || isNaN(qty) || isNaN(cost)) return alert("Please fill in Name, Init Qty, and Total Cost with valid numbers.");
+
+        const payload = { id: 'RAW-'+Date.now(), name, category: cat, unit, stock: qty, reorder, purchase_rate: cost };
+        
+        const { error } = await db.from('raw_materials').insert([payload]);
+        if(error) return alert("Database Insert Error: " + error.message);
+
+        // Optional Expense Sync
+        try { 
+            await db.from('accounts_vendors').insert([{ type: 'Expense', title: `RM Purchase: ${name}`, category: 'Raw Materials', amount: cost, status: 'Paid' }]); 
+        } catch(e) { console.warn("Account sync failed", e); }
+
+        alert("Raw Material added & Expense synced to Accounts!");
+        document.getElementById('nrm-modal-rm').style.display = 'none';
+        
+        if (typeof loadNirman === 'function') loadNirman();
+    } catch(err) {
+        alert("Unexpected Crash in Save: " + err.message);
+        console.error(err);
+    }
+};
+
+// 3. Safe Save Recipe
+window.nrmSaveRecipe = async function() {
+    try {
+        const db = getDbRobust();
+        if (!db) return alert("System Error: Supabase database connection could not be found!");
+
+        const name = document.getElementById('nrm-rec-name').value;
+        const margin = parseFloat(document.getElementById('nrm-rec-margin').value);
+        if(!name || window.nrmState.bom.length === 0) return alert("Name and BOM ingredients required.");
+
+        let cop = 0;
+        window.nrmState.bom.forEach(b => cop += (b.qty * b.unit_cost));
+        const mrp = cop + (cop * (margin/100));
+
+        if(mrp <= cop) return alert("Selling price must be greater than COP. Increase margin.");
+
+        const payload = {
+            id: 'REC-'+Date.now(), name, barcode: 'BC-'+Math.floor(100000+Math.random()*900000),
+            cop, profit_margin: margin, selling_price: mrp, ingredients: JSON.stringify(window.nrmState.bom)
+        };
+
+        const { error } = await db.from('master_recipes').insert([payload]);
+        if(error) return alert("Database Insert Error: " + error.message);
+
+        alert(`Recipe Saved!\nCOP: ₹${cop.toFixed(2)}\nMRP: ₹${mrp.toFixed(2)}`);
+        document.getElementById('nrm-modal-recipe').style.display = 'none';
+        
+        if (typeof loadNirman === 'function') loadNirman();
+    } catch(err) {
+        alert("Unexpected Crash in Save Recipe: " + err.message);
+        console.error(err);
+    }
+};
+
+// 4. Safe Exec Batch
+window.nrmExecBatch = async function() {
+    try {
+        const db = getDbRobust();
+        if (!db) return alert("System Error: Supabase database connection could not be found!");
+
+        const rec = window.nrmState.activeRecipe;
+        const batchCode = document.getElementById('nrm-batch-code').value;
+        const exp = document.getElementById('nrm-batch-exp').value;
+        const units = parseFloat(document.getElementById('nrm-batch-qty').value);
+
+        if(units <= 0 || !exp) return alert("Valid units and expiry required.");
+
+        let bom = [];
+        try { bom = JSON.parse(rec.ingredients); } catch(e){}
+        if(!bom.length) return alert("No BOM found for this recipe.");
+
+        for (let b of bom) {
+            const required = b.qty * units;
+            const rm = window.nrmState.raw.find(r => r.id === b.id);
+            if (!rm || parseFloat(rm.stock) < required) return alert(`Insufficient ${b.name}. Need ${required}, have ${rm ? rm.stock : 0}.`);
+        }
+
+        for (let b of bom) {
+            const required = b.qty * units;
+            const rm = window.nrmState.raw.find(r => r.id === b.id);
+            await db.from('raw_materials').update({ stock: parseFloat(rm.stock) - required }).eq('id', b.id);
+        }
+
+        const pharmPayload = {
+            barcode: rec.barcode, name: rec.name || rec.medicine_name, batch_code: batchCode,
+            expiry: exp, price: rec.selling_price, stock: units
+        };
+        const { error } = await db.from('pharmacy_stock').insert([pharmPayload]);
+        if(error) return alert("Pharmacy sync error: " + error.message);
+
+        alert(`Batch Manufactured successfully!\nBatch: ${batchCode}\nAuto-Synced to Herbal Pharmacy.`);
+        document.getElementById('nrm-modal-batch').style.display = 'none';
+        
+        if (typeof loadNirman === 'function') loadNirman();
+    } catch(err) {
+        alert("Unexpected Crash in Exec Batch: " + err.message);
+        console.error(err);
+    }
+};
+
+// Re-trigger load with robust DB finder
+setTimeout(() => {
+    if (getDbRobust() && typeof loadNirman === 'function') loadNirman();
+}, 500);
