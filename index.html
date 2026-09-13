@@ -1289,48 +1289,7 @@ function removeRecipeIngredient(index) {
 
   <div id="md-raw-mat" class="modal-overlay">
     <div class="modal-container" style="max-width: 500px;">
-      <div id="modal-raw-material" class="modal-header"><h3>Raw Material Record</h3><button class="modal-close" onclick="closeModal('md-raw-mat')">✕</button></div>
-      <form onsubmit="saveRawMaterial(event)">
-        <input type="hidden" id="rm-id" />
-        <div class="form-group"><label>MATERIAL NAME *</label><input type="text" id="rm-name" class="form-control" required /></div>
-        <div class="form-grid grid-2">
-          <div class="form-group"><label>CATEGORY</label><select id="rm-category" class="form-control"><option>Base Oil/Ghee</option><option>Herbs</option><option>Minerals</option></select></div>
-          <div class="form-group"><label>UNIT</label><select id="rm-unit" class="form-control"><option>L</option><option>kg</option><option>g</option><option>ml</option></select></div>
-        </div>
-        <div class="form-grid grid-2">
-          <div class="form-group"><label>STOCK</label><input type="number" step="0.01" id="rm-stock" class="form-control" required /></div>
-          <div class="form-group"><label>REORDER LIMIT</label><input type="number" step="0.01" id="rm-reorder" class="form-control" required />
-            </div>
-            <div>
-              <label>PURCHASE RATE (₹/UNIT)</label>
-              <input type="number" step="0.01" id="rm-cost" placeholder="0.00"></div>
-        </div>
-        <button type="button" onclick="saveRawMaterial()"  type="button"  type="submit" class="btn btn-orange" style="width:100%; margin-top:1rem;" onclick="saveRawMaterial()">Save Raw Material</button>
-      </form>
-    </div>
-  </div>
-
-  <div id="md-recipe" class="modal-overlay">
-    <div class="modal-container" style="max-width: 680px;">
-      <div class="modal-header">
-        <h3 id="title-recipe">+ Register Master Recipe</h3>
-        <button class="modal-close" onclick="closeModal('md-recipe')">✕</button>
-      </div>
-      <form onsubmit="saveMasterRecipe(event)">
-        <input type="hidden" id="rc-id" />
-        <div class="form-grid grid-2" style="margin-bottom:0.75rem;">
-          <div class="form-group">
-            <label>OUTPUT MEDICINE NAME *</label>
-            <input id="recipe-med-name" id="recipe-med-name" type="text" id="rc-name" class="form-control" placeholder="e.g. Mahanarayana Thailam (500ml)" required />
-          </div>
-          <div class="form-group">
-            <label>BARCODE (AUTO-GENERATED) *</label>
-            <div style="display:flex; gap:0.4rem;">
-              <input type="text" id="rc-barcode" class="form-control" readonly style="font-weight:bold; background:var(--bg-dark);" required />
-              <button type="button" class="btn btn-secondary" onclick="generateAutoBarcode()">🔄</button>
-            </div>
-          </div>
-        </div>
+      
         <div style="background:var(--bg-dark); border:1px solid var(--border-dark); padding:0.85rem; border-radius:8px; margin-bottom:1.25rem;">
           <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.5rem;">🌿 ADD RAW INGREDIENTS (MULTIPLE)</span>
           <div class="form-grid grid-3" style="align-items:end;">

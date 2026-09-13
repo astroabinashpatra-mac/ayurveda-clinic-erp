@@ -268,26 +268,37 @@ async function saveRawMaterial() {
   const db = getDb();
   if (!db) return alert("Database client unavailable.");
 
-  const modal = el('modal-raw-material') || document;
-  const nameInp = el('input-rm-name') || el('rm-name') || modal.querySelector('input[type="text"]');
-  const name = nameInp ? nameInp.value.trim() : '';
-  if (!name) return alert("Material Name is required.");
+  // Target the active visible modal exclusively
+  const modals = document.querySelectorAll('#modal-raw-material, .modal');
+  let modal = null;
+  for (let m of modals) {
+    if (m.style.display !== 'none' && m.innerText.includes('Raw Material Record')) {
+      modal = m;
+      break;
+    }
+  }
+  if (!modal) modal = el('modal-raw-material') || document;
 
-  const catInp = el('select-rm-category') || el('rm-category') || modal.querySelectorAll('select')[0];
-  const unitInp = el('select-rm-unit') || el('rm-unit') || modal.querySelectorAll('select')[1];
+  const nameInp = modal.querySelector('input[type="text"]');
+  const name = nameInp ? nameInp.value.trim() : '';
+  if (!name) return alert("Please enter Material Name.");
+
+  const selects = modal.querySelectorAll('select');
   const numInputs = modal.querySelectorAll('input[type="number"]');
 
-  const stockVal = el('input-rm-stock')?.value || el('rm-stock')?.value || (numInputs[0] ? numInputs[0].value : 0);
-  const reorderVal = el('input-rm-reorder')?.value || el('rm-reorder')?.value || (numInputs[1] ? numInputs[1].value : 0);
-  const costVal = el('input-rm-cost')?.value || el('rm-cost')?.value || (numInputs[2] ? numInputs[2].value : 0);
+  const catVal = selects[0] ? selects[0].value : 'Herbs';
+  const unitVal = selects[1] ? selects[1].value : 'kg';
+  const stockVal = numInputs[0] ? parseFloat(numInputs[0].value) : 0;
+  const reorderVal = numInputs[1] ? parseFloat(numInputs[1].value) : 0;
+  const costVal = numInputs[2] ? parseFloat(numInputs[2].value) : 0;
 
   const payload = {
     name: name,
-    category: catInp ? catInp.value : 'Herbs',
-    unit: unitInp ? unitInp.value : 'kg',
-    stock: parseFloat(stockVal) || 0,
-    reorder: parseFloat(reorderVal) || 0,
-    purchase_rate: parseFloat(costVal) || 0
+    category: catVal,
+    unit: unitVal,
+    stock: isNaN(stockVal) ? 0 : stockVal,
+    reorder: isNaN(reorderVal) ? 0 : reorderVal,
+    purchase_rate: isNaN(costVal) ? 0 : costVal
   };
 
   if (window.nirmanState.editingRmId) {
@@ -298,7 +309,7 @@ async function saveRawMaterial() {
     payload.id = 'RAW-' + Date.now();
     const { error } = await db.from('raw_materials').insert([payload]);
     if (error) return alert("Save failed: " + error.message);
-    alert("Raw Material saved successfully!");
+    alert("Raw Material saved successfully to Supabase!");
   }
 
   closeRawMaterialModal();
