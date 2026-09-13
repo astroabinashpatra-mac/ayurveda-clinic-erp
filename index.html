@@ -10,10 +10,10 @@
 // Module 5: Integrated Production & Raw Material Deduction Engine
 async function executeProductionBatch(recipeId, targetQty, batchNo) {
   try {
-    if (!(window.sbClient || window.supabaseClient || window.supabase)) throw new Error("Supabase client not initialized.");
+    if (!(window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase)) throw new Error("Supabase client not initialized.");
     
     // 1. Fetch Recipe details and ingredients (BOM)
-    const { data: recipe, error: recipeErr } = await (window.sbClient || window.supabaseClient || window.supabase)
+    const { data: recipe, error: recipeErr } = await (window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase)
       .from('master_recipes')
       .select('*, recipe_ingredients(*)')
       .eq('id', recipeId)
@@ -25,7 +25,7 @@ async function executeProductionBatch(recipeId, targetQty, batchNo) {
 
     // 2. Fetch current Raw Materials stock levels
     const ingredientIds = recipe.recipe_ingredients.map(i => i.raw_material_id);
-    const { data: rawMaterials, error: rmErr } = await (window.sbClient || window.supabaseClient || window.supabase)
+    const { data: rawMaterials, error: rmErr } = await (window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase)
       .from('raw_materials')
       .select('id, name, current_stock, unit')
       .in('id', ingredientIds);
@@ -51,7 +51,7 @@ async function executeProductionBatch(recipeId, targetQty, batchNo) {
 
     // 4. Execute Raw Material Stock Deductions in Supabase
     for (const d of deductions) {
-      const { error: updateErr } = await (window.sbClient || window.supabaseClient || window.supabase)
+      const { error: updateErr } = await (window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase)
         .from('raw_materials')
         .update({ current_stock: d.new_stock })
         .eq('id', d.id);
@@ -60,7 +60,7 @@ async function executeProductionBatch(recipeId, targetQty, batchNo) {
     }
 
     // 5. Log Production Batch Entry
-    const { data: batch, error: batchErr } = await (window.sbClient || window.supabaseClient || window.supabase)
+    const { data: batch, error: batchErr } = await (window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase)
       .from('production_batches')
       .insert([{
         batch_number: batchNo || 'BATCH-' + Date.now(),
@@ -73,7 +73,7 @@ async function executeProductionBatch(recipeId, targetQty, batchNo) {
     if (batchErr) throw new Error("Failed to record production batch.");
 
     // 6. Automatically credit finished goods to Herbal Pharmacy Stock
-    const { error: pharmacyErr } = await (window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase).rpc('increment_pharmacy_stock', {
+    const { error: pharmacyErr } = await (window.sbClient || window.(window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase) || window.supabase).rpc('increment_pharmacy_stock', {
       medicine_name: recipe.medicine_name,
       add_qty: targetQty
     });
@@ -157,8 +157,8 @@ document.addEventListener('keydown', function(event) {
 
 // 1. Fetch live raw materials from Supabase and sync into recipe dropdowns
 async function syncRawMaterialsToRecipeBuilder() {
-  if (!(window.sbClient || window.supabaseClient || window.supabase)) return;
-  const { data: materials, error } = await (window.sbClient || window.supabaseClient || window.supabase)
+  if (!(window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase)) return;
+  const { data: materials, error } = await (window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase)
     .from('raw_materials')
     .select('*')
     .order('name');
@@ -2622,8 +2622,8 @@ document.addEventListener('keydown', function(event) {
 
 // 1. Fetch live raw materials from Supabase and sync into recipe dropdowns
 async function syncRawMaterialsToRecipeBuilder() {
-  if (!(window.sbClient || window.supabaseClient || window.supabase)) return;
-  const { data: materials, error } = await (window.sbClient || window.supabaseClient || window.supabase)
+  if (!(window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase)) return;
+  const { data: materials, error } = await (window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase)
     .from('raw_materials')
     .select('*')
     .order('name');
@@ -2934,7 +2934,7 @@ function removeRecipeIngredient(index) {
 <script>
 // UNIFIED INLINE NIRMAN HANDLERS
 window.getErpDb = function() {
-  return window.sbClient || (typeof sbClient !== 'undefined' ? sbClient : null) || (typeof (window.sbClient || window.supabaseClient || window.supabase) !== 'undefined' ? (window.sbClient || window.supabaseClient || window.supabase) : null);
+  return window.sbClient || (typeof sbClient !== 'undefined' ? sbClient : null) || (typeof (window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase) !== 'undefined' ? (window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase) : null);
 };
 
 window.openRawMaterialModal = function(item = null) {
@@ -2986,7 +2986,7 @@ window.closeMasterRecipeModal = function() {
 <script>
 // UNIFIED INLINE NIRMAN HANDLERS
 window.getErpDb = function() {
-  return window.sbClient || (typeof sbClient !== 'undefined' ? sbClient : null) || (typeof (window.sbClient || window.supabaseClient || window.supabase) !== 'undefined' ? (window.sbClient || window.supabaseClient || window.supabase) : null);
+  return window.sbClient || (typeof sbClient !== 'undefined' ? sbClient : null) || (typeof (window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase) !== 'undefined' ? (window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase) : null);
 };
 
 window.openRawMaterialModal = function(item = null) {
