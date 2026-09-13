@@ -1,16 +1,46 @@
 /**
- * AUSHADHI NIRMAN - BULLETPROOF ENGINE
- * Injects Modals into <body> to survive SPA Router and strictly handles DB operations.
+ * AUSHADHI NIRMAN - SELF-HEALING MANUFACTURING ENGINE
  */
 window.nrmState = { raw: [], recipes: [], bom: [], activeRecipe: null };
 
-function getDb() {
-  const client = window.sbClient || window.supabaseClient;
-  if (client && typeof client.from === 'function') return client;
-  return null;
+function getDbRobust() {
+    // 1. Check existing initialized clients
+    if (typeof sbClient !== 'undefined' && sbClient && typeof sbClient.from === 'function') return sbClient;
+    if (typeof supabaseClient !== 'undefined' && supabaseClient && typeof supabaseClient.from === 'function') return supabaseClient;
+    if (window.sbClient && typeof window.sbClient.from === 'function') return window.sbClient;
+    if (window.supabaseClient && typeof window.supabaseClient.from === 'function') return window.supabaseClient;
+    if (window.db && typeof window.db.from === 'function') return window.db;
+
+    // 2. If window.supabase is an active client instance
+    if (window.supabase && typeof window.supabase.from === 'function') return window.supabase;
+
+    // 3. Auto-initialize fallback client if Supabase SDK is loaded
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+        try {
+            // Extract credentials from local storage or use project defaults
+            const url = localStorage.getItem('supabase_url') || 'https://aumxpvigfvfeltsrqkbf.supabase.co';
+            const key = localStorage.getItem('supabase_key') || '';
+            if (url && key) {
+                window.sbClient = window.supabase.createClient(url, key);
+                return window.sbClient;
+            }
+        } catch(e) {}
+    }
+
+    // 4. Deep window scan for any object with .from
+    for (let key of Object.keys(window)) {
+        try {
+            let obj = window[key];
+            if (obj && typeof obj === 'object' && typeof obj.from === 'function' && typeof obj.auth === 'object') {
+                return obj;
+            }
+        } catch(e) {}
+    }
+
+    return null;
 }
 
-// 1. INJECT MODALS INTO <BODY>
+// INJECT MODALS INTO <BODY>
 function injectNirmanModals() {
   if (document.getElementById('nrm-modal-rm')) return;
 
@@ -101,7 +131,7 @@ function injectNirmanModals() {
   document.body.appendChild(container);
 }
 
-// 2. OVERRIDE GLOBAL HANDLERS
+// GLOBAL HANDLERS
 window.openRawMaterialModal = function() {
   injectNirmanModals();
   document.getElementById('nrm-rm-name').value = '';
@@ -130,13 +160,10 @@ window.executeBatchProduction = function() {
     if(target) window.nrmOpenBatch(target.id);
 };
 
-// 3. SECURE DATA LOAD & RENDER
+// LOAD DATA
 async function loadNirman() {
-  const db = getDb();
-  if (!db) {
-    setTimeout(loadNirman, 500); // Polling prevents db.from undefined error
-    return;
-  }
+  const db = getDbRobust();
+  if (!db) return;
 
   try {
     const { data: raw } = await db.from('raw_materials').select('*').order('created_at', { ascending: false });
@@ -192,32 +219,41 @@ function renderNirmanTables() {
   }
 }
 
-// 4. ACTION CONTROLLERS
+// ACTION CONTROLLERS
 window.nrmSaveRM = async function() {
-  const db = getDb();
-  const name = document.getElementById('nrm-rm-name').value;
-  const cat = document.getElementById('nrm-rm-cat').value;
-  const unit = document.getElementById('nrm-rm-unit').value;
-  const qty = parseFloat(document.getElementById('nrm-rm-qty').value);
-  const reorder = parseFloat(document.getElementById('nrm-rm-reorder').value);
-  const cost = parseFloat(document.getElementById('nrm-rm-cost').value);
+    try {
+        const db = getDbRobust();
+        if (!db) return alert("Database connection not found.");
 
-  if(!name || !qty || !cost) return alert("Fill required fields");
+        const name = document.getElementById('nrm-rm-name').value;
+        const cat = document.getElementById('nrm-rm-cat').value;
+        const unit = document.getElementById('nrm-rm-unit').value;
+        const qty = parseFloat(document.getElementById('nrm-rm-qty').value);
+        const reorder = parseFloat(document.getElementById('nrm-rm-reorder').value);
+        const cost = parseFloat(document.getElementById('nrm-rm-cost').value);
 
-  const payload = { id: 'RAW-'+Date.now(), name, category: cat, unit, stock: qty, reorder, purchase_rate: cost };
-  const { error } = await db.from('raw_materials').insert([payload]);
-  if(error) return alert(error.message);
+        if(!name || isNaN(qty) || isNaN(cost)) return alert("Fill required fields with valid numbers.");
 
-  try { await db.from('accounts_vendors').insert([{ type: 'Expense', title: `RM Purchase: ${name}`, category: 'Raw Materials', amount: cost, status: 'Paid' }]); } catch(e){}
+        const payload = { id: 'RAW-'+Date.now(), name, category: cat, unit, stock: qty, reorder, purchase_rate: cost };
+        
+        const { error } = await db.from('raw_materials').insert([payload]);
+        if(error) return alert("DB Insert Error: " + error.message);
 
-  alert("Raw Material added & Expense synced to Accounts!");
-  document.getElementById('nrm-modal-rm').style.display = 'none';
-  loadNirman();
+        try { 
+            await db.from('accounts_vendors').insert([{ type: 'Expense', title: `RM Purchase: ${name}`, category: 'Raw Materials', amount: cost, status: 'Paid' }]); 
+        } catch(e) {}
+
+        alert("Raw Material added & Expense synced to Accounts!");
+        document.getElementById('nrm-modal-rm').style.display = 'none';
+        loadNirman();
+    } catch(err) {
+        alert("Error: " + err.message);
+    }
 };
 
 window.nrmDelRaw = async function(id) {
   if(!confirm("Delete RM?")) return;
-  await getDb().from('raw_materials').delete().eq('id', id);
+  await getDbRobust().from('raw_materials').delete().eq('id', id);
   loadNirman();
 };
 
@@ -251,32 +287,39 @@ window.nrmRenderBOM = function() {
 };
 
 window.nrmSaveRecipe = async function() {
-  const name = document.getElementById('nrm-rec-name').value;
-  const margin = parseFloat(document.getElementById('nrm-rec-margin').value);
-  if(!name || window.nrmState.bom.length === 0) return alert("Name and BOM required.");
+    try {
+        const db = getDbRobust();
+        if (!db) return alert("Database connection not found.");
 
-  let cop = 0;
-  window.nrmState.bom.forEach(b => cop += (b.qty * b.unit_cost));
-  const mrp = cop + (cop * (margin/100));
+        const name = document.getElementById('nrm-rec-name').value;
+        const margin = parseFloat(document.getElementById('nrm-rec-margin').value);
+        if(!name || window.nrmState.bom.length === 0) return alert("Name and BOM required.");
 
-  if(mrp <= cop) return alert("Selling price must be greater than COP. Increase margin.");
+        let cop = 0;
+        window.nrmState.bom.forEach(b => cop += (b.qty * b.unit_cost));
+        const mrp = cop + (cop * (margin/100));
 
-  const payload = {
-    id: 'REC-'+Date.now(), name, barcode: 'BC-'+Math.floor(100000+Math.random()*900000),
-    cop, profit_margin: margin, selling_price: mrp, ingredients: JSON.stringify(window.nrmState.bom)
-  };
+        if(mrp <= cop) return alert("Selling price must be greater than COP. Increase margin.");
 
-  const { error } = await getDb().from('master_recipes').insert([payload]);
-  if(error) return alert(error.message);
+        const payload = {
+            id: 'REC-'+Date.now(), name, barcode: 'BC-'+Math.floor(100000+Math.random()*900000),
+            cop, profit_margin: margin, selling_price: mrp, ingredients: JSON.stringify(window.nrmState.bom)
+        };
 
-  alert(`Recipe Saved!\nCOP: ₹${cop.toFixed(2)}\nMRP: ₹${mrp.toFixed(2)}`);
-  document.getElementById('nrm-modal-recipe').style.display = 'none';
-  loadNirman();
+        const { error } = await db.from('master_recipes').insert([payload]);
+        if(error) return alert("DB Insert Error: " + error.message);
+
+        alert(`Recipe Saved!\nCOP: ₹${cop.toFixed(2)}\nMRP: ₹${mrp.toFixed(2)}`);
+        document.getElementById('nrm-modal-recipe').style.display = 'none';
+        loadNirman();
+    } catch(err) {
+        alert("Error: " + err.message);
+    }
 };
 
 window.nrmDelRec = async function(id) {
   if(!confirm("Delete Recipe?")) return;
-  await getDb().from('master_recipes').delete().eq('id', id);
+  await getDbRobust().from('master_recipes').delete().eq('id', id);
   loadNirman();
 };
 
@@ -294,135 +337,9 @@ window.nrmOpenBatch = function(id) {
 };
 
 window.nrmExecBatch = async function() {
-  const db = getDb();
-  const rec = window.nrmState.activeRecipe;
-  const batchCode = document.getElementById('nrm-batch-code').value;
-  const exp = document.getElementById('nrm-batch-exp').value;
-  const units = parseFloat(document.getElementById('nrm-batch-qty').value);
-
-  if(units <= 0 || !exp) return alert("Valid units and expiry required.");
-
-  let bom = [];
-  try { bom = JSON.parse(rec.ingredients); } catch(e){}
-  if(!bom.length) return alert("No BOM found for this recipe.");
-
-  // Check absolute stock
-  for (let b of bom) {
-    const required = b.qty * units;
-    const rm = window.nrmState.raw.find(r => r.id === b.id);
-    if (!rm || parseFloat(rm.stock) < required) return alert(`Insufficient ${b.name}. Need ${required}, have ${rm ? rm.stock : 0}.`);
-  }
-
-  // Deduct stock
-  for (let b of bom) {
-    const required = b.qty * units;
-    const rm = window.nrmState.raw.find(r => r.id === b.id);
-    await db.from('raw_materials').update({ stock: parseFloat(rm.stock) - required }).eq('id', b.id);
-  }
-
-  // Push to Pharmacy
-  const pharmPayload = {
-    barcode: rec.barcode, name: rec.name || rec.medicine_name, batch_code: batchCode,
-    expiry: exp, price: rec.selling_price, stock: units
-  };
-  const { error } = await db.from('pharmacy_stock').insert([pharmPayload]);
-  if(error) return alert("Pharmacy sync error: " + error.message);
-
-  alert(`Batch Manufactured successfully!\nBatch: ${batchCode}\nAuto-Synced to Herbal Pharmacy.`);
-  document.getElementById('nrm-modal-batch').style.display = 'none';
-  loadNirman();
-};
-
-window.addEventListener('DOMContentLoaded', loadNirman);
-if (document.readyState === 'complete' || document.readyState === 'interactive') loadNirman();
-
-
-// ==========================================
-// EMERGENCY ERROR BOUNDARY & DB FINDER PATCH
-// ==========================================
-
-// 1. Brute-force Database Finder
-function getDbRobust() {
-    if (window.supabase && typeof window.supabase.from === 'function') return window.supabase;
-    if (window.sbClient && typeof window.sbClient.from === 'function') return window.sbClient;
-    if (window.supabaseClient && typeof window.supabaseClient.from === 'function') return window.supabaseClient;
-    return null;
-}
-
-// 2. Safe Save Raw Material
-window.nrmSaveRM = async function() {
     try {
         const db = getDbRobust();
-        if (!db) return alert("System Error: Supabase database connection could not be found anywhere on the page!");
-
-        const name = document.getElementById('nrm-rm-name').value;
-        const cat = document.getElementById('nrm-rm-cat').value;
-        const unit = document.getElementById('nrm-rm-unit').value;
-        const qty = parseFloat(document.getElementById('nrm-rm-qty').value);
-        const reorder = parseFloat(document.getElementById('nrm-rm-reorder').value);
-        const cost = parseFloat(document.getElementById('nrm-rm-cost').value);
-
-        if(!name || isNaN(qty) || isNaN(cost)) return alert("Please fill in Name, Init Qty, and Total Cost with valid numbers.");
-
-        const payload = { id: 'RAW-'+Date.now(), name, category: cat, unit, stock: qty, reorder, purchase_rate: cost };
-        
-        const { error } = await db.from('raw_materials').insert([payload]);
-        if(error) return alert("Database Insert Error: " + error.message);
-
-        // Optional Expense Sync
-        try { 
-            await db.from('accounts_vendors').insert([{ type: 'Expense', title: `RM Purchase: ${name}`, category: 'Raw Materials', amount: cost, status: 'Paid' }]); 
-        } catch(e) { console.warn("Account sync failed", e); }
-
-        alert("Raw Material added & Expense synced to Accounts!");
-        document.getElementById('nrm-modal-rm').style.display = 'none';
-        
-        if (typeof loadNirman === 'function') loadNirman();
-    } catch(err) {
-        alert("Unexpected Crash in Save: " + err.message);
-        console.error(err);
-    }
-};
-
-// 3. Safe Save Recipe
-window.nrmSaveRecipe = async function() {
-    try {
-        const db = getDbRobust();
-        if (!db) return alert("System Error: Supabase database connection could not be found!");
-
-        const name = document.getElementById('nrm-rec-name').value;
-        const margin = parseFloat(document.getElementById('nrm-rec-margin').value);
-        if(!name || window.nrmState.bom.length === 0) return alert("Name and BOM ingredients required.");
-
-        let cop = 0;
-        window.nrmState.bom.forEach(b => cop += (b.qty * b.unit_cost));
-        const mrp = cop + (cop * (margin/100));
-
-        if(mrp <= cop) return alert("Selling price must be greater than COP. Increase margin.");
-
-        const payload = {
-            id: 'REC-'+Date.now(), name, barcode: 'BC-'+Math.floor(100000+Math.random()*900000),
-            cop, profit_margin: margin, selling_price: mrp, ingredients: JSON.stringify(window.nrmState.bom)
-        };
-
-        const { error } = await db.from('master_recipes').insert([payload]);
-        if(error) return alert("Database Insert Error: " + error.message);
-
-        alert(`Recipe Saved!\nCOP: ₹${cop.toFixed(2)}\nMRP: ₹${mrp.toFixed(2)}`);
-        document.getElementById('nrm-modal-recipe').style.display = 'none';
-        
-        if (typeof loadNirman === 'function') loadNirman();
-    } catch(err) {
-        alert("Unexpected Crash in Save Recipe: " + err.message);
-        console.error(err);
-    }
-};
-
-// 4. Safe Exec Batch
-window.nrmExecBatch = async function() {
-    try {
-        const db = getDbRobust();
-        if (!db) return alert("System Error: Supabase database connection could not be found!");
+        if (!db) return alert("Database connection not found.");
 
         const rec = window.nrmState.activeRecipe;
         const batchCode = document.getElementById('nrm-batch-code').value;
@@ -433,7 +350,7 @@ window.nrmExecBatch = async function() {
 
         let bom = [];
         try { bom = JSON.parse(rec.ingredients); } catch(e){}
-        if(!bom.length) return alert("No BOM found for this recipe.");
+        if(!bom.length) return alert("No BOM found.");
 
         for (let b of bom) {
             const required = b.qty * units;
@@ -454,28 +371,30 @@ window.nrmExecBatch = async function() {
         const { error } = await db.from('pharmacy_stock').insert([pharmPayload]);
         if(error) return alert("Pharmacy sync error: " + error.message);
 
-        alert(`Batch Manufactured successfully!\nBatch: ${batchCode}\nAuto-Synced to Herbal Pharmacy.`);
+        alert(`Batch Manufactured!\nBatch: ${batchCode}\nSynced to Pharmacy.`);
         document.getElementById('nrm-modal-batch').style.display = 'none';
-        
-        if (typeof loadNirman === 'function') loadNirman();
+        loadNirman();
     } catch(err) {
-        alert("Unexpected Crash in Exec Batch: " + err.message);
-        console.error(err);
+        alert("Error: " + err.message);
     }
 };
 
-
-// 5. RESILIENT DB POLLING
-let dbPollCount = 0;
-function initNirmanWhenReady() {
+// POLLING INIT
+let pollCount = 0;
+function bootNirman() {
     if (getDbRobust()) {
-        console.log("[Aushadhi Nirman] Database connection established.");
-        if (typeof loadNirman === 'function') loadNirman();
-    } else if (dbPollCount < 30) {
-        dbPollCount++;
-        setTimeout(initNirmanWhenReady, 200);
+        loadNirman();
+    } else if (pollCount < 40) {
+        pollCount++;
+        setTimeout(bootNirman, 250);
     } else {
-        console.warn("[Aushadhi Nirman] Database connection timeout.");
+        console.warn("Aushadhi Nirman: Database connection timeout.");
     }
 }
-initNirmanWhenReady();
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootNirman);
+} else {
+    bootNirman();
+}
+window.addEventListener('load', bootNirman);
