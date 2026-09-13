@@ -1,5 +1,5 @@
 /**
- * MODULE 5: AUSHADHI NIRMAN (FORCED OVERRIDE ENGINE)
+ * MODULE 5: AUSHADHI NIRMAN ENGINE (REORDER LIMIT & STABLE DB SYNC)
  */
 window.nirmanState = {
   currentIngredients: [],
@@ -21,7 +21,6 @@ function el(id) {
   return document.getElementById(id);
 }
 
-// 1. FORCED BODY MODAL MOUNT
 function ensureModalsExist() {
   let mRm = el('nirman-modal-raw-material');
   if (!mRm) {
@@ -29,7 +28,7 @@ function ensureModalsExist() {
     mRm.id = 'nirman-modal-raw-material';
     mRm.style.cssText = 'display: none; position: fixed !important; inset: 0 !important; background: rgba(0,0,0,0.85) !important; align-items: center !important; justify-content: center !important; z-index: 999999 !important; padding: 1rem !important;';
     mRm.innerHTML = `
-      <div style="background: #1e293b !important; width: 100% !important; max-width: 480px !important; padding: 1.5rem !important; border-radius: 8px !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; box-sizing: border-box !important;">
+      <div style="background: #1e293b !important; width: 100% !important; max-width: 500px !important; padding: 1.5rem !important; border-radius: 8px !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; box-sizing: border-box !important;">
         <h3 style="margin-top: 0; color: white;">Raw Material Entry</h3>
         <div style="margin-bottom: 1rem;">
           <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Material Name *</label>
@@ -59,14 +58,18 @@ function ensureModalsExist() {
             </select>
           </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.8rem; margin-bottom: 1.5rem;">
           <div>
-            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Initial Quantity</label>
-            <input type="number" id="nirman-rm-stock" placeholder="e.g. 1000" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Initial Qty *</label>
+            <input type="number" id="nirman-rm-stock" placeholder="1000" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
           </div>
           <div>
-            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Total Purchase Cost (₹)</label>
-            <input type="number" id="nirman-rm-cost" placeholder="e.g. 5000" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Reorder Limit *</label>
+            <input type="number" id="nirman-rm-reorder" placeholder="100" value="100" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: #cbd5e1;">Total Cost (₹) *</label>
+            <input type="number" id="nirman-rm-cost" placeholder="5000" style="width: 100%; padding: 0.5rem; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 4px; box-sizing: border-box;">
           </div>
         </div>
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
@@ -156,7 +159,6 @@ function ensureModalsExist() {
   }
 }
 
-// 2. MODAL CONTROLLERS WITH IMPORTANT DISPLAY OVERRIDE
 function nirmanOpenRawMaterialModal(item = null) {
   ensureModalsExist();
   window.nirmanState.editingRmId = item ? item.id : null;
@@ -167,6 +169,7 @@ function nirmanOpenRawMaterialModal(item = null) {
     el('nirman-rm-category').value = item ? (item.category || 'Herbs') : 'Herbs';
     el('nirman-rm-unit').value = item ? (item.unit || 'gms') : 'gms';
     el('nirman-rm-stock').value = item ? item.stock : '';
+    el('nirman-rm-reorder').value = item ? (item.reorder || 100) : '100';
     el('nirman-rm-cost').value = item ? (item.purchase_rate || '') : '';
   }
 }
@@ -220,21 +223,22 @@ function nirmanCloseBatchModal() {
   window.nirmanState.activeRecipeForBatch = null;
 }
 
-// 3. FETCH & RENDER
 async function loadAushadhiNirmanData() {
   ensureModalsExist();
   const db = getDb();
   if (!db) return;
 
   try {
-    const { data: rawData } = await db.from('raw_materials').select('*').order('created_at', { ascending: false });
+    const { data: rawData, error: rawErr } = await db.from('raw_materials').select('*').order('created_at', { ascending: false });
+    if (rawErr) console.error("Error fetching raw materials:", rawErr.message);
     if (rawData) {
       window.nirmanState.rawMaterials = rawData;
       nirmanRenderRawMaterialsTable(rawData);
       nirmanPopulateRawMaterialsSelect();
     }
 
-    const { data: recData } = await db.from('master_recipes').select('*').order('created_at', { ascending: false });
+    const { data: recData, error: recErr } = await db.from('master_recipes').select('*').order('created_at', { ascending: false });
+    if (recErr) console.error("Error fetching recipes:", recErr.message);
     if (recData) {
       window.nirmanState.masterRecipes = recData;
       nirmanRenderMasterRecipesTable(recData);
@@ -249,12 +253,13 @@ function nirmanRenderRawMaterialsTable(data) {
   if (!tbody) return;
 
   if (!data || data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1rem; color:#9ca3af;">No raw materials found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:1rem; color:#9ca3af;">No raw materials found.</td></tr>';
     return;
   }
 
   tbody.innerHTML = data.map(item => {
     const stockVal = parseFloat(item.stock || 0);
+    const reorderVal = parseFloat(item.reorder || 0);
     const costVal = parseFloat(item.purchase_rate || 0);
     const unitRate = stockVal > 0 ? (costVal / stockVal).toFixed(2) : '0.00';
 
@@ -264,6 +269,7 @@ function nirmanRenderRawMaterialsTable(data) {
         <td style="padding: 0.6rem; color: white; font-weight: bold;">${item.name}</td>
         <td style="padding: 0.6rem; color: white;">${item.category || 'Herbs'}</td>
         <td style="padding: 0.6rem; color: white;">${stockVal.toFixed(2)} ${item.unit || 'gms'}</td>
+        <td style="padding: 0.6rem; color: #f59e0b;">${reorderVal.toFixed(2)} ${item.unit || 'gms'}</td>
         <td style="padding: 0.6rem; color: #10b981; font-weight: bold;">₹${unitRate} / ${item.unit || 'gms'}</td>
         <td style="padding: 0.6rem; text-align: center;">
           <button type="button" onclick="nirmanDeleteRawMaterial('${item.id}')" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
@@ -330,7 +336,6 @@ function nirmanPopulateRawMaterialsSelect() {
     list.map(m => `<option value="${m.id}">${m.name} (Avail: ${m.stock} ${m.unit || 'gms'})</option>`).join('');
 }
 
-// 4. CRUD & ACTIONS
 async function nirmanSaveRawMaterial() {
   const db = getDb();
   if (!db) return alert("Database client unavailable.");
@@ -341,9 +346,11 @@ async function nirmanSaveRawMaterial() {
   const category = el('nirman-rm-category')?.value || 'Herbs';
   const unit = el('nirman-rm-unit')?.value || 'gms';
   const stock = parseFloat(el('nirman-rm-stock')?.value || 0);
+  const reorder = parseFloat(el('nirman-rm-reorder')?.value || 0);
   const cost = parseFloat(el('nirman-rm-cost')?.value || 0);
 
   if (isNaN(stock) || stock <= 0) return alert("Initial Quantity must be > 0.");
+  if (isNaN(reorder) || reorder < 0) return alert("Reorder Limit must be >= 0.");
   if (isNaN(cost) || cost < 0) return alert("Purchase Cost must be valid.");
 
   const payload = {
@@ -352,33 +359,38 @@ async function nirmanSaveRawMaterial() {
     category: category,
     unit: unit,
     stock: stock,
-    reorder: 10,
+    reorder: reorder,
     purchase_rate: cost
   };
 
   const { error: rawErr } = await db.from('raw_materials').insert([payload]);
-  if (rawErr) return alert("Save failed: " + rawErr.message);
+  if (rawErr) {
+    alert("Database Raw Materials insert failed: " + rawErr.message);
+    return;
+  }
 
-  try {
-    await db.from('accounts_vendors').insert([{
-      type: 'Expense',
-      title: `Raw Material Purchase: ${name}`,
-      category: 'Raw Materials',
-      amount: cost,
-      status: 'Paid'
-    }]);
-  } catch (e) { console.error("Accounts auto-sync warning:", e); }
+  const { error: accErr } = await db.from('accounts_vendors').insert([{
+    type: 'Expense',
+    title: `Raw Material Purchase: ${name}`,
+    category: 'Raw Materials',
+    amount: cost,
+    status: 'Paid'
+  }]);
+  
+  if (accErr) {
+    console.warn("Accounts sync warning:", accErr.message);
+  }
 
-  alert("Raw Material saved & Purchase Expense recorded in Accounts!");
+  alert("Raw Material saved successfully & Purchase Expense synced to Accounts!");
   nirmanCloseRawMaterialModal();
-  loadAushadhiNirmanData();
+  await loadAushadhiNirmanData();
 }
 
 async function nirmanDeleteRawMaterial(id) {
   if (!confirm(`Delete raw material ${id}?`)) return;
   const db = getDb();
   await db.from('raw_materials').delete().eq('id', id);
-  loadAushadhiNirmanData();
+  await loadAushadhiNirmanData();
 }
 
 function nirmanAddIngredientToRecipe() {
@@ -483,14 +495,14 @@ async function nirmanSaveMasterRecipe() {
   alert(`Master Recipe Saved!
 COP: ₹${totalCOP.toFixed(2)} | MRP: ₹${sellingPrice.toFixed(2)} (${marginPct}% Profit)`);
   nirmanCloseMasterRecipeModal();
-  loadAushadhiNirmanData();
+  await loadAushadhiNirmanData();
 }
 
 async function nirmanDeleteMasterRecipe(id) {
   if (!confirm(`Delete master recipe ${id}?`)) return;
   const db = getDb();
   await db.from('master_recipes').delete().eq('id', id);
-  loadAushadhiNirmanData();
+  await loadAushadhiNirmanData();
 }
 
 async function nirmanConfirmBatchProduction() {
@@ -558,7 +570,7 @@ MRP: ₹${mrpPrice}
 
 Inventory deducted and Pharmacy Stock updated!`);
   nirmanCloseBatchModal();
-  loadAushadhiNirmanData();
+  await loadAushadhiNirmanData();
 }
 
 // GLOBAL EXPOSURES
@@ -576,7 +588,6 @@ window.nirmanCloseBatchModal = nirmanCloseBatchModal;
 window.nirmanConfirmBatchProduction = nirmanConfirmBatchProduction;
 window.loadAushadhiNirmanData = loadAushadhiNirmanData;
 
-// 5. DOCUMENT CAPTURE CLICK DISPATCHER (INCAPABLE OF BEING DROPPED BY SPA ROUTER)
 document.addEventListener('click', function(e) {
   const btn = e.target.closest('button');
   if (!btn) return;
