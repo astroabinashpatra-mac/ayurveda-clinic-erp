@@ -2932,38 +2932,6 @@ function removeRecipeIngredient(index) {
 
 </script>
 
-<script>
-// UNIFIED INLINE NIRMAN HANDLERS
-window.getErpDb = function() {
-  return window.sbClient || (typeof sbClient !== 'undefined' ? sbClient : null) || (typeof (window.sbClient || window.supabaseClient || window.supabase) !== 'undefined' ? (window.sbClient || window.supabaseClient || window.supabase) : null);
-};
-
-/* removed */
-  setVal('nirman-rm-name', item ? item.name : '');
-  setVal('raw-name', item ? item.name : '');
-  setVal('nirman-rm-category', item ? (item.category || 'Herbs') : 'Herbs');
-  setVal('raw-category', item ? (item.category || 'Herbs') : 'Herbs');
-  setVal('nirman-rm-unit', item ? (item.unit || 'gms') : 'gms');
-  setVal('raw-unit', item ? (item.unit || 'gms') : 'gms');
-  setVal('nirman-rm-stock', item ? item.stock : '');
-  setVal('raw-stock', item ? item.stock : '');
-  setVal('nirman-rm-reorder', item ? (item.reorder || 100) : '100');
-  setVal('raw-reorder', item ? (item.reorder || 100) : '100');
-  setVal('nirman-rm-cost', item ? (item.purchase_rate || '') : '');
-  setVal('raw-cost', item ? (item.purchase_rate || '') : '');
-};
-
-window.closeRawMaterialModal = function() {
-  const modal = document.getElementById('nirman-modal-raw-material') || document.getElementById('modal-raw-material') || document.getElementById('rawMaterialModal');
-  if (modal) modal.style.display = 'none';
-};
-
-/* removed */
-
-window.closeMasterRecipeModal = function() {
-  const modal = document.getElementById('nirman-modal-master-recipe') || document.getElementById('modal-master-recipe') || document.getElementById('masterRecipeModal');
-  if (modal) modal.style.display = 'none';
-};
-</script>
+<!-- Removed corrupted inline script block -->
 </body>
 </html>
