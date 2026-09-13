@@ -771,13 +771,9 @@ window.printAccountsStatement = function() {
       <body>
         <div class="header">
           <h2 style="margin:0;">AASU AROGYAM AYURVEDIC CLINIC & HOSPITAL</h2>
-          <h4 style="margin:5px 0 0 0; color:#475569;">Accounts & Vendor Financial Statement</h4>
         </div>
         
         <div class="meta">
-          <div><strong>Period:</strong> ${periodText}</div>
-          <div><strong>Filter Type:</strong> ${typeText}</div>
-          <div><strong>Vendor Scope:</strong> ${vendorText}</div>
           <div><strong>Generated:</strong> ${new Date().toLocaleString('en-IN')}</div>
         </div>
 
@@ -793,13 +789,11 @@ window.printAccountsStatement = function() {
             </tr>
           </thead>
           <tbody>
-            ${data.map(d => {
               const isDebit = (d.type || 'Expense').toLowerCase().includes('expense') || (d.type || '').toLowerCase().includes('debit');
               const dt = d.created_at ? new Date(d.created_at).toLocaleDateString('en-IN') : '-';
               return `
                 <tr>
                   <td>${dt}</td>
-                  <td style="font-weight:bold; color:${isDebit?'#dc2626':'#16a34a'};">${isDebit ? 'DEBIT' : 'CREDIT'}</td>
                   <td>${d.title || d.vendor_name || '-'}</td>
                   <td>${d.category || '-'}</td>
                   <td>${d.status || 'Paid'}</td>
@@ -811,9 +805,6 @@ window.printAccountsStatement = function() {
         </table>
 
         <div class="summary">
-          <div class="summary-row"><span>Total Credit (Income):</span><span style="color:#16a34a; font-weight:bold;">₹${totalCredit.toFixed(2)}</span></div>
-          <div class="summary-row"><span>Total Debit (Expense):</span><span style="color:#dc2626; font-weight:bold;">₹${totalDebit.toFixed(2)}</span></div>
-          <div class="summary-row total"><span>Net Balance:</span><span>₹${netBalance.toFixed(2)}</span></div>
         </div>
 
         <div style="clear:both;"></div>
