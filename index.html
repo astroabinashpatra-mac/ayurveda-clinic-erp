@@ -10,10 +10,10 @@
 // Module 5: Integrated Production & Raw Material Deduction Engine
 async function executeProductionBatch(recipeId, targetQty, batchNo) {
   try {
-    if (!(window.sbClient || window.supabaseClient || window.supabase)) throw new Error("Supabase client not initialized.");
+    if (!supabaseClient) throw new Error("Supabase client not initialized.");
     
     // 1. Fetch Recipe details and ingredients (BOM)
-    const { data: recipe, error: recipeErr } = await (window.sbClient || window.supabaseClient || window.supabase)
+    const { data: recipe, error: recipeErr } = await supabaseClient
       .from('master_recipes')
       .select('*, recipe_ingredients(*)')
       .eq('id', recipeId)
@@ -25,7 +25,7 @@ async function executeProductionBatch(recipeId, targetQty, batchNo) {
 
     // 2. Fetch current Raw Materials stock levels
     const ingredientIds = recipe.recipe_ingredients.map(i => i.raw_material_id);
-    const { data: rawMaterials, error: rmErr } = await (window.sbClient || window.supabaseClient || window.supabase)
+    const { data: rawMaterials, error: rmErr } = await supabaseClient
       .from('raw_materials')
       .select('id, name, current_stock, unit')
       .in('id', ingredientIds);
@@ -51,7 +51,7 @@ async function executeProductionBatch(recipeId, targetQty, batchNo) {
 
     // 4. Execute Raw Material Stock Deductions in Supabase
     for (const d of deductions) {
-      const { error: updateErr } = await (window.sbClient || window.supabaseClient || window.supabase)
+      const { error: updateErr } = await supabaseClient
         .from('raw_materials')
         .update({ current_stock: d.new_stock })
         .eq('id', d.id);
@@ -60,7 +60,7 @@ async function executeProductionBatch(recipeId, targetQty, batchNo) {
     }
 
     // 5. Log Production Batch Entry
-    const { data: batch, error: batchErr } = await (window.sbClient || window.supabaseClient || window.supabase)
+    const { data: batch, error: batchErr } = await supabaseClient
       .from('production_batches')
       .insert([{
         batch_number: batchNo || 'BATCH-' + Date.now(),
@@ -73,7 +73,7 @@ async function executeProductionBatch(recipeId, targetQty, batchNo) {
     if (batchErr) throw new Error("Failed to record production batch.");
 
     // 6. Automatically credit finished goods to Herbal Pharmacy Stock
-    const { error: pharmacyErr } = await (window.sbClient || window.(window.sbClient || window.supabaseClient || window.supabase) || window.supabase).rpc('increment_pharmacy_stock', {
+    const { error: pharmacyErr } = await supabaseClient.rpc('increment_pharmacy_stock', {
       medicine_name: recipe.medicine_name,
       add_qty: targetQty
     });
@@ -157,13 +157,19 @@ document.addEventListener('keydown', function(event) {
 
 // 1. Fetch live raw materials from Supabase and sync into recipe dropdowns
 async function syncRawMaterialsToRecipeBuilder() {
-  const client = window.sbClient || window.supabaseClient;
-  if (!client || typeof client.from !== 'function') return;
-  client.from('raw_materials').select('*').then(({ data }) => {
-    if (data && typeof window.loadAushadhiNirmanData === 'function') {
-      window.loadAushadhiNirmanData();
-    }
-  }).catch(function() {});
+  if (!supabaseClient) return;
+  const { data: materials, error } = await supabaseClient
+    .from('raw_materials')
+    .select('*')
+    .order('name');
+  
+  if (error) {
+    console.error("Error fetching raw materials:", error);
+    return;
+  }
+  
+  window.availableRawMaterials = materials || [];
+  updateAllRecipeDropdowns();
 }
 
 // 2. Refresh dropdown options across all recipe ingredient rows
@@ -458,14 +464,6 @@ function removeRecipeIngredient(index) {
   </style>
                           <link rel="icon" type="image/png" href="data:image/png;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iI2ZmZmZmZiIvPgogIDwhLS0gQmx1ZSBIdW1hbiBGaWd1cmUgLyBTd2lybCAtLT4KICA8Y2lyY2xlIGN4PSIyNiIgY3k9IjE4IiByPSIzLjUiIGZpbGw9IiMwMjg0YzciLz4KICA8cGF0aCBkPSJNMjYgMjQgQzIwIDMwIDE4IDQyIDI3IDUyIEMyMSA0NCAyMSAzNCAyNyAyNiBaIiBmaWxsPSIjMDI4NGM3Ii8+CiAgPCEtLSBHcmVlbiBMZWFmIEVsZW1lbnQgLS0+CiAgPHBhdGggZD0iTTI5IDUyIEMzOCA0MiA0NSAyOCAzNiAxNiBDMzggMjggMzQgNDIgMjkgNTIgWiIgZmlsbD0iIzY1YTMwZCIvPgogIDxwYXRoIGQ9Ik0zMCA0OCBDMzcgMzggNDIgMjggMzYgMTggQzM4IDI4IDM0IDM4IDMwIDQ4IFoiIGZpbGw9IiM4NGNjMTYiLz4KPC9zdmc+Cg==">
   <link rel="apple-touch-icon" href="data:image/png;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iI2ZmZmZmZiIvPgogIDwhLS0gQmx1ZSBIdW1hbiBGaWd1cmUgLyBTd2lybCAtLT4KICA8Y2lyY2xlIGN4PSIyNiIgY3k9IjE4IiByPSIzLjUiIGZpbGw9IiMwMjg0YzciLz4KICA8cGF0aCBkPSJNMjYgMjQgQzIwIDMwIDE4IDQyIDI3IDUyIEMyMSA0NCAyMSAzNCAyNyAyNiBaIiBmaWxsPSIjMDI4NGM3Ii8+CiAgPCEtLSBHcmVlbiBMZWFmIEVsZW1lbnQgLS0+CiAgPHBhdGggZD0iTTI5IDUyIEMzOCA0MiA0NSAyOCAzNiAxNiBDMzggMjggMzQgNDIgMjkgNTIgWiIgZmlsbD0iIzY1YTMwZCIvPgogIDxwYXRoIGQ9Ik0zMCA0OCBDMzcgMzggNDIgMjggMzYgMTggQzM4IDI4IDM0IDM4IDMwIDQ4IFoiIGZpbGw9IiM4NGNjMTYiLz4KPC9zdmc+Cg==">
-<script>
-  // Global Supabase Client Bridge
-  window.addEventListener('DOMContentLoaded', function() {
-    if (window.sbClient) {
-      window.supabaseClient = window.sbClient;
-    }
-  });
-</script>
 </head>
 <body>
 
@@ -730,20 +728,10 @@ function removeRecipeIngredient(index) {
       <div style="background:var(--panel-dark); border:1px solid var(--border-dark); border-radius:8px; padding:1.25rem; margin-bottom:1.5rem;">
         <div class="section-header">
           <h3 style="color:var(--accent-orange);">🌱 RAW MATERIALS INVENTORY</h3>
-          <button type="button" id="btn-add-raw-material" onclick="window.openRawMaterialModal()"  type="button" id="btn-add-raw-material" onclick="window.openRawMaterialModal()"  class="btn btn-orange" onclick="window.openRawMaterialModal()">+ Add Raw Material</button>
+          <button type="button" id="btn-add-raw-material" onclick="openRawMaterialModal()"  type="button" id="btn-add-raw-material" onclick="openRawMaterialModal()"  class="btn btn-orange" onclick="openRawMaterialModal()">+ Add Raw Material</button>
         </div>
         <table class="data-table">
-          <thead>
-        <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.2); color: #9ca3af;">
-          <th style="padding: 0.6rem;">Item ID</th>
-          <th style="padding: 0.6rem;">Material Name</th>
-          <th style="padding: 0.6rem;">Category</th>
-          <th style="padding: 0.6rem;">Available Stock</th>
-          <th style="padding: 0.6rem;">Reorder Limit</th>
-          <th style="padding: 0.6rem;">Cost / Unit (₹)</th>
-          <th style="padding: 0.6rem; text-align: center;">Actions</th>
-        </tr>
-      </thead>
+          <thead><tr><th>Item ID</th><th>Material Name</th><th>Category</th><th>Available Stock</th><th>Reorder Limit</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody id="tbl-raw-mat"></tbody>
         </table>
       </div>
@@ -752,7 +740,7 @@ function removeRecipeIngredient(index) {
         <div class="section-header">
           <h3 style="color:var(--accent-orange);">🏺 MASTER RECIPES & PRODUCTION ENGINE</h3>
           <div style="display:flex; gap:0.5rem;">
-            <button type="button" id="btn-add-master-recipe" onclick="window.openMasterRecipeModal()"  type="button" onclick="window.openMasterRecipeModal()"  type="button" onclick="window.openMasterRecipeModal()"  class="btn btn-orange" onclick="openRecipeModal()">+ Add Master Recipe</button>
+            <button type="button" id="btn-add-master-recipe" onclick="openMasterRecipeModal()"  type="button" onclick="openMasterRecipeModal()"  type="button" onclick="openMasterRecipeModal()"  class="btn btn-orange" onclick="openRecipeModal()">+ Add Master Recipe</button>
             <button class="btn btn-blue" onclick="openModal('md-batch-prod')">⚙️ Execute Batch Production</button>
           </div>
         </div>
@@ -2535,25 +2523,593 @@ ${instructions}
       if (bpSelect) bpSelect.innerHTML = db.recipes.map(r => `<option value="${r.id}">${r.name} (${r.barcode})</option>`).join('');
     }
 
-    function openMasterRecipeModal() {
-  const modal = document.getElementById('nirman-modal-master-recipe') || document.getElementById('modal-master-recipe') || document.getElementById('masterRecipeModal');
-  if (modal) modal.style.display = 'flex';
-}
-function closeMasterRecipeModal() {
-  const modal = document.getElementById('nirman-modal-master-recipe') || document.getElementById('modal-master-recipe') || document.getElementById('masterRecipeModal');
-  if (modal) modal.style.display = 'none';
-}
+    function openRawMaterialModal() { document.getElementById('rm-id').value = ''; document.getElementById('rm-name').value = ''; document.getElementById('rm-stock').value = ''; document.getElementById('rm-reorder').value = ''; openModal('md-raw-mat'); }
+    function editRawMaterial(id) { const rm = db.rawMaterials.find(r => r.id === id); if (!rm) return; document.getElementById('rm-id').value = rm.id; document.getElementById('rm-name').value = rm.name; document.getElementById('rm-stock').value = rm.stock; document.getElementById('rm-reorder').value = rm.reorder; openModal('md-raw-mat'); }
+    async function saveRawMaterial(e) {
+      e.preventDefault();
+      const id = document.getElementById('rm-id').value;
+      const matName = document.getElementById('rm-name').value.trim();
+      const category = document.getElementById('rm-category').value;
+      const unit = document.getElementById('rm-unit').value;
+      const stock = parseFloat(document.getElementById('rm-stock').value) || 0;
+      const reorder = parseFloat(document.getElementById('rm-reorder').value) || 0;
 
-function openRawMaterialModal(item = null) {
-  const modal = document.getElementById('nirman-modal-raw-material') || document.getElementById('modal-raw-material') || document.getElementById('rawMaterialModal');
-  if (modal) modal.style.display = 'flex';
-  const setVal = (id, val) => { const e = document.getElementById(id); if (e) e.value = val; };
-  setVal('nirman-rm-name', item ? item.name : '');
-  setVal('nirman-rm-category', item ? (item.category || 'Herbs') : 'Herbs');
-  setVal('nirman-rm-unit', item ? (item.unit || 'gms') : 'gms');
-  setVal('nirman-rm-stock', item ? item.stock : '');
-  setVal('nirman-rm-reorder', item ? (item.reorder || 100) : '100');
-  setVal('nirman-rm-cost', item ? (item.purchase_rate || '') : '');
+      const payload = {
+        name: matName,
+        category: category,
+        unit: unit,
+        stock: stock,
+        reorder: reorder
+      };
+
+      if (id) {
+        const idx = db.rawMaterials.findIndex(r => r.id === id);
+        if (idx !== -1) db.rawMaterials[idx] = { ...db.rawMaterials[idx], ...payload };
+        if (sbClient) {
+          try { await sbClient.from('raw_materials').update(payload).eq('id', id); } catch(err){ console.error(err); }
+        }
+      } else {
+        const newObj = { id: 'RAW-' + Date.now(), ...payload };
+        db.rawMaterials.unshift(newObj);
+        if (sbClient) {
+          try {
+            const { data, error } = await sbClient.from('raw_materials').insert([payload]).select();
+            if (data && data[0]) newObj.id = data[0].id;
+          } catch(err){ console.error(err); }
+        }
+      }
+
+      closeModal('md-raw-mat');
+      renderAushadhiNirman();
+      alert(`✅ Raw Material "${matName}" saved successfully!`);
+    }
+    async function delRawMaterial(id) { if (!confirm('Delete item?')) return; if (sbClient) await sbClient.from('raw_materials').delete().eq('id', id); else db.rawMaterials = db.rawMaterials.filter(r => r.id !== id); init(); }
+
+    function openRecipeModal() { document.getElementById('rc-id').value = ''; document.getElementById('rc-name').value = ''; generateAutoBarcode(); currentRecipeIngredients = []; const sel = document.getElementById('rc-add-raw-id'); if (sel) sel.innerHTML = db.rawMaterials.map(r => `<option value="${r.id}">${r.id} - ${r.name}</option>`).join(''); renderRecipeIngredientsTable(); openModal('md-recipe'); }
+    function addRecipeIngredientRow() { const rawId = document.getElementById('rc-add-raw-id').value; const qty = Number(document.getElementById('rc-add-qty').value) || 0; const raw = db.rawMaterials.find(r => r.id === rawId); if (!raw || qty <= 0) return alert('Select material and valid quantity'); currentRecipeIngredients.push({ raw_id: raw.id, raw_name: raw.name, unit: raw.unit, qty_per_unit: qty }); renderRecipeIngredientsTable(); }
+    function renderRecipeIngredientsTable() { const tbl = document.getElementById('tbl-rc-ingredients'); if (!tbl) return; tbl.innerHTML = currentRecipeIngredients.map((i, idx) => `<tr><td><b>${i.raw_id} - ${i.raw_name}</b></td><td><b>${i.qty_per_unit} ${i.unit}</b></td><td><button type="button" onclick="currentRecipeIngredients.splice(${idx},1);renderRecipeIngredientsTable();" style="color:red;border:none;background:none;cursor:pointer;">✕</button></td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;">No ingredients added.</td></tr>'; }
+    async function saveMasterRecipe(e) { e.preventDefault(); if (!currentRecipeIngredients.length) return alert('Add at least 1 ingredient'); const id = document.getElementById('rc-id').value; const payload = { name: document.getElementById('rc-name').value, barcode: document.getElementById('rc-barcode').value, ingredients: JSON.stringify(currentRecipeIngredients) }; if (!id) payload.id = 'REC-0' + (db.recipes.length + 1); if (sbClient) { if (id) await sbClient.from('master_recipes').update(payload).eq('id', id); else await sbClient.from('master_recipes').insert([payload]); } else { if (id) { const idx = db.recipes.findIndex(r => r.id === id); if (idx !== -1) db.recipes[idx] = { id, ...payload }; } else db.recipes.push(payload); } closeModal('md-recipe'); init(); }
+    async function delMasterRecipe(id) { if (!confirm('Delete recipe?')) return; if (sbClient) await sbClient.from('master_recipes').delete().eq('id', id); else db.recipes = db.recipes.filter(r => r.id !== id); init(); }
+
+    async function runProductionEngine(e) {
+      e.preventDefault();
+      const recipeId = document.getElementById('bp-recipe-id').value;
+      const recipe = db.recipes.find(r => r.id === recipeId);
+      if (!recipe) return alert('Select recipe');
+
+      const units = parseFloat(document.getElementById('bp-units').value) || 0;
+      if (units <= 0) return alert('Enter valid production units');
+
+      let ingList = [];
+      try {
+        ingList = typeof recipe.ingredients === 'string' ? JSON.parse(recipe.ingredients) : (recipe.ingredients || []);
+      } catch(err){ console.error(err); }
+
+      if (!ingList.length) return alert('This recipe has no ingredients attached!');
+
+      // Step 1: Check if stock is sufficient
+      for (let ing of ingList) {
+        const raw = db.rawMaterials.find(x => x.id === ing.raw_id || x.name === ing.raw_name);
+        const qtyRequired = (parseFloat(ing.qty_per_unit) || 0) * units;
+        const currentStock = parseFloat(raw ? raw.stock : 0);
+
+        if (!raw || currentStock < qtyRequired) {
+          return alert(`⚠️ Insufficient Stock! ${raw ? raw.name : ing.raw_id} requires ${qtyRequired.toFixed(2)}, but only ${currentStock.toFixed(2)} is available.`);
+        }
+      }
+
+      // Step 2: Deduct stock from memory & Supabase DB
+      for (let ing of ingList) {
+        const raw = db.rawMaterials.find(x => x.id === ing.raw_id || x.name === ing.raw_name);
+        if (raw) {
+          const qtyRequired = (parseFloat(ing.qty_per_unit) || 0) * units;
+          raw.stock = Math.max(0, parseFloat(raw.stock) - qtyRequired);
+
+          if (sbClient) {
+            try {
+              await sbClient.from('raw_materials').update({ stock: raw.stock }).eq('id', raw.id);
+            } catch(err) { console.error('Error updating raw material stock:', err); }
+          }
+        }
+      }
+
+      // Step 3: Transfer produced items to Pharmacy Stock
+      const phPayload = {
+        barcode: recipe.barcode,
+        name: recipe.name,
+        batch_code: document.getElementById('bp-batch-code').value,
+        expiry: document.getElementById('bp-expiry').value,
+        purchase_rate: parseFloat(document.getElementById('bp-cost-price').value) || 250,
+        price: parseFloat(document.getElementById('bp-price').value) || 650,
+        stock: units
+      };
+
+      if (sbClient) {
+        try { await sbClient.from('pharmacy_stock').insert([phPayload]); } catch(err){}
+      }
+      db.pharmacy.unshift(phPayload);
+
+      alert(`✅ Production Successful! Deducted raw materials and transferred ${units} units of "${recipe.name}" to Pharmacy Inventory.`);
+      closeModal('md-batch-prod');
+      renderAushadhiNirman();
+      renderPharmacy();
+    }
+
+    /* HERBAL PHARMACY & POS */
+    let posCart = []; let userEditedPaidAmt = false;
+    function switchPharmacyView(view, btn) {
+      document.getElementById('ph-view-stock').style.display = view === 'stock' ? 'block' : 'none';
+      document.getElementById('ph-view-sales').style.display = view === 'sales' ? 'block' : 'none';
+      document.getElementById('btn-ph-tab-stock').classList.remove('active');
+      document.getElementById('btn-ph-tab-sales').classList.remove('active');
+      if (btn) btn.classList.add('active');
+      if (view === 'sales') renderPharmacySalesHistory();
+    }
+
+    function renderPharmacy() {
+      const tbl = document.getElementById('tbl-pharmacy'); if (!tbl) return;
+      tbl.innerHTML = db.pharmacy.map(p => `
+        <tr><td><code>${p.barcode}</code></td><td><b>${p.name}</b></td><td>${p.batch_code}</td><td>${p.expiry}</td><td>${p.vendor_name || 'General Supplier'}</td><td>₹${p.purchase_rate || 0}</td><td><b>₹${p.price}</b></td><td><b>${p.stock} units</b></td><td><button class="btn btn-blue" style="padding:2px 8px; font-size:0.75rem;" onclick="editPharmacyStock('${p.id||p.barcode}')">Edit</button> <button class="btn btn-danger" style="padding:2px 8px; font-size:0.75rem;" onclick="delPharmacyStock('${p.id||p.barcode}')">Delete</button></td></tr>
+      `).join('') || '<tr><td colspan="9" style="text-align:center;">No stock items found.</td></tr>';
+    }
+
+    function openPharmacyStockModal() {
+      document.getElementById('ph-item-id').value = ''; document.getElementById('ph-name').value = '';
+      document.getElementById('ph-barcode').value = '890' + Math.floor(1000000 + Math.random() * 9000000);
+      document.getElementById('ph-batch').value = 'BATCH-' + new Date().getFullYear() + '-09';
+      document.getElementById('ph-expiry').value = '12/2028'; document.getElementById('ph-purchase-rate').value = '';
+      document.getElementById('ph-price').value = ''; document.getElementById('ph-stock-qty').value = '';
+      populateVendorDropdown(); openModal('md-pharmacy-stock');
+    }
+
+    function editPharmacyStock(id) {
+      const item = db.pharmacy.find(p => (p.id && p.id === id) || p.barcode === id); if (!item) return alert('Stock item not found');
+      document.getElementById('ph-item-id').value = item.id || item.barcode;
+      document.getElementById('ph-name').value = item.name; document.getElementById('ph-barcode').value = item.barcode;
+      document.getElementById('ph-batch').value = item.batch_code; document.getElementById('ph-expiry').value = item.expiry;
+      document.getElementById('ph-purchase-rate').value = item.purchase_rate || 0; document.getElementById('ph-price').value = item.price;
+      document.getElementById('ph-stock-qty').value = item.stock; populateVendorDropdown(); openModal('md-pharmacy-stock');
+    }
+
+    async function savePharmacyStock(e) {
+      e.preventDefault(); const id = document.getElementById('ph-item-id').value;
+      const payload = { name: document.getElementById('ph-name').value, barcode: document.getElementById('ph-barcode').value, batch_code: document.getElementById('ph-batch').value, expiry: document.getElementById('ph-expiry').value, vendor_name: document.getElementById('ph-vendor-select')?.value || 'General Supplier', purchase_rate: Number(document.getElementById('ph-purchase-rate').value) || 0, price: Number(document.getElementById('ph-price').value) || 0, stock: Number(document.getElementById('ph-stock-qty').value) || 0 };
+      if (sbClient) { if (id) await sbClient.from('pharmacy_stock').update(payload).eq('id', id); else await sbClient.from('pharmacy_stock').insert([payload]); }
+      else { if (id) { const idx = db.pharmacy.findIndex(p => p.id === id || p.barcode === id); if (idx !== -1) db.pharmacy[idx] = { ...db.pharmacy[idx], ...payload }; } else db.pharmacy.unshift(payload); }
+      closeModal('md-pharmacy-stock'); init();
+    }
+
+    async function delPharmacyStock(id) {
+      if (!confirm('Delete item?')) return;
+      if (sbClient) await sbClient.from('pharmacy_stock').delete().eq('id', id);
+      else db.pharmacy = db.pharmacy.filter(p => (p.id !== id && p.barcode !== id));
+      init();
+    }
+
+    function populateVendorDropdown() {
+      const sel = document.getElementById('ph-vendor-select'); if (!sel) return;
+      const vendors = db.accounts.filter(a => a.entity_type === 'Vendor' || a.entity_type === 'Supplier');
+      if (vendors.length > 0) sel.innerHTML = vendors.map(v => `<option value="${v.title}">${v.title}</option>`).join('');
+      else sel.innerHTML = '<option value="General Supplier">General Supplier</option><option value="Direct Manufacturing / Internal">Direct Manufacturing / Internal</option>';
+    }
+
+    function renderPharmacySalesHistory() {
+      const tbl = document.getElementById('tbl-pharmacy-sales'); if (!tbl) return;
+      const sales = db.billing.filter(b => b.bill_type === 'POS Retail' || b.rx_no === 'POS');
+      tbl.innerHTML = sales.map(s => `
+        <tr><td><b>${s.bill_no}</b></td><td>${s.created_at ? new Date(s.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</td><td><b>${s.patient_name}</b></td><td>${s.mobile_no || 'N/A'}</td><td><span class="tab-btn" style="padding:2px 6px; font-size:0.65rem;">${s.pay_mode || 'Cash'}</span></td><td><b>₹${Number(s.total_amount).toFixed(2)}</b></td><td><button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="printPosInvoice('${s.bill_no}')">🖨️ Print Bill</button> <button class="btn btn-green" style="padding:2px 8px; font-size:0.75rem;" onclick="whatsappPosInvoice('${s.bill_no}')">💬 WhatsApp</button></td></tr>
+      `).join('') || '<tr><td colspan="7" style="text-align:center;">No POS sales recorded yet.</td></tr>';
+    }
+
+    function togglePosCustType(type) {
+      document.getElementById('pos-otc-box').style.display = type === 'otc' ? 'grid' : 'none';
+      document.getElementById('pos-reg-box').style.display = type === 'registered' ? 'block' : 'none';
+      if (type === 'registered') populatePosPatientDatalist();
+      else { document.getElementById('pos-cust-name').value = 'Walk-in Customer'; document.getElementById('pos-cust-mobile').value = ''; }
+    }
+
+    function populatePosMedDropdown() {
+      const sel = document.getElementById('pos-med-select'); if (!sel) return;
+      if (!db.pharmacy || db.pharmacy.length === 0) { sel.innerHTML = '<option value="">No stock available</option>'; return; }
+      sel.innerHTML = db.pharmacy.map(p => `<option value="${p.barcode}">${p.name} (Batch: ${p.batch_code || 'N/A'}) - ₹${p.price} | Stock: ${p.stock}</option>`).join('');
+    }
+
+    function addPosCartItem() {
+      const barcode = document.getElementById('pos-med-select')?.value; if (!barcode) return alert('Select medicine');
+      const med = db.pharmacy.find(p => p.barcode === barcode); if (!med) return alert('Item not found');
+      const qty = Number(document.getElementById('pos-qty').value) || 1;
+      if (Number(med.stock) < qty) return alert(`Only ${med.stock} units available!`);
+      const existingIdx = posCart.findIndex(c => c.barcode === barcode);
+      if (existingIdx !== -1) { posCart[existingIdx].qty += qty; posCart[existingIdx].total = posCart[existingIdx].qty * med.price; }
+      else posCart.push({ barcode: med.barcode, name: med.name, batch_code: med.batch_code || 'N/A', price: Number(med.price)||0, qty, total: qty * (Number(med.price)||0) });
+      userEditedPaidAmt = false; renderPosCart();
+    }
+
+    function renderPosCart() {
+      const tbl = document.getElementById('tbl-pos-cart'); if (!tbl) return;
+      if (!posCart.length) tbl.innerHTML = '<tr><td colspan="6" style="text-align:center;">Cart empty. Select item above and click "+ Add to Bill".</td></tr>';
+      else tbl.innerHTML = posCart.map((item, idx) => `<tr><td><b>${item.name}</b></td><td>${item.batch_code}</td><td>₹${item.price.toFixed(2)}</td><td>${item.qty}</td><td><b>₹${item.total.toFixed(2)}</b></td><td><button type="button" onclick="posCart.splice(${idx},1);userEditedPaidAmt=false;renderPosCart();" style="color:red;border:none;background:none;cursor:pointer;">✕ Remove</button></td></tr>`).join('');
+      calculatePosTotals();
+    }
+
+    function onPosDiscountModeChange() {
+      const mode = document.getElementById('pos-disc-type').value;
+      document.getElementById('pos-disc-label').innerText = mode === 'percent' ? 'DISCOUNT (%) *' : 'DISCOUNT AMOUNT (₹) *';
+      calculatePosTotals();
+    }
+
+    function calculatePosTotals() {
+      const subtotal = posCart.reduce((acc, c) => acc + c.total, 0);
+      const discMode = document.getElementById('pos-disc-type')?.value || 'percent';
+      let discVal = Number(document.getElementById('pos-disc-val')?.value) || 0;
+      let taxPercent = Number(document.getElementById('pos-tax-percent')?.value) || 0;
+      let discAmt = discMode === 'percent' ? (subtotal * discVal) / 100 : discVal;
+      if (discAmt > subtotal) discAmt = subtotal;
+      const taxableAmt = subtotal - discAmt;
+      const taxAmt = (taxableAmt * taxPercent) / 100;
+      const grandTotal = Math.max(0, taxableAmt + taxAmt);
+      let paidAmtInput = document.getElementById('pos-paid-amt');
+      if (!userEditedPaidAmt && paidAmtInput) paidAmtInput.value = grandTotal.toFixed(2);
+      let paidAmt = Number(paidAmtInput?.value) || 0;
+      const balanceDue = Math.max(0, grandTotal - paidAmt);
+
+      if (document.getElementById('pos-lbl-subtotal')) document.getElementById('pos-lbl-subtotal').innerText = '₹' + subtotal.toFixed(2);
+      if (document.getElementById('pos-lbl-discount')) document.getElementById('pos-lbl-discount').innerText = `-₹${discAmt.toFixed(2)}`;
+      if (document.getElementById('pos-lbl-tax')) document.getElementById('pos-lbl-tax').innerText = `+₹${taxAmt.toFixed(2)}`;
+      if (document.getElementById('pos-lbl-grandtotal')) document.getElementById('pos-lbl-grandtotal').innerText = '₹' + grandTotal.toFixed(2);
+      if (document.getElementById('pos-lbl-paid')) document.getElementById('pos-lbl-paid').innerText = '₹' + paidAmt.toFixed(2);
+      if (document.getElementById('pos-lbl-due')) document.getElementById('pos-lbl-due').innerText = '₹' + balanceDue.toFixed(2);
+      return { subtotal, discPct: discMode === 'percent' ? discVal : 0, discAmt, taxPercent, taxAmt, grandTotal, paidAmt, balanceDue };
+    }
+
+    async function checkoutPosSale() {
+      if (!posCart.length) return alert('⚠️ Cart is empty! Add an item before checkout.');
+      const calc = calculatePosTotals();
+      const billNo = 'POS-' + Math.floor(100000 + Math.random() * 900000);
+      const status = calc.balanceDue === 0 ? 'Paid' : (calc.paidAmt > 0 ? 'Partial' : 'Unpaid');
+      for (let item of posCart) {
+        const med = db.pharmacy.find(p => p.barcode === item.barcode);
+        if (med) { med.stock = Math.max(0, Number(med.stock) - item.qty); if (sbClient) try { await sbClient.from('pharmacy_stock').update({ stock: med.stock }).eq('barcode', item.barcode); } catch(e){} }
+      }
+      const billPayload = { bill_no: billNo, rx_no: 'POS', patient_id: document.getElementById('pos-patient-id')?.value||null, patient_name: document.getElementById('pos-cust-name')?.value||'Walk-in Customer', mobile_no: document.getElementById('pos-cust-mobile')?.value||'N/A', bill_type: 'POS Retail', subtotal: calc.subtotal, discount_percent: calc.discPct, discount_amount: calc.discAmt, tax_percent: calc.taxPercent, tax_amount: calc.taxAmt, total_amount: calc.grandTotal, paid_amount: calc.paidAmt, balance_due: calc.balanceDue, payment_status: status, items: posCart };
+      if (sbClient) try { await sbClient.from('billing').insert([billPayload]); } catch(e){}
+      db.billing.unshift({ ...billPayload, id: 'b-' + Date.now(), created_at: new Date().toISOString() });
+      if (confirm(`✅ POS Sale Completed! Bill: ${billNo}
+Total: ₹${calc.grandTotal.toFixed(2)}
+Print receipt now?`)) printPosInvoice(billNo);
+      posCart = []; userEditedPaidAmt = false; closeModal('md-pos'); init();
+    }
+
+    function printPosInvoice(billNo) {
+      const sale = db.billing.find(b => b.bill_no === billNo); if (!sale) return alert('Bill not found');
+      document.getElementById('pos-pr-billno').innerText = sale.bill_no;
+      document.getElementById('pos-pr-custname').innerText = sale.patient_name;
+      document.getElementById('pos-pr-date').innerText = sale.created_at ? new Date(sale.created_at).toLocaleDateString() : new Date().toLocaleDateString();
+      document.getElementById('pos-pr-mobile').innerText = sale.mobile_no || 'N/A';
+      let items = sale.items; try { if (typeof items === 'string') items = JSON.parse(items); } catch(e){ items = []; } items = items || [];
+      let html = items.map((i, idx) => `<tr style="border-bottom: 1px solid #ddd;"><td style="padding: 4px;">${idx + 1}</td><td style="padding: 4px;"><b>${i.name}</b></td><td style="padding: 4px;">${i.batch_code || '-'}</td><td style="padding: 4px;">₹${Number(i.price).toFixed(2)}</td><td style="padding: 4px;">${i.qty}</td><td style="padding: 4px; text-align:right;">₹${Number(i.total).toFixed(2)}</td></tr>`).join('');
+      document.getElementById('pos-pr-tbl-body').innerHTML = html;
+      document.getElementById('pos-pr-total').innerText = '₹' + Number(sale.total_amount||0).toFixed(2);
+      const printArea = document.getElementById('print-pos-sheet');
+      printArea.style.display = 'block'; window.print(); printArea.style.display = 'none';
+    }
+
+    function whatsappPosInvoice(billNo) {
+      const sale = db.billing.find(b => b.bill_no === billNo); if (!sale || !sale.mobile_no) return alert('Mobile number missing');
+      window.open(`https://api.whatsapp.com/send?phone=91${sale.mobile_no}&text=💊%20AASU%20AROGYAM%20POS%20Bill:%20${sale.bill_no}%20Total:%20₹${sale.total_amount}`);
+    }
+
+    /* CENTRAL BILLING & PENDING PAYMENT LEDGER */
+    let activeBillingLedgerFilter = 'All';
+    function filterBillingLedger(status, btn) {
+      activeBillingLedgerFilter = status;
+      document.querySelectorAll('#mod-billing .tab-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active'); renderBilling();
+    }
+
+    function renderBilling() {
+      const q = (document.getElementById('bill-search-input')?.value || '').toLowerCase();
+      const tbl = document.getElementById('tbl-billing'); if (!tbl) return;
+      let filtered = db.billing.filter(b => (b.bill_no||'').toLowerCase().includes(q) || (b.patient_name||'').toLowerCase().includes(q) || (b.mobile_no||'').includes(q));
+      if (activeBillingLedgerFilter === 'Pending') filtered = filtered.filter(b => Number(b.balance_due) > 0);
+      else if (activeBillingLedgerFilter === 'Paid') filtered = filtered.filter(b => Number(b.balance_due) === 0);
+
+      tbl.innerHTML = filtered.map(b => {
+        const due = Number(b.balance_due) || 0;
+        const statusBadge = due === 0 ? `<span style="background:rgba(16,185,129,0.15); color:#10b981; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:0.7rem;">PAID</span>` : `<span style="background:rgba(239,68,68,0.15); color:#ef4444; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:0.7rem;">PARTIAL / UNPAID</span>`;
+        return `<tr><td><b>${b.bill_no}</b></td><td>${b.created_at ? new Date(b.created_at).toLocaleDateString() : new Date().toLocaleDateString()}</td><td><b>${b.patient_name}</b></td><td>${b.mobile_no || 'N/A'}</td><td>₹${Number(b.total_amount||0).toFixed(2)}</td><td>₹${Number(b.paid_amount||0).toFixed(2)}</td><td><b style="color:var(--accent-orange);">₹${due.toFixed(2)}</b></td><td>${statusBadge}</td><td>${due === 0 ? '<span style="color:#10b981;">✅ Settled</span>' : `<button class="btn btn-green" style="padding:2px 8px; font-size:0.75rem;" onclick="openPaymentModal('${b.id||b.bill_no}')">💳 Collect Payment</button>`}</td></tr>`;
+      }).join('') || '<tr><td colspan="9" style="text-align:center;">No bills found.</td></tr>';
+    }
+
+    function openPaymentModal(id) {
+      const b = db.billing.find(x => x.id === id || x.bill_no === id); if (!b) return alert('Bill not found');
+      document.getElementById('pay-bill-id').value = b.id || b.bill_no;
+      document.getElementById('pay-bill-no').value = b.bill_no;
+      document.getElementById('pay-patient-name').value = b.patient_name;
+      document.getElementById('pay-total-amt').value = Number(b.total_amount || 0).toFixed(2);
+      document.getElementById('pay-already-paid').value = Number(b.paid_amount || 0).toFixed(2);
+      const due = Number(b.balance_due || 0);
+      document.getElementById('pay-due-amt').value = due.toFixed(2);
+      document.getElementById('pay-collect-amt').value = due.toFixed(2);
+      openModal('md-pay');
+    }
+
+    async function savePayment(e) {
+      e.preventDefault();
+      const id = document.getElementById('pay-bill-id').value;
+      const b = db.billing.find(x => x.id === id || x.bill_no === id); if (!b) return alert('Bill not found');
+      const collectAmt = Number(document.getElementById('pay-collect-amt').value) || 0;
+      const oldDue = Number(b.balance_due) || 0;
+      if (collectAmt > oldDue + 0.01) return alert(`Payment cannot exceed due amount of ₹${oldDue.toFixed(2)}`);
+      const newPaid = (Number(b.paid_amount)||0) + collectAmt;
+      const newDue = Math.max(0, oldDue - collectAmt);
+      b.paid_amount = newPaid; b.balance_due = newDue; b.payment_status = newDue === 0 ? 'Paid' : 'Partial';
+      if (sbClient) try { await sbClient.from('billing').update({ paid_amount: newPaid, balance_due: newDue, payment_status: b.payment_status }).eq('bill_no', b.bill_no); } catch(err){}
+      alert(`✅ Collected ₹${collectAmt.toFixed(2)} for ${b.bill_no}!`);
+      closeModal('md-pay'); renderBilling(); updateDashboardStats();
+    }
+
+    /* EMPLOYEE HRMS & PAYROLL */
+    function renderEmployees() {
+      const tbl = document.getElementById('tbl-emp'); if (!tbl) return;
+      tbl.innerHTML = (db.emp || []).map(e => `
+        <tr><td><b>${e.emp_id || 'EMP-001'}</b></td><td><b>${e.first_name || ''} ${e.last_name || ''}</b></td><td>${e.job_title || 'Staff'} (${e.department || 'General'})</td><td>${e.personal_mobile || 'N/A'}</td><td><span style="font-size:0.75rem;">UPI: ${e.upi_id || 'N/A'}<br/>Acc: ${e.account_number || 'N/A'}</span></td><td><b>₹${Number(e.monthly_base_salary || 0).toLocaleString('en-IN')}</b></td><td><span style="color:#10b981; font-weight:bold;">${e.status || 'Active'}</span></td><td><button class="btn btn-blue" style="padding:2px 8px; font-size:0.75rem;" onclick="editEmployee('${e.id}')">Edit</button> <button class="btn btn-danger" style="padding:2px 8px; font-size:0.75rem;" onclick="delEmp('${e.id}')">Delete</button></td></tr>
+      `).join('') || '<tr><td colspan="8" style="text-align:center;">No employee records. Click "+ Onboard Employee".</td></tr>';
+    }
+
+    function openEmployeeModal() {
+      if (document.getElementById('form-emp')) document.getElementById('form-emp').reset();
+      document.getElementById('e-db-id').value = '';
+      if (document.getElementById('e-jdate')) document.getElementById('e-jdate').value = new Date().toISOString().split('T')[0];
+      openModal('md-emp');
+    }
+
+    function editEmployee(id) {
+      const e = db.emp.find(x => x.id === id); if (!e) return;
+      document.getElementById('e-db-id').value = e.id; document.getElementById('e-fname').value = e.first_name || '';
+      document.getElementById('e-mname').value = e.middle_name || ''; document.getElementById('e-lname').value = e.last_name || '';
+      document.getElementById('e-dob').value = e.dob || ''; document.getElementById('e-pan').value = e.tax_id_pan || '';
+      document.getElementById('e-mobile').value = e.personal_mobile || ''; document.getElementById('e-pemail').value = e.personal_email || '';
+      document.getElementById('e-caddr').value = e.current_address || ''; document.getElementById('e-paddr').value = e.permanent_address || '';
+      document.getElementById('e-title').value = e.job_title || ''; document.getElementById('e-jdate').value = e.joining_date || '';
+      document.getElementById('e-wemail').value = e.work_email || ''; document.getElementById('e-bank').value = e.bank_name || '';
+      document.getElementById('e-accno').value = e.account_number || ''; document.getElementById('e-ifsc').value = e.ifsc_code || '';
+      document.getElementById('e-upi').value = e.upi_id || ''; document.getElementById('e-salary').value = e.monthly_base_salary || '';
+      openModal('md-emp');
+    }
+
+    async function saveEmployee(e) {
+      e.preventDefault(); const dbId = document.getElementById('e-db-id').value; const empId = 'EMP-' + Math.floor(100 + Math.random() * 900);
+      const payload = { emp_id: dbId ? (db.emp.find(x=>x.id===dbId)?.emp_id || empId) : empId, first_name: document.getElementById('e-fname').value, middle_name: document.getElementById('e-mname').value, last_name: document.getElementById('e-lname').value, dob: document.getElementById('e-dob').value, govt_id_type: document.getElementById('e-govtid-type').value, tax_id_pan: document.getElementById('e-pan').value, gender: document.getElementById('e-gender').value, marital_status: document.getElementById('e-marital').value, personal_mobile: document.getElementById('e-mobile').value, personal_email: document.getElementById('e-pemail').value, current_address: document.getElementById('e-caddr').value, permanent_address: document.getElementById('e-paddr').value, job_title: document.getElementById('e-title').value, department: document.getElementById('e-dept').value, joining_date: document.getElementById('e-jdate').value, work_email: document.getElementById('e-wemail').value, system_role: document.getElementById('e-role').value, shift_timing: document.getElementById('e-shift').value, bank_name: document.getElementById('e-bank').value, account_number: document.getElementById('e-accno').value, ifsc_code: document.getElementById('e-ifsc').value, upi_id: document.getElementById('e-upi').value, monthly_base_salary: Number(document.getElementById('e-salary').value) || 0, portal_password: document.getElementById('e-password').value, status: 'Active' };
+      if (sbClient) { if (dbId) await sbClient.from('employees').update(payload).eq('id', dbId); else await sbClient.from('employees').insert([payload]); }
+      else { if (dbId) { const idx = db.emp.findIndex(x => x.id === dbId); if (idx !== -1) db.emp[idx] = { id: dbId, ...payload }; } else db.emp.unshift({ id: 'emp-' + Date.now(), ...payload }); }
+      alert('Employee Record Saved!'); closeModal('md-emp'); init();
+    }
+
+    async function delEmp(id) {
+      if (!confirm('Delete employee record?')) return;
+      if (sbClient) await sbClient.from('employees').delete().eq('id', id); else db.emp = db.emp.filter(e => e.id !== id);
+      init();
+    }
+
+    function syncEmployeesToPayroll() {
+      if (!db.emp || !db.emp.length) return alert('No employees in HRMS');
+      db.emp.forEach((e, idx) => {
+        const slipId = 'SLIP-EMP-' + String(idx + 1).padStart(3, '0');
+        const existing = (db.payroll || []).find(p => p.emp_id === e.id || p.slip_id === slipId);
+        if (!existing) {
+          const baseSal = Number(e.monthly_base_salary) || 0;
+          const newSlip = { id: 'pr-' + Date.now() + '-' + idx, slip_id: slipId, emp_id: e.id, emp_name: `${e.first_name || ''} ${e.last_name || ''}`.trim(), role: e.job_title || 'Staff', base_salary: baseSal, days_worked: 30, total_days: 30, commission: 0, net_payable: baseSal, status: 'PENDING', mobile_no: e.personal_mobile || 'N/A' };
+          db.payroll.push(newSlip);
+          if (sbClient) try { sbClient.from('payroll').insert([{ slip_id: slipId, emp_id: e.id, emp_name: newSlip.emp_name, role: newSlip.role, base_salary: baseSal, days_worked: 30, total_days: 30, commission: 0, net_payable: baseSal, status: 'PENDING' }]); } catch(err){}
+        }
+      });
+      renderPayroll();
+    }
+
+    function renderPayroll() {
+      const tbl = document.getElementById('tbl-payroll'); if (!tbl) return;
+      if ((!db.payroll || !db.payroll.length) && db.emp && db.emp.length) { syncEmployeesToPayroll(); return; }
+      tbl.innerHTML = (db.payroll || []).map(p => `
+        <tr><td><b>${p.slip_id}</b></td><td><b>${p.emp_name}</b> <span style="font-size:0.7rem;">(${p.role})</span></td><td>₹${Number(p.base_salary).toLocaleString('en-IN')}</td><td>${p.days_worked} / 30 Days</td><td>₹${Number(p.commission).toLocaleString('en-IN')}</td><td><b style="color:var(--accent-green);">₹${Number(p.net_payable).toFixed(2)}</b></td><td><span style="font-weight:bold;">${p.status}</span></td><td><div style="display:flex; gap:0.4rem;"><button class="btn btn-blue" style="padding:2px 8px; font-size:0.75rem;" onclick="openPayrollEditModal('${p.id||p.slip_id}')">Edit</button> <button class="btn btn-green" style="padding:2px 8px; font-size:0.75rem;" onclick="disburseAndPrintPayroll('${p.id||p.slip_id}')">Disburse & Print</button> <button class="btn btn-secondary" style="padding:2px 8px; font-size:0.75rem;" onclick="whatsappPayrollSlip('${p.id||p.slip_id}')">💬 WhatsApp</button></div></td></tr>
+      `).join('') || '<tr><td colspan="8" style="text-align:center;">No payroll records. Click "Sync Active Employees to Payroll".</td></tr>';
+    }
+
+    function openPayrollEditModal(id) {
+      const p = db.payroll.find(x => x.id === id || x.slip_id === id); if (!p) return;
+      document.getElementById('pr-edit-id').value = p.id || p.slip_id;
+      document.getElementById('pr-days-worked').value = p.days_worked || 30;
+      document.getElementById('pr-commission').value = p.commission || 0;
+      openModal('md-payroll-edit');
+    }
+
+    async function savePayrollEdit(e) {
+      e.preventDefault(); const id = document.getElementById('pr-edit-id').value;
+      const p = db.payroll.find(x => x.id === id || x.slip_id === id); if (!p) return;
+      const daysWorked = Number(document.getElementById('pr-days-worked').value) || 0;
+      const commission = Number(document.getElementById('pr-commission').value) || 0;
+      const baseSalary = Number(p.base_salary) || 0;
+      const netPayable = ((baseSalary / 30) * daysWorked) + commission;
+      p.days_worked = daysWorked; p.commission = commission; p.net_payable = netPayable;
+      if (sbClient) try { await sbClient.from('payroll').update({ days_worked: daysWorked, commission: commission, net_payable: netPayable }).eq('slip_id', p.slip_id); } catch(err){}
+      closeModal('md-payroll-edit'); renderPayroll();
+    }
+
+    async function disburseAndPrintPayroll(id) {
+      const p = db.payroll.find(x => x.id === id || x.slip_id === id); if (!p) return;
+      p.status = 'DISBURSED';
+      if (sbClient) try { await sbClient.from('payroll').update({ status: 'DISBURSED' }).eq('slip_id', p.slip_id); } catch(err){}
+      document.getElementById('pr-ps-slipid').innerText = p.slip_id; document.getElementById('pr-ps-empname').innerText = p.emp_name;
+      document.getElementById('pr-ps-role').innerText = p.role; document.getElementById('pr-ps-date').innerText = new Date().toLocaleDateString();
+      document.getElementById('pr-ps-base').innerText = '₹' + Number(p.base_salary).toLocaleString('en-IN');
+      document.getElementById('pr-ps-days').innerText = `${p.days_worked} / 30 Days`;
+      document.getElementById('pr-ps-earned').innerText = '₹' + Number(((Number(p.base_salary) / 30) * p.days_worked)).toLocaleString('en-IN');
+      document.getElementById('pr-ps-comm').innerText = '₹' + Number(p.commission).toLocaleString('en-IN');
+      document.getElementById('pr-ps-net').innerText = '₹' + Number(p.net_payable).toFixed(2);
+      renderPayroll();
+      const printArea = document.getElementById('print-payroll-sheet');
+      printArea.style.display = 'block'; window.print(); printArea.style.display = 'none';
+    }
+
+    function whatsappPayrollSlip(id) {
+      const p = db.payroll.find(x => x.id === id || x.slip_id === id); if (!p || !p.mobile_no) return alert('Mobile number missing');
+      window.open(`https://api.whatsapp.com/send?phone=91${p.mobile_no}&text=💵%20AASU%20AROGYAM%20Payslip:%20${p.slip_id}%20Net:%20₹${p.net_payable.toFixed(2)}`);
+    }
+
+    /* THERAPIES, ACCOUNTS & IPD */
+    function renderTherapies() {
+      const tbl = document.getElementById('tbl-therapies'); if (!tbl) return;
+      tbl.innerHTML = db.therapies.map(t => `<tr><td><b>${t.id}</b></td><td><b>${t.name}</b></td><td>${t.duration_mins} mins</td><td>₹${t.price}</td><td>${t.room_type||'Standard'}</td><td><button class="btn btn-blue" style="padding:2px 6px; font-size:0.75rem;" onclick="editTherapy('${t.id}')">Edit</button> <button class="btn btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="delTherapy('${t.id}')">Delete</button></td></tr>`).join('');
+    }
+    async function saveTherapy(e) { e.preventDefault(); const payload = { name: document.getElementById('th-name').value, duration_mins: Number(document.getElementById('th-dur').value)||45, price: Number(document.getElementById('th-price').value)||0 }; if (sbClient) await sbClient.from('therapies').insert([payload]); else db.therapies.push({ id: 'th-' + Date.now(), ...payload }); closeModal('md-therapy-add'); init(); }
+    async function delTherapy(id) { if (!confirm('Delete therapy?')) return; if (sbClient) await sbClient.from('therapies').delete().eq('id', id); else db.therapies = db.therapies.filter(t => t.id !== id); init(); }
+
+    function renderAccounts() {
+      const tbl = document.getElementById('tbl-accounts'); if (!tbl) return;
+      tbl.innerHTML = db.accounts.map(a => `<tr><td><span class="tab-btn" style="padding:2px 6px; font-size:0.65rem;">${a.entity_type}</span></td><td><b>${a.title}</b></td><td>${a.category||'General'}</td><td><b>₹${a.amount}</b></td><td><button class="btn btn-blue" style="padding:2px 6px; font-size:0.75rem;" onclick="editAccount('${a.id}')">Edit</button> <button class="btn btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="delAccount('${a.id}')">Delete</button></td></tr>`).join('');
+    }
+    async function saveAccounts(e) { e.preventDefault(); const payload = { entity_type: document.getElementById('acc-type').value, title: document.getElementById('acc-title').value, amount: Number(document.getElementById('acc-amt').value)||0 }; if (sbClient) await sbClient.from('accounts_vendors').insert([payload]); else db.accounts.push({ id: 'acc-' + Date.now(), ...payload }); closeModal('md-acc-add'); init(); }
+    function populateVendorDatalist() {
+      const dl = document.getElementById('dl-vendors'); if (!dl) return;
+      const vendors = (db.accounts || []).filter(a => a.entity_type === 'Vendor' || a.entity_type === 'Supplier');
+      if (vendors.length) dl.innerHTML = vendors.map(v => `<option value="${v.title}">${v.title}</option>`).join('');
+      else dl.innerHTML = '<option value="General Supplier"><option value="Direct Manufacturing / Internal">';
+    }
+
+    function renderIPD() {
+      const tbl = document.getElementById('tbl-ipd'); if (!tbl) return;
+      tbl.innerHTML = db.ipd.map(i => `<tr><td><b>${i.bed_no}</b></td><td>General Ward</td><td><b>${i.patient_name}</b></td><td>${new Date().toLocaleDateString()}</td><td>₹${i.daily_charge}</td><td><button class="btn btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="dischargeIPD('${i.id}')">Discharge Bed</button></td></tr>`).join('');
+    }
+    async function saveIPDBed(e) { e.preventDefault(); const payload = { bed_no: document.getElementById('ipd-bed').value, patient_name: document.getElementById('ipd-pname').value, daily_charge: Number(document.getElementById('ipd-rate').value)||1500 }; if (sbClient) await sbClient.from('ipd_beds').insert([payload]); else db.ipd.push({ id: 'ipd-' + Date.now(), ...payload }); closeModal('md-ipd-add'); init(); }
+
+    /* SYSTEM INIT & BOOTSTRAP */
+    async function init() {
+      if (sbClient) {
+        try {
+          const { data: p } = await sbClient.from('patients').select('*'); if (p) db.patients = p;
+          const { data: rx } = await sbClient.from('prescriptions').select('*');
+          if (rx && rx.length > 0) {
+            db.rx = rx;
+            localStorage.setItem('aasu_rx_backup', JSON.stringify(rx));
+          } else {
+            const backup = localStorage.getItem('aasu_rx_backup');
+            if (backup) db.rx = JSON.parse(backup);
+          }
+          const { data: rm } = await sbClient.from('raw_materials').select('*'); if (rm && rm.length) db.rawMaterials = rm;
+          const { data: rc } = await sbClient.from('master_recipes').select('*'); if (rc && rc.length) db.recipes = rc;
+          const { data: ph } = await sbClient.from('pharmacy_stock').select('*'); if (ph && ph.length) db.pharmacy = ph;
+          const { data: b } = await sbClient.from('billing').select('*'); if (b) db.billing = b;
+          const { data: th } = await sbClient.from('therapies').select('*'); if (th && th.length) db.therapies = th;
+          const { data: ip } = await sbClient.from('ipd_beds').select('*'); if (ip && ip.length) db.ipd = ip;
+          const { data: emp } = await sbClient.from('employees').select('*'); if (emp) db.emp = emp;
+          const { data: pr } = await sbClient.from('payroll').select('*'); if (pr && pr.length) db.payroll = pr;
+          const { data: res } = await sbClient.from('reservations').select('*'); if (res && res.length) db.reservations = res;
+          const { data: rms } = await sbClient.from('therapy_rooms').select('*'); if (rms && rms.length) db.rooms = rms;
+          const { data: doc } = await sbClient.from('clinic_documents').select('*'); if (doc && doc.length) db.documents = doc;
+          const { data: stf } = await sbClient.from('staff_users').select('*'); if (stf && stf.length) db.staffUsers = stf;
+        } catch(err) { console.error('Supabase fetch error:', err); }
+      }
+
+      renderAushadhiNirman();
+      renderPharmacy();
+      renderPatients();
+      renderScheduleGrid();
+      renderTherapies();
+      renderAccounts();
+      renderIPD();
+      renderEmployees();
+      renderPayroll();
+      renderBilling();
+      renderRx();
+      renderDocuments();
+      renderStaffUsers();
+      populateAllAutocompletes();
+      updateDashboardStats();
+    }
+
+    window.onload = init;
+  
+
+// Module 5: Integrated Production & Raw Material Deduction Engine
+async function executeProductionBatch(recipeId, targetQty, batchNo) {
+  try {
+    if (!supabaseClient) throw new Error("Supabase client not initialized.");
+    
+    // 1. Fetch Recipe details and ingredients (BOM)
+    const { data: recipe, error: recipeErr } = await supabaseClient
+      .from('master_recipes')
+      .select('*, recipe_ingredients(*)')
+      .eq('id', recipeId)
+      .single();
+      
+    if (recipeErr || !recipe) throw new Error("Recipe not found or failed to load ingredients.");
+
+    const yieldMultiplier = targetQty / (recipe.standard_yield || 1);
+
+    // 2. Fetch current Raw Materials stock levels
+    const ingredientIds = recipe.recipe_ingredients.map(i => i.raw_material_id);
+    const { data: rawMaterials, error: rmErr } = await supabaseClient
+      .from('raw_materials')
+      .select('id, name, current_stock, unit')
+      .in('id', ingredientIds);
+
+    if (rmErr) throw new Error("Failed to fetch raw material stock levels.");
+
+    // 3. Stock Sufficiency Check
+    const deductions = [];
+    for (const item of recipe.recipe_ingredients) {
+      const stockItem = rawMaterials.find(rm => rm.id === item.raw_material_id);
+      const requiredQty = item.qty_required * yieldMultiplier;
+      
+      if (!stockItem || stockItem.current_stock < requiredQty) {
+        alert(`Insufficient stock for ${stockItem ? stockItem.name : 'Ingredient'}. Required: ${requiredQty}, Available: ${stockItem ? stockItem.current_stock : 0}`);
+        return false;
+      }
+      deductions.push({
+        id: item.raw_material_id,
+        new_stock: stockItem.current_stock - requiredQty,
+        used_qty: requiredQty
+      });
+    }
+
+    // 4. Execute Raw Material Stock Deductions in Supabase
+    for (const d of deductions) {
+      const { error: updateErr } = await supabaseClient
+        .from('raw_materials')
+        .update({ current_stock: d.new_stock })
+        .eq('id', d.id);
+
+      if (updateErr) throw new Error(`Failed to deduct raw material stock for ID: ${d.id}`);
+    }
+
+    // 5. Log Production Batch Entry
+    const { data: batch, error: batchErr } = await supabaseClient
+      .from('production_batches')
+      .insert([{
+        batch_number: batchNo || 'BATCH-' + Date.now(),
+        recipe_id: recipeId,
+        output_qty: targetQty,
+        status: 'Completed',
+        created_at: new Date().toISOString()
+      }]);
+
+    if (batchErr) throw new Error("Failed to record production batch.");
+
+    // 6. Automatically credit finished goods to Herbal Pharmacy Stock
+    const { error: pharmacyErr } = await supabaseClient.rpc('increment_pharmacy_stock', {
+      medicine_name: recipe.medicine_name,
+      add_qty: targetQty
+    });
+
+    alert("Production batch executed successfully! Raw materials deducted and finished stock updated.");
+    if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+    return true;
+
+  } catch (err) {
+    console.error("Production Engine Error:", err);
+    alert("Production failed: " + err.message);
+    return false;
+  }
 }
 
 
@@ -2624,13 +3180,19 @@ document.addEventListener('keydown', function(event) {
 
 // 1. Fetch live raw materials from Supabase and sync into recipe dropdowns
 async function syncRawMaterialsToRecipeBuilder() {
-  const client = window.sbClient || window.supabaseClient;
-  if (!client || typeof client.from !== 'function') return;
-  client.from('raw_materials').select('*').then(({ data }) => {
-    if (data && typeof window.loadAushadhiNirmanData === 'function') {
-      window.loadAushadhiNirmanData();
-    }
-  }).catch(function() {});
+  if (!supabaseClient) return;
+  const { data: materials, error } = await supabaseClient
+    .from('raw_materials')
+    .select('*')
+    .order('name');
+  
+  if (error) {
+    console.error("Error fetching raw materials:", error);
+    return;
+  }
+  
+  window.availableRawMaterials = materials || [];
+  updateAllRecipeDropdowns();
 }
 
 // 2. Refresh dropdown options across all recipe ingredient rows
@@ -2926,18 +3488,5 @@ function removeRecipeIngredient(index) {
 
 
 <script src="aushadhi_nirman.js"></script>
-
-<script>
-/* Removed old inline handlers */
-
-</script>
-
-<!-- Removed corrupted inline script block -->
-
-<script>
-window.populateDatalist = window.populateDatalist || function() {};
-window.populateAllAutocompletes = window.populateAllAutocompletes || function() {};
-</script>
-
 </body>
 </html>
