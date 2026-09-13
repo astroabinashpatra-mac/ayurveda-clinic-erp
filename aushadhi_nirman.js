@@ -398,3 +398,11 @@ if (document.readyState === 'loading') {
     bootNirman();
 }
 window.addEventListener('load', bootNirman);
+
+// STUB MISSING GLOBAL FUNCTIONS CALLED BY INDEX.HTML
+window.populateDatalist = window.populateDatalist || function() {};
+window.populateAllAutocompletes = window.populateAllAutocompletes || function() {};
+window.openModal = window.openModal || function(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'flex';
+};
