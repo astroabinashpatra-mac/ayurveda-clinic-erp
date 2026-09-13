@@ -56,7 +56,7 @@ async function executeProductionBatch(recipeId, targetQty, batchNo) {
         .update({ current_stock: d.new_stock })
         .eq('id', d.id);
 
-      if (updateErr) throw new Error(`Failed to deduct raw material stock for ID: ${d.id}`);
+      if (updateErr) throw new Error(`Failed to deduct raw material stock for ID: `);
     }
 
     // 5. Log Production Batch Entry
@@ -177,26 +177,7 @@ function updateAllRecipeDropdowns() {
   const dropdowns = document.querySelectorAll('.ing-material-select');
   dropdowns.forEach(select => {
     const currentVal = select.value;
-    select.innerHTML = '<option value="">-- Select Raw Material --</option>';
-    (window.availableRawMaterials || []).forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m.id;
-      opt.textContent = `${m.name} (${m.unit || 'unit'}) - ₹${m.purchase_rate || 0}/unit`;
-      opt.dataset.rate = m.purchase_rate || 0;
-      if (m.id === currentVal) opt.selected = true;
-      select.appendChild(opt);
-    });
-  });
-}
-
-// 3. Add dynamic ingredient row with auto-populated purchase rate & event triggers
-function addRecipeIngredientRow(selectedId = '', qty = 0) {
-  const tbody = document.querySelector('#recipe-ingredients-table tbody');
-  if (!tbody) return;
-
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td style="padding:0.4rem;">
+    select.innerHTML = '<option value="">-- Select Raw Material --</option><td style="padding:0.4rem;">
       <select class="ing-material-select" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" onchange="onIngredientSelectChange(this)">
         <option value="">-- Select Raw Material --</option>
       </select>
@@ -330,8 +311,8 @@ function renderRecipeIngredientsTable() {
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid var(--border-dark)';
     tr.innerHTML = `
-      <td style="padding: 0.6rem; color: white;">${item.name}</td>
-      <td style="padding: 0.6rem; color: white;">${item.qty}</td>
+      <td style="padding: 0.6rem; color: white;"></td>
+      <td style="padding: 0.6rem; color: white;"></td>
       <td style="padding: 0.6rem; text-align: center;">
         <button type="button" onclick="removeRecipeIngredient(${index})" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
       </td>
@@ -528,11 +509,11 @@ window.loadTherapies = async function() {
     // 4. Render live database rows
     tb.innerHTML = data.map(t => `
       <tr style="border-bottom:1px solid rgba(255,255,255,0.05); color:white;">
-        <td style="padding:0.6rem; font-size:0.8rem; color:#9ca3af;">${t.id || '-'}</td>
-        <td style="padding:0.6rem; font-weight:bold;">${t.therapy_name || t.name || 'Unnamed Therapy'}</td>
-        <td style="padding:0.6rem;">${t.duration_mins || t.duration || '0'} mins</td>
-        <td style="padding:0.6rem; color:#10b981;">₹${t.standard_charge || t.price || 0}</td>
-        <td style="padding:0.6rem;">${t.category || t.recommended_room || 'Standard'}</td>
+        <td style="padding:0.6rem; font-size:0.8rem; color:#9ca3af;"></td>
+        <td style="padding:0.6rem; font-weight:bold;"></td>
+        <td style="padding:0.6rem;"></td>
+        <td style="padding:0.6rem; color:#10b981;"></td>
+        <td style="padding:0.6rem;"></td>
         <td style="padding:0.6rem; text-align:center;">
           <button onclick="window.deleteTherapy('${t.id}')" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:3px; cursor:pointer;">Delete</button>
         </td>
@@ -586,12 +567,12 @@ window.loadEmployees = async function() {
 
     tb.innerHTML = data.map(e => `
       <tr style="border-bottom:1px solid rgba(255,255,255,0.05); color:white;">
-        <td style="padding:0.6rem; font-size:0.8rem; color:#9ca3af;">${e.id || '-'}</td>
-        <td style="padding:0.6rem; font-weight:bold;">${e.full_name || e.name || 'Unnamed Employee'}</td>
-        <td style="padding:0.6rem;">${e.role || e.designation || '-'}</td>
-        <td style="padding:0.6rem;">${e.department || 'General'}</td>
-        <td style="padding:0.6rem;">${e.phone || e.mobile_no || '-'}</td>
-        <td style="padding:0.6rem; color:#10b981;">₹${e.salary || e.base_salary || 0}</td>
+        <td style="padding:0.6rem; font-size:0.8rem; color:#9ca3af;"></td>
+        <td style="padding:0.6rem; font-weight:bold;"></td>
+        <td style="padding:0.6rem;"></td>
+        <td style="padding:0.6rem;"></td>
+        <td style="padding:0.6rem;"></td>
+        <td style="padding:0.6rem; color:#10b981;"></td>
         <td style="padding:0.6rem; text-align:center;">
           <button onclick="window.deleteEmployee('${e.id}')" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:3px; cursor:pointer;">Delete</button>
         </td>
@@ -616,30 +597,7 @@ window.deleteEmployee = async function(id) {
 document.addEventListener('DOMContentLoaded', () => setTimeout(window.loadEmployees, 300));
 </script>
 
-<script>
-// MODULE 11: ACCOUNTS & VENDORS CLEAN ENGINE
-window.accState = { rawData: [], filteredData: [] };
-
-window.loadAccounts = async function() {
-  const db = window.supabaseClient || window.sbClient || window.supabase;
-  if (!db || typeof db.from !== 'function') return;
-
-  try {
-    const { data, error } = await db.from('accounts_vendors').select('*').order('created_at', { ascending: false });
-    if (error) return console.error("Accounts Fetch Error:", error.message);
-    window.accState.rawData = data || [];
-    window.populateVendorDropdown();
-    window.applyAccountsFilters();
-  } catch (err) {
-    console.error("Error loading accounts:", err);
-  }
-};
-
-window.populateVendorDropdown = function() {
-  const sel = document.getElementById('acc-filter-vendor');
-  if (!sel) return;
-  const vendors = [...new Set(window.accState.rawData.map(d => d.title || d.vendor_name || '').filter(Boolean))].sort();
-  sel.innerHTML = '<option value="">All Vendors / Titles</option>' + vendors.map(v => '<option value="' + v + '">' + v + '</option>').join('');
+<script><option value="">All Vendors / Titles</option>' + vendors.map(v => '<option value="' + v + '">' + v + '</option>').join('');
 };
 
 window.applyAccountsFilters = function() {
@@ -717,14 +675,7 @@ window.renderAccountsTable = function() {
 
   const rows = window.accState.filteredData;
   if (!rows || rows.length === 0) {
-    tb.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:#9ca3af;">No accounting transactions found for selected filters.</td></tr>';
-    return;
-  }
-
-  tb.innerHTML = rows.map(a => {
-    const isDebit = (a.type || 'Expense').toLowerCase().includes('expense') || (a.type || '').toLowerCase().includes('debit');
-    const typeBadge = isDebit 
-      ? '<span style="background:rgba(239,68,68,0.2); color:#ef4444; padding:0.2rem 0.5rem; border-radius:4px; font-weight:bold; font-size:0.75rem;">DEBIT (EXPENSE)</span>'
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:#9ca3af;">No accounting transactions found for selected filters.</td></tr><span style="background:rgba(239,68,68,0.2); color:#ef4444; padding:0.2rem 0.5rem; border-radius:4px; font-weight:bold; font-size:0.75rem;">DEBIT (EXPENSE)</span>'
       : '<span style="background:rgba(16,185,129,0.2); color:#10b981; padding:0.2rem 0.5rem; border-radius:4px; font-weight:bold; font-size:0.75rem;">CREDIT (INCOME)</span>';
     const dt = a.created_at ? new Date(a.created_at).toLocaleDateString('en-IN') : '-';
     
@@ -735,31 +686,7 @@ window.renderAccountsTable = function() {
       '<td style="padding:0.65rem; font-weight:bold; color:' + (isDebit ? '#ef4444' : '#10b981') + ';">₹' + parseFloat(a.amount || 0).toFixed(2) + '</td>' +
       '<td style="padding:0.65rem;"><span style="color:#f59e0b;">' + (a.status || 'Paid') + '</span></td>' +
       '<td style="padding:0.65rem; text-align:center;"><button onclick="window.deleteAccountEntry('' + a.id + '')" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:3px; cursor:pointer;">Delete</button></td>' +
-    '</tr>';
-  }).join('');
-};
-
-window.printAccountsStatement = function() {
-  const data = window.accState.filteredData || [];
-  if (data.length === 0) return alert("No transactions available under current filters to print.");
-
-  const periodText = document.getElementById('acc-filter-period')?.selectedOptions[0]?.text || 'All Time';
-  const typeText = document.getElementById('acc-filter-type')?.selectedOptions[0]?.text || 'All Transactions';
-  const vendorText = document.getElementById('acc-filter-vendor')?.value || 'All Vendors';
-
-  let totalDebit = 0, totalCredit = 0;
-  data.forEach(d => {
-    const isDebit = (d.type || 'Expense').toLowerCase().includes('expense') || (d.type || '').toLowerCase().includes('debit');
-    const amt = parseFloat(d.amount || 0);
-    if (isDebit) totalDebit += amt; else totalCredit += amt;
-  });
-
-  const printWindow = window.open('', '_blank');
-  let tableRows = '';
-  data.forEach(d => {
-    const isDebit = (d.type || 'Expense').toLowerCase().includes('expense') || (d.type || '').toLowerCase().includes('debit');
-    const dt = d.created_at ? new Date(d.created_at).toLocaleDateString('en-IN') : '-';
-    tableRows += '<tr><td>' + dt + '</td><td style="font-weight:bold; color:' + (isDebit?'#dc2626':'#16a34a') + ';">' + (isDebit?'DEBIT':'CREDIT') + '</td><td>' + (d.title || d.vendor_name || '-') + '</td><td>' + (d.category || '-') + '</td><td>' + (d.status || 'Paid') + '</td><td>₹' + parseFloat(d.amount||0).toFixed(2) + '</td></tr>';
+    '</tr><tr><td>' + dt + '</td><td style="font-weight:bold; color:' + (isDebit?'#dc2626':'#16a34a') + ';"></td><td></td><td>' + (d.category || '-') + '</td><td>' + (d.status || 'Paid') + '</td><td>₹' + parseFloat(d.amount||0).toFixed(2) + '</td></tr>';
   });
 
   printWindow.document.write('<html><head><title>Accounts Statement</title><style>body{font-family:sans-serif;padding:20px;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ccc;padding:8px;}</style></head><body><h2>AASU AROGYAM - Accounts Statement</h2><p>Period: '+periodText+' | Filter: '+typeText+' | Vendor: '+vendorText+'</p><table><thead><tr><th>Date</th><th>Type</th><th>Title</th><th>Category</th><th>Status</th><th>Amount</th></tr></thead><tbody>'+tableRows+'</tbody></table><h3>Total Credit: ₹'+totalCredit.toFixed(2)+' | Total Debit: ₹'+totalDebit.toFixed(2)+' | Net Balance: ₹'+(totalCredit - totalDebit).toFixed(2)+'</h3><p style="margin-top:40px; border-top:1px solid #ccc; padding-top:10px;">Designed and Developed by U3S Web Developer, 7992616555</p></body></html>');
