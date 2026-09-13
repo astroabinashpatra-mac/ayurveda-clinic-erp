@@ -730,7 +730,7 @@ function removeRecipeIngredient(index) {
       <div style="background:var(--panel-dark); border:1px solid var(--border-dark); border-radius:8px; padding:1.25rem; margin-bottom:1.5rem;">
         <div class="section-header">
           <h3 style="color:var(--accent-orange);">🌱 RAW MATERIALS INVENTORY</h3>
-          <button type="button" id="btn-add-raw-material" onclick="openRawMaterialModal()"  type="button" id="btn-add-raw-material" onclick="openRawMaterialModal()"  class="btn btn-orange" onclick="openRawMaterialModal()">+ Add Raw Material</button>
+          <button type="button" id="btn-add-raw-material" onclick="window.openRawMaterialModal()"  type="button" id="btn-add-raw-material" onclick="window.openRawMaterialModal()"  class="btn btn-orange" onclick="window.openRawMaterialModal()">+ Add Raw Material</button>
         </div>
         <table class="data-table">
           <thead>
@@ -752,7 +752,7 @@ function removeRecipeIngredient(index) {
         <div class="section-header">
           <h3 style="color:var(--accent-orange);">🏺 MASTER RECIPES & PRODUCTION ENGINE</h3>
           <div style="display:flex; gap:0.5rem;">
-            <button type="button" id="btn-add-master-recipe" onclick="openMasterRecipeModal()"  type="button" onclick="openMasterRecipeModal()"  type="button" onclick="openMasterRecipeModal()"  class="btn btn-orange" onclick="openRecipeModal()">+ Add Master Recipe</button>
+            <button type="button" id="btn-add-master-recipe" onclick="window.openMasterRecipeModal()"  type="button" onclick="window.openMasterRecipeModal()"  type="button" onclick="window.openMasterRecipeModal()"  class="btn btn-orange" onclick="openRecipeModal()">+ Add Master Recipe</button>
             <button class="btn btn-blue" onclick="openModal('md-batch-prod')">⚙️ Execute Batch Production</button>
           </div>
         </div>
@@ -2928,37 +2928,8 @@ function removeRecipeIngredient(index) {
 <script src="aushadhi_nirman.js"></script>
 
 <script>
-// UNIFIED INLINE NIRMAN HANDLERS
-window.getErpDb = function() {
-  return window.sbClient || (typeof sbClient !== 'undefined' ? sbClient : null) || (typeof (window.sbClient || window.supabaseClient || window.supabase) !== 'undefined' ? (window.sbClient || window.supabaseClient || window.supabase) : null);
-};
+/* Removed old inline handlers */
 
-/* removed */
-  setVal('nirman-rm-name', item ? item.name : '');
-  setVal('raw-name', item ? item.name : '');
-  setVal('nirman-rm-category', item ? (item.category || 'Herbs') : 'Herbs');
-  setVal('raw-category', item ? (item.category || 'Herbs') : 'Herbs');
-  setVal('nirman-rm-unit', item ? (item.unit || 'gms') : 'gms');
-  setVal('raw-unit', item ? (item.unit || 'gms') : 'gms');
-  setVal('nirman-rm-stock', item ? item.stock : '');
-  setVal('raw-stock', item ? item.stock : '');
-  setVal('nirman-rm-reorder', item ? (item.reorder || 100) : '100');
-  setVal('raw-reorder', item ? (item.reorder || 100) : '100');
-  setVal('nirman-rm-cost', item ? (item.purchase_rate || '') : '');
-  setVal('raw-cost', item ? (item.purchase_rate || '') : '');
-};
-
-window.closeRawMaterialModal = function() {
-  const modal = document.getElementById('nirman-modal-raw-material') || document.getElementById('modal-raw-material') || document.getElementById('rawMaterialModal');
-  if (modal) modal.style.display = 'none';
-};
-
-/* removed */
-
-window.closeMasterRecipeModal = function() {
-  const modal = document.getElementById('nirman-modal-master-recipe') || document.getElementById('modal-master-recipe') || document.getElementById('masterRecipeModal');
-  if (modal) modal.style.display = 'none';
-};
 </script>
 
 <script>
