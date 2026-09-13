@@ -308,3 +308,19 @@ if (document.readyState === 'loading') {
 } else {
   window.loadAushadhiNirmanData();
 }
+
+
+// GLOBAL WINDOW ALIASES (FIXES HTML FUNCTION NAME MISMATCHES)
+window.openRawMaterialModal = window.nirmanOpenRawMaterialModal;
+window.closeRawMaterialModal = window.nirmanCloseRawMaterialModal;
+window.saveRawMaterial = window.nirmanSaveRawMaterial;
+window.deleteRawMaterial = window.nirmanDeleteRawMaterial;
+
+window.openMasterRecipeModal = window.nirmanOpenMasterRecipeModal;
+window.closeMasterRecipeModal = window.nirmanCloseMasterRecipeModal;
+window.saveMasterRecipe = window.nirmanSaveMasterRecipe;
+window.deleteMasterRecipe = window.nirmanDeleteMasterRecipe;
+
+window.executeBatchProduction = window.nirmanTriggerGlobalBatchPrompt || window.nirmanOpenBatchModal;
+window.openBatchModal = window.nirmanOpenBatchModal;
+window.closeBatchModal = window.nirmanCloseBatchModal;
