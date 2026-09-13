@@ -118,9 +118,17 @@ window.deleteRawMaterial = function(id) {
 };
 
 // 2. Master Recipe Modal Handlers
-window.openMasterRecipeModal = function(id = null) {
-  if (typeof injectNirmanModals === 'function') injectNirmanModals();
-  const modal = document.getElementById('nrm-modal-recipe') || document.getElementById('modal-master-recipe');
+window.openMasterRecipeModal = function() {
+  if (typeof ensureNirmanModals === 'function') ensureNirmanModals();
+  window.nrmState = window.nrmState || { raw: [], recipes: [], bom: [], activeRecipe: null };
+  window.nrmState.bom = [];
+  if (document.getElementById('nrm-rec-name')) document.getElementById('nrm-rec-name').value = '';
+  if (document.getElementById('nrm-rec-margin')) document.getElementById('nrm-rec-margin').value = '20';
+  const sel = document.getElementById('nrm-rec-sel');
+  if (sel) {
+    sel.innerHTML = '<option value="">Select Raw Material</option>' + (window.nrmState.raw || []).map(r => `<option value="${r.id}">${r.name} (Stock: ${r.stock}${r.unit})</option>`).join('');
+  }
+  const modal = document.getElementById('nrm-modal-recipe');
   if (modal) modal.style.display = 'flex';
 };
 
@@ -263,13 +271,14 @@ window.closeRawMaterialModal = function() {
 };
 
 window.openMasterRecipeModal = function() {
-  ensureNirmanModals();
+  if (typeof ensureNirmanModals === 'function') ensureNirmanModals();
+  window.nrmState = window.nrmState || { raw: [], recipes: [], bom: [], activeRecipe: null };
   window.nrmState.bom = [];
   if (document.getElementById('nrm-rec-name')) document.getElementById('nrm-rec-name').value = '';
   if (document.getElementById('nrm-rec-margin')) document.getElementById('nrm-rec-margin').value = '20';
   const sel = document.getElementById('nrm-rec-sel');
-  if (sel && window.nrmState.raw) {
-    sel.innerHTML = '<option value="">Select Raw Material</option>' + window.nrmState.raw.map(r => `<option value="${r.id}">${r.name} (Stock: ${r.stock}${r.unit})</option>`).join('');
+  if (sel) {
+    sel.innerHTML = '<option value="">Select Raw Material</option>' + (window.nrmState.raw || []).map(r => `<option value="${r.id}">${r.name} (Stock: ${r.stock}${r.unit})</option>`).join('');
   }
   const modal = document.getElementById('nrm-modal-recipe');
   if (modal) modal.style.display = 'flex';
