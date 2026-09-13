@@ -797,7 +797,64 @@ window.printAccountsStatement = function() {
           .total { font-weight: bold; border-top: 2px solid #0f172a; padding-top: 5px; }
           .footer { margin-top: 50px; text-align: center; font-size: 0.8rem; color: #64748b; border-top: 1px solid #cbd5e1; padding-top: 10px; }
         </style>
-      </head>
+      <script>
+// ==========================================
+// MODULE 7: CENTRAL BILLING TO ACCOUNTS SYNC ENGINE
+// ==========================================
+window.syncBillToAccounts = async function(billData) {
+  const db = window.supabaseClient || window.sbClient || window.supabase;
+  if (!db || typeof db.from !== 'function') return;
+
+  try {
+    const isPending = (billData.status || '').toLowerCase() === 'pending';
+    const amount = parseFloat(billData.total_amount || billData.amount || billData.paid_amount || 0);
+
+    if (isNaN(amount) || amount <= 0) return;
+
+    const payload = {
+      type: isPending ? 'Pending Ledger' : 'Credit',
+      title: `Bill #${billData.invoice_no || billData.id || Date.now()} - ${billData.patient_name || billData.patient_id || 'Patient'}`,
+      category: 'Patient Billing',
+      amount: amount,
+      status: isPending ? 'Pending' : 'Paid',
+      created_at: new Date().toISOString()
+    };
+
+    const { error } = await db.from('accounts_vendors').insert([payload]);
+    if (error) {
+      console.error("Accounts Billing Sync Error:", error.message);
+    } else {
+      console.log("Bill synced to accounts_vendors successfully.");
+      if (typeof window.loadAccounts === 'function') window.loadAccounts();
+      if (typeof window.loadDashboardStats === 'function') window.loadDashboardStats();
+    }
+  } catch (err) {
+    console.error("Error syncing bill to accounts:", err);
+  }
+};
+
+// Global interceptor for invoice creation & pending payment collection
+document.addEventListener('submit', function(e) {
+  const form = e.target;
+  if (!form) return;
+  const formId = (form.id || '').toLowerCase();
+  
+  if (formId.includes('bill') || formId.includes('invoice') || formId.includes('payment')) {
+    setTimeout(() => {
+      const patient = document.getElementById('bill-patient-name')?.value || document.getElementById('patient-select')?.value || 'Clinical Patient';
+      const amt = document.getElementById('bill-total-amount')?.value || document.getElementById('bill-amount')?.value || 0;
+      const status = document.getElementById('bill-status')?.value || 'Paid';
+
+      window.syncBillToAccounts({
+        patient_name: patient,
+        amount: amt,
+        status: status
+      });
+    }, 500);
+  }
+}, true);
+</script>
+</head>
       <body>
         <div class="header">
           <h2 style="margin:0;">AASU AROGYAM AYURVEDIC CLINIC & HOSPITAL</h2>
@@ -859,6 +916,63 @@ window.printAccountsStatement = function() {
 };
 
 document.addEventListener('DOMContentLoaded', () => setTimeout(window.loadAccounts, 300));
+</script>
+<script>
+// ==========================================
+// MODULE 7: CENTRAL BILLING TO ACCOUNTS SYNC ENGINE
+// ==========================================
+window.syncBillToAccounts = async function(billData) {
+  const db = window.supabaseClient || window.sbClient || window.supabase;
+  if (!db || typeof db.from !== 'function') return;
+
+  try {
+    const isPending = (billData.status || '').toLowerCase() === 'pending';
+    const amount = parseFloat(billData.total_amount || billData.amount || billData.paid_amount || 0);
+
+    if (isNaN(amount) || amount <= 0) return;
+
+    const payload = {
+      type: isPending ? 'Pending Ledger' : 'Credit',
+      title: `Bill #${billData.invoice_no || billData.id || Date.now()} - ${billData.patient_name || billData.patient_id || 'Patient'}`,
+      category: 'Patient Billing',
+      amount: amount,
+      status: isPending ? 'Pending' : 'Paid',
+      created_at: new Date().toISOString()
+    };
+
+    const { error } = await db.from('accounts_vendors').insert([payload]);
+    if (error) {
+      console.error("Accounts Billing Sync Error:", error.message);
+    } else {
+      console.log("Bill synced to accounts_vendors successfully.");
+      if (typeof window.loadAccounts === 'function') window.loadAccounts();
+      if (typeof window.loadDashboardStats === 'function') window.loadDashboardStats();
+    }
+  } catch (err) {
+    console.error("Error syncing bill to accounts:", err);
+  }
+};
+
+// Global interceptor for invoice creation & pending payment collection
+document.addEventListener('submit', function(e) {
+  const form = e.target;
+  if (!form) return;
+  const formId = (form.id || '').toLowerCase();
+  
+  if (formId.includes('bill') || formId.includes('invoice') || formId.includes('payment')) {
+    setTimeout(() => {
+      const patient = document.getElementById('bill-patient-name')?.value || document.getElementById('patient-select')?.value || 'Clinical Patient';
+      const amt = document.getElementById('bill-total-amount')?.value || document.getElementById('bill-amount')?.value || 0;
+      const status = document.getElementById('bill-status')?.value || 'Paid';
+
+      window.syncBillToAccounts({
+        patient_name: patient,
+        amount: amt,
+        status: status
+      });
+    }, 500);
+  }
+}, true);
 </script>
 </head>
 <body>
