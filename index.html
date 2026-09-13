@@ -615,6 +615,251 @@ window.deleteEmployee = async function(id) {
 
 document.addEventListener('DOMContentLoaded', () => setTimeout(window.loadEmployees, 300));
 </script>
+<script>
+// ==========================================
+// MODULE 11: ACCOUNTS & VENDORS FULL ENGINE
+// ==========================================
+window.accState = { rawData: [], filteredData: [] };
+
+window.loadAccounts = async function() {
+  const db = window.supabaseClient || window.sbClient || window.supabase;
+  if (!db || typeof db.from !== 'function') return;
+
+  try {
+    const { data, error } = await db.from('accounts_vendors').select('*').order('created_at', { ascending: false });
+    if (error) {
+      console.error("Accounts Fetch Error:", error.message);
+      return;
+    }
+
+    window.accState.rawData = data || [];
+    window.populateVendorDropdown();
+    window.applyAccountsFilters();
+  } catch (err) {
+    console.error("Error loading accounts:", err);
+  }
+};
+
+window.populateVendorDropdown = function() {
+  const sel = document.getElementById('acc-filter-vendor');
+  if (!sel) return;
+  const vendors = [...new Set(window.accState.rawData.map(d => d.title || d.vendor_name || '').filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">All Vendors / Titles</option>' + vendors.map(v => `<option value="${v}">${v}</option>`).join('');
+};
+
+window.applyAccountsFilters = function() {
+  const search = (document.getElementById('acc-filter-search')?.value || '').toLowerCase();
+  const typeFilter = document.getElementById('acc-filter-type')?.value || '';
+  const vendorFilter = document.getElementById('acc-filter-vendor')?.value || '';
+  const periodFilter = document.getElementById('acc-filter-period')?.value || 'all';
+
+  const now = new Date();
+  
+  window.accState.filteredData = window.accState.rawData.filter(item => {
+    // 1. Text Search (Title / Vendor / Category)
+    const titleText = (item.title || item.vendor_name || '').toLowerCase();
+    const catText = (item.category || '').toLowerCase();
+    if (search && !titleText.includes(search) && !catText.includes(search)) return false;
+
+    // 2. Type Filter (Debit vs Credit)
+    const itemType = (item.type || 'Expense').toLowerCase();
+    if (typeFilter === 'debit' && !itemType.includes('expense') && !itemType.includes('debit')) return false;
+    if (typeFilter === 'credit' && !itemType.includes('income') && !itemType.includes('credit') && !itemType.includes('payment')) return false;
+
+    // 3. Vendor Filter
+    if (vendorFilter && titleText !== vendorFilter.toLowerCase()) return false;
+
+    // 4. Period / Date Filter
+    if (periodFilter !== 'all') {
+      const itemDate = new Date(item.created_at || item.date || Date.now());
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      if (periodFilter === 'today') {
+        if (itemDate < todayStart) return false;
+      } else if (periodFilter === 'yesterday') {
+        const yestStart = new Date(todayStart);
+        yestStart.setDate(yestStart.getDate() - 1);
+        if (itemDate < yestStart || itemDate >= todayStart) return false;
+      } else if (periodFilter === 'this_week') {
+        const weekStart = new Date(todayStart);
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+        if (itemDate < weekStart) return false;
+      } else if (periodFilter === 'last_month') {
+        const lmStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const lmEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+        if (itemDate < lmStart || itemDate > lmEnd) return false;
+      } else if (periodFilter === '3_months') {
+        const m3 = new Date(todayStart);
+        m3.setMonth(m3.getMonth() - 3);
+        if (itemDate < m3) return false;
+      } else if (periodFilter === '6_months') {
+        const m6 = new Date(todayStart);
+        m6.setMonth(m6.getMonth() - 6);
+        if (itemDate < m6) return false;
+      } else if (periodFilter === 'current_fy') {
+        // Indian FY: Apr 1 to Mar 31
+        const fyStartYear = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+        const fyStart = new Date(fyStartYear, 3, 1);
+        const fyEnd = new Date(fyStartYear + 1, 2, 31, 23, 59, 59);
+        if (itemDate < fyStart || itemDate > fyEnd) return false;
+      } else if (periodFilter === 'last_fy') {
+        const fyStartYear = (now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1) - 1;
+        const fyStart = new Date(fyStartYear, 3, 1);
+        const fyEnd = new Date(fyStartYear + 1, 2, 31, 23, 59, 59);
+        if (itemDate < fyStart || itemDate > fyEnd) return false;
+      }
+    }
+
+    return true;
+  });
+
+  window.renderAccountsTable();
+};
+
+window.renderAccountsTable = function() {
+  const tb = document.getElementById('tbody-accounts') || 
+             document.querySelector('#module-accounts-vendors tbody') || 
+             document.querySelector('#module-11 tbody');
+  if (!tb) return;
+
+  const rows = window.accState.filteredData;
+  if (!rows || rows.length === 0) {
+    tb.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:1.5rem; color:#9ca3af;">No accounting transactions found for selected filters.</td></tr>';
+    return;
+  }
+
+  tb.innerHTML = rows.map(a => {
+    const isDebit = (a.type || 'Expense').toLowerCase().includes('expense') || (a.type || '').toLowerCase().includes('debit');
+    const typeBadge = isDebit 
+      ? '<span style="background:rgba(239,68,68,0.2); color:#ef4444; padding:0.2rem 0.5rem; border-radius:4px; font-weight:bold; font-size:0.75rem;">DEBIT (EXPENSE)</span>'
+      : '<span style="background:rgba(16,185,129,0.2); color:#10b981; padding:0.2rem 0.5rem; border-radius:4px; font-weight:bold; font-size:0.75rem;">CREDIT (INCOME)</span>';
+    
+    const dt = a.created_at ? new Date(a.created_at).toLocaleDateString('en-IN') : '-';
+    
+    return `
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.05); color:white;">
+        <td style="padding:0.65rem;">${typeBadge}</td>
+        <td style="padding:0.65rem; font-weight:bold;">${a.title || a.vendor_name || '-'} <br><small style="color:#9ca3af; font-weight:normal;">${dt}</small></td>
+        <td style="padding:0.65rem;">${a.category || '-'}</td>
+        <td style="padding:0.65rem; font-weight:bold; color:${isDebit ? '#ef4444' : '#10b981'};">₹${parseFloat(a.amount || 0).toFixed(2)}</td>
+        <td style="padding:0.65rem;"><span style="color:#f59e0b;">${a.status || 'Paid'}</span></td>
+        <td style="padding:0.65rem; text-align:center;">
+          <button onclick="window.deleteAccountEntry('${a.id}')" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:3px; cursor:pointer;">Delete</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+};
+
+window.deleteAccountEntry = async function(id) {
+  if (!confirm("Delete this transaction entry?")) return;
+  const db = window.supabaseClient || window.sbClient || window.supabase;
+  if (!db) return alert("Database not connected.");
+  await db.from('accounts_vendors').delete().eq('id', id);
+  window.loadAccounts();
+};
+
+// PRINT STATEMENT GENERATOR
+window.printAccountsStatement = function() {
+  const data = window.accState.filteredData || [];
+  if (data.length === 0) return alert("No transactions available under current filters to print.");
+
+  const periodText = document.getElementById('acc-filter-period')?.selectedOptions[0]?.text || 'All Time';
+  const typeText = document.getElementById('acc-filter-type')?.selectedOptions[0]?.text || 'All Transactions';
+  const vendorText = document.getElementById('acc-filter-vendor')?.value || 'All Vendors';
+
+  let totalDebit = 0;
+  let totalCredit = 0;
+
+  data.forEach(d => {
+    const isDebit = (d.type || 'Expense').toLowerCase().includes('expense') || (d.type || '').toLowerCase().includes('debit');
+    const amt = parseFloat(d.amount || 0);
+    if (isDebit) totalDebit += amt;
+    else totalCredit += amt;
+  });
+
+  const netBalance = totalCredit - totalDebit;
+
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Accounts & Vendor Statement - AASU AROGYAM ERP</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; color: #1e293b; }
+          .header { text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 10px; margin-bottom: 20px; }
+          .meta { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 0.9rem; background: #f8fafc; padding: 10px; border-radius: 4px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.85rem; }
+          th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; }
+          th { background: #0f172a; color: white; }
+          .summary { float: right; width: 300px; margin-top: 10px; }
+          .summary-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.95rem; }
+          .total { font-weight: bold; border-top: 2px solid #0f172a; padding-top: 5px; }
+          .footer { margin-top: 50px; text-align: center; font-size: 0.8rem; color: #64748b; border-top: 1px solid #cbd5e1; padding-top: 10px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h2 style="margin:0;">AASU AROGYAM AYURVEDIC CLINIC & HOSPITAL</h2>
+          <h4 style="margin:5px 0 0 0; color:#475569;">Accounts & Vendor Financial Statement</h4>
+        </div>
+        
+        <div class="meta">
+          <div><strong>Period:</strong> ${periodText}</div>
+          <div><strong>Filter Type:</strong> ${typeText}</div>
+          <div><strong>Vendor Scope:</strong> ${vendorText}</div>
+          <div><strong>Generated:</strong> ${new Date().toLocaleString('en-IN')}</div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Title / Vendor</th>
+              <th>Category</th>
+              <th>Status</th>
+              <th>Amount (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.map(d => {
+              const isDebit = (d.type || 'Expense').toLowerCase().includes('expense') || (d.type || '').toLowerCase().includes('debit');
+              const dt = d.created_at ? new Date(d.created_at).toLocaleDateString('en-IN') : '-';
+              return `
+                <tr>
+                  <td>${dt}</td>
+                  <td style="font-weight:bold; color:${isDebit?'#dc2626':'#16a34a'};">${isDebit ? 'DEBIT' : 'CREDIT'}</td>
+                  <td>${d.title || d.vendor_name || '-'}</td>
+                  <td>${d.category || '-'}</td>
+                  <td>${d.status || 'Paid'}</td>
+                  <td style="font-weight:bold;">₹${parseFloat(d.amount||0).toFixed(2)}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+
+        <div class="summary">
+          <div class="summary-row"><span>Total Credit (Income):</span><span style="color:#16a34a; font-weight:bold;">₹${totalCredit.toFixed(2)}</span></div>
+          <div class="summary-row"><span>Total Debit (Expense):</span><span style="color:#dc2626; font-weight:bold;">₹${totalDebit.toFixed(2)}</span></div>
+          <div class="summary-row total"><span>Net Balance:</span><span>₹${netBalance.toFixed(2)}</span></div>
+        </div>
+
+        <div style="clear:both;"></div>
+
+        <div class="footer">
+          Designed and Developed by U3S Web Developer, 7992616555
+        </div>
+        <script>window.onload = function() { window.print(); };<\/script>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+};
+
+document.addEventListener('DOMContentLoaded', () => setTimeout(window.loadAccounts, 300));
+</script>
 </head>
 <body>
 
