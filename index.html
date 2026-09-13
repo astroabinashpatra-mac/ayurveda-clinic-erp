@@ -556,6 +556,65 @@ window.deleteTherapy = async function(id) {
 
 document.addEventListener('DOMContentLoaded', () => setTimeout(window.loadTherapies, 300));
 </script>
+<script>
+// ==========================================
+// MODULE 9: EMPLOYEE HRMS SUPABASE ENGINE
+// ==========================================
+window.loadEmployees = async function() {
+  const db = window.supabaseClient || window.sbClient || window.supabase;
+  if (!db || typeof db.from !== 'function') return;
+
+  try {
+    const { data, error } = await db.from('employees').select('*').order('created_at', { ascending: false });
+    
+    const tb = document.getElementById('tbody-employees') || 
+               document.querySelector('#module-employee-hrms tbody') || 
+               document.querySelector('#module-9 tbody') ||
+               document.querySelectorAll('table tbody')[8];
+
+    if (!tb) return;
+
+    if (error) {
+      console.error("HRMS Fetch Error:", error.message);
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      tb.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:1.5rem; color:#9ca3af;">No employee records found in database. Click + Add Employee to create one.</td></tr>';
+      return;
+    }
+
+    tb.innerHTML = data.map(e => `
+      <tr style="border-bottom:1px solid rgba(255,255,255,0.05); color:white;">
+        <td style="padding:0.6rem; font-size:0.8rem; color:#9ca3af;">${e.id || '-'}</td>
+        <td style="padding:0.6rem; font-weight:bold;">${e.full_name || e.name || 'Unnamed Employee'}</td>
+        <td style="padding:0.6rem;">${e.role || e.designation || '-'}</td>
+        <td style="padding:0.6rem;">${e.department || 'General'}</td>
+        <td style="padding:0.6rem;">${e.phone || e.mobile_no || '-'}</td>
+        <td style="padding:0.6rem; color:#10b981;">₹${e.salary || e.base_salary || 0}</td>
+        <td style="padding:0.6rem; text-align:center;">
+          <button onclick="window.deleteEmployee('${e.id}')" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:3px; cursor:pointer;">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    console.error("Error loading employees:", err);
+  }
+};
+
+window.deleteEmployee = async function(id) {
+  if (!confirm("Delete this employee record from database?")) return;
+  const db = window.supabaseClient || window.sbClient || window.supabase;
+  if (!db) return alert("Database connection not ready.");
+  
+  const { error } = await db.from('employees').delete().eq('id', id);
+  if (error) return alert("Delete error: " + error.message);
+  alert("Employee record deleted!");
+  window.loadEmployees();
+};
+
+document.addEventListener('DOMContentLoaded', () => setTimeout(window.loadEmployees, 300));
+</script>
 </head>
 <body>
 
