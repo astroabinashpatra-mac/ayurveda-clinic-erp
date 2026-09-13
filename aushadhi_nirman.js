@@ -11,7 +11,9 @@ window.nrmState = {
 };
 
 function getDb() {
-  return window.sbClient || window.supabaseClient || (typeof supabase !== 'undefined' ? supabase : null);
+  const client = window.sbClient || window.supabaseClient;
+  if (client && typeof client.from === 'function') return client;
+  return null;
 }
 
 // 1. SELF-MOUNTING UI
@@ -145,7 +147,10 @@ function mountNirmanUI() {
 // 2. LOAD DATA
 async function loadNirman() {
   const db = getDb();
-  if (!db) return;
+  if (!db) {
+    setTimeout(loadNirman, 500);
+    return;
+  }
 
   try {
     const { data: raw } = await db.from('raw_materials').select('*').order('created_at', { ascending: false });
