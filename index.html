@@ -464,6 +464,38 @@ function removeRecipeIngredient(index) {
   </style>
                           <link rel="icon" type="image/png" href="data:image/png;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iI2ZmZmZmZiIvPgogIDwhLS0gQmx1ZSBIdW1hbiBGaWd1cmUgLyBTd2lybCAtLT4KICA8Y2lyY2xlIGN4PSIyNiIgY3k9IjE4IiByPSIzLjUiIGZpbGw9IiMwMjg0YzciLz4KICA8cGF0aCBkPSJNMjYgMjQgQzIwIDMwIDE4IDQyIDI3IDUyIEMyMSA0NCAyMSAzNCAyNyAyNiBaIiBmaWxsPSIjMDI4NGM3Ii8+CiAgPCEtLSBHcmVlbiBMZWFmIEVsZW1lbnQgLS0+CiAgPHBhdGggZD0iTTI5IDUyIEMzOCA0MiA0NSAyOCAzNiAxNiBDMzggMjggMzQgNDIgMjkgNTIgWiIgZmlsbD0iIzY1YTMwZCIvPgogIDxwYXRoIGQ9Ik0zMCA0OCBDMzcgMzggNDIgMjggMzYgMTggQzM4IDI4IDM0IDM4IDMwIDQ4IFoiIGZpbGw9IiM4NGNjMTYiLz4KPC9zdmc+Cg==">
   <link rel="apple-touch-icon" href="data:image/png;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iI2ZmZmZmZiIvPgogIDwhLS0gQmx1ZSBIdW1hbiBGaWd1cmUgLyBTd2lybCAtLT4KICA8Y2lyY2xlIGN4PSIyNiIgY3k9IjE4IiByPSIzLjUiIGZpbGw9IiMwMjg0YzciLz4KICA8cGF0aCBkPSJNMjYgMjQgQzIwIDMwIDE4IDQyIDI3IDUyIEMyMSA0NCAyMSAzNCAyNyAyNiBaIiBmaWxsPSIjMDI4NGM3Ii8+CiAgPCEtLSBHcmVlbiBMZWFmIEVsZW1lbnQgLS0+CiAgPHBhdGggZD0iTTI5IDUyIEMzOCA0MiA0NSAyOCAzNiAxNiBDMzggMjggMzQgNDIgMjkgNTIgWiIgZmlsbD0iIzY1YTMwZCIvPgogIDxwYXRoIGQ9Ik0zMCA0OCBDMzcgMzggNDIgMjggMzYgMTggQzM4IDI4IDM0IDM4IDMwIDQ4IFoiIGZpbGw9IiM4NGNjMTYiLz4KPC9zdmc+Cg==">
+<script>
+// Universal Supabase Client & ERP Auto-Sync Bridge
+(function() {
+  function getClient() {
+    try { if (typeof supabaseClient !== 'undefined' && supabaseClient && supabaseClient.from) return supabaseClient; } catch(e){}
+    try { if (typeof sbClient !== 'undefined' && sbClient && sbClient.from) return sbClient; } catch(e){}
+    if (window.supabaseClient && window.supabaseClient.from) return window.supabaseClient;
+    if (window.sbClient && window.sbClient.from) return window.sbClient;
+    return null;
+  }
+
+  let attempts = 0;
+  const bootTimer = setInterval(function() {
+    const client = getClient();
+    if (client) {
+      window.supabaseClient = client;
+      window.sbClient = client;
+      clearInterval(bootTimer);
+      
+      // Trigger data refresh across all core ERP modules
+      if (typeof loadDashboardStats === 'function') loadDashboardStats();
+      if (typeof loadPatients === 'function') loadPatients();
+      if (typeof renderPatientTable === 'function') renderPatientTable();
+      if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
+      if (typeof loadPharmacyStock === 'function') loadPharmacyStock();
+      if (typeof loadAccounts === 'function') loadAccounts();
+    }
+    attempts++;
+    if (attempts > 40) clearInterval(bootTimer);
+  }, 200);
+})();
+</script>
 </head>
 <body>
 
