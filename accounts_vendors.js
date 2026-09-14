@@ -481,3 +481,78 @@ document.addEventListener('DOMContentLoaded', () => {
     window.loadAccounts();
   }, 400);
 });
+
+
+// ==========================================
+// CENTRAL BILLING TO ACCOUNTS SYNC ENGINE
+// ==========================================
+
+window.syncBillToAccounts = async function(billData) {
+  if (!billData || !billData.amount) return;
+  const db = window.supabaseClient || window.sbClient || window.supabase;
+  if (!db || typeof db.from !== 'function') return;
+
+  const amt = parseFloat(billData.amount || 0);
+  if (isNaN(amt) || amt <= 0) return;
+
+  const isPending = (billData.status || '').toLowerCase() === 'pending';
+  const txnId = 'BILL-TXN-' + Date.now();
+  const dt = billData.date || new Date().toISOString().split('T')[0];
+
+  const payload = {
+    id: txnId,
+    date: dt,
+    type: isPending ? 'Pending Ledger' : 'Income Inflow',
+    title: `Patient Bill #${billData.invoice_no || 'INV-' + Date.now()} (${billData.patient_name || 'Clinical Patient'})`,
+    category: 'Patient Billing & Invoices',
+    amount: amt,
+    mode: billData.mode || 'Cash',
+    status: isPending ? 'Pending' : 'Paid',
+    created_at: new Date(dt).toISOString()
+  };
+
+  try {
+    const { error } = await db.from('accounts_vendors').insert([payload]);
+    if (error) {
+      console.error("Billing -> Accounts Sync Error:", error.message);
+    } else {
+      console.log("Invoice synced to Accounts & Vendors ledger:", payload);
+      if (typeof window.loadAccounts === 'function') {
+        window.loadAccounts();
+      }
+    }
+  } catch (err) {
+    console.error("Billing -> Accounts Sync Exception:", err);
+  }
+};
+
+// Global DOM Interceptor for Module 7 Billing Submissions
+document.addEventListener('submit', function(e) {
+  const form = e.target;
+  if (!form) return;
+  const fid = (form.id || '').toLowerCase();
+  
+  if (fid.includes('bill') || fid.includes('invoice') || fid.includes('central-billing')) {
+    setTimeout(() => {
+      const patientName = document.getElementById('bill-patient-name')?.value || 
+                          document.getElementById('patient-name')?.value || 
+                          document.getElementById('billing-patient')?.value || 'Clinical Patient';
+      const invNo = document.getElementById('bill-invoice-no')?.value || 
+                    document.getElementById('invoice-no')?.value || '';
+      const amt = document.getElementById('bill-total-amount')?.value || 
+                  document.getElementById('bill-amount')?.value || 
+                  document.getElementById('total-amount')?.value || 0;
+      const mode = document.getElementById('bill-payment-mode')?.value || 
+                   document.getElementById('payment-mode')?.value || 'Cash';
+      const status = document.getElementById('bill-status')?.value || 'Paid';
+
+      window.syncBillToAccounts({
+        invoice_no: invNo,
+        patient_name: patientName,
+        amount: amt,
+        mode: mode,
+        status: status
+      });
+    }, 400);
+  }
+}, true);
