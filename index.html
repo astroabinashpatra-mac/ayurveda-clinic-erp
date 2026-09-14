@@ -913,16 +913,70 @@ function removeRecipeIngredient(index) {
     </div>
 
     <!-- MODULE 11: ACCOUNTS & VENDORS -->
-    <div id="mod-accounts" class="module-section">
-      <div class="section-header">
-        <h2>🏛️ Accounts & Vendor Directory</h2>
-        <button class="btn btn-orange" onclick="openModal('md-acc-add')">+ Record Expense / Vendor Entry</button>
-      </div>
-      <table class="data-table">
-        <thead><tr><th>TYPE</th><th>TITLE / VENDOR</th><th>CATEGORY</th><th>AMOUNT (₹)</th><th>STATUS</th></tr></thead>
-        <tbody id="tbl-accounts"></tbody>
-      </table>
+<div id="mod-accounts" class="module-section">
+
+  <!-- KPI Overview Dashboard -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+    <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; border: 1px solid #334155;">
+      <span style="color: #9ca3af; font-size: 0.85rem; font-weight: bold;">TOTAL INCOME</span>
+      <h2 id="kpi-income" style="color: #10b981; margin: 0.3rem 0 0 0;">₹0.00</h2>
     </div>
+    <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; border: 1px solid #334155;">
+      <span style="color: #9ca3af; font-size: 0.85rem; font-weight: bold;">TOTAL EXPENSES</span>
+      <h2 id="kpi-expense" style="color: #ef4444; margin: 0.3rem 0 0 0;">₹0.00</h2>
+    </div>
+    <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; border: 1px solid #334155;">
+      <span style="color: #9ca3af; font-size: 0.85rem; font-weight: bold;">NET BALANCE</span>
+      <h2 id="kpi-net" style="color: #10b981; margin: 0.3rem 0 0 0;">₹0.00</h2>
+    </div>
+  </div>
+
+  <!-- Filter & Action Control Bar -->
+  <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+      <h3 style="color: #ea580c; margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+        🏛️ ACCOUNTS & VENDOR DIRECTORY
+      </h3>
+      <div style="display: flex; gap: 0.5rem;">
+        <button type="button" onclick="window.printAccountsStatement()" style="background: #475569; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold;">🖨️ Print Statement</button>
+        <button type="button" onclick="window.openRecordLedgerModal()" style="background: #ea580c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold;">+ Record Expense / Vendor Entry</button>
+      </div>
+    </div>
+
+    <!-- Filters Row -->
+    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.75rem;">
+      <input type="text" id="acc-search" oninput="window.applyAccountsFilters()" placeholder="🔍 Search description, vendor name, category..." style="padding: 0.55rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+      <select id="acc-filter-type" onchange="window.applyAccountsFilters()" style="padding: 0.55rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+        <option value="all">All Transaction Types</option>
+        <option value="debit">Expense Outflows Only</option>
+        <option value="credit">Income Inflows / Vendors</option>
+      </select>
+      <select id="acc-filter-period" onchange="window.applyAccountsFilters()" style="padding: 0.55rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+        <option value="all">All Time</option>
+        <option value="today">Today</option>
+        <option value="this_week">This Week</option>
+        <option value="this_month">This Month</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Unified Ledger & Vendor Table -->
+  <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1rem; overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+      <thead>
+        <tr style="color: #9ca3af; border-bottom: 1px solid #334155; font-size: 0.85rem;">
+          <th style="padding: 0.65rem;">TYPE</th>
+          <th style="padding: 0.65rem;">TITLE / VENDOR</th>
+          <th style="padding: 0.65rem;">CATEGORY</th>
+          <th style="padding: 0.65rem;">AMOUNT (₹)</th>
+          <th style="padding: 0.65rem;">STATUS</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-accounts"></tbody>
+    </table>
+  </div>
+
+</div>
 
     <!-- MODULE 12: CLINIC DOCUMENTS & CONSENT FORMS -->
     <div id="mod-documents" class="module-section">
