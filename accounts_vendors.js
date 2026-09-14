@@ -1,3 +1,22 @@
+
+// Safe helper to insert records into accounts_vendors regardless of table schema
+window.safeInsertAccounts = async function(payload) {
+  const db = window.supabaseClient || window.sbClient || window.supabase;
+  if (!db) return { error: { message: "Database client missing" } };
+
+  // First try inserting full payload
+  let { data, error } = await window.safeInsertAccounts(payload);
+  
+  // Fallback if 'type' column doesn't exist in table schema
+  if (error && (error.message.includes('type') || error.code === '42703')) {
+    const fallbackPayload = { ...payload };
+    delete fallbackPayload.type;
+    delete fallbackPayload.mode;
+    return await db.from('accounts_vendors').insert([fallbackPayload]);
+  }
+  return { data, error };
+};
+
 // ==========================================
 // MODULE 11: ACCOUNTS & VENDORS FULL ENGINE
 // ==========================================
@@ -198,7 +217,7 @@ window.saveVendor = async function() {
         status: gst || 'Active',
         created_at: payload.created_at
       };
-      const res = await db.from('accounts_vendors').insert([altPayload]);
+      const res = await window.safeInsertAccounts(altPayload);
       error = res.error;
     }
 
@@ -318,7 +337,7 @@ window.saveLedgerEntry = async function() {
   };
 
   try {
-    const { error } = await db.from('accounts_vendors').insert([payload]);
+    const { error } = await window.safeInsertAccounts(payload);
     if (error) return alert("Save Ledger Error: " + error.message);
 
     alert("Ledger entry saved successfully!");
@@ -335,7 +354,7 @@ window.loadAccounts = async function() {
   if (!db || typeof db.from !== 'function') return;
 
   try {
-    const { data, error } = await db.from('accounts_vendors').select('*').neq('type', 'Vendor_Registration').order('created_at', { ascending: false });
+    const { data, error } = await db.from('accounts_vendors').select('*').order('created_at', { ascending: false });
     if (error) return console.error("Accounts Fetch Error:", error.message);
 
     window.accState.ledger = data || [];
@@ -512,7 +531,7 @@ window.syncBillToAccounts = async function(billData) {
   };
 
   try {
-    const { error } = await db.from('accounts_vendors').insert([payload]);
+    const { error } = await window.safeInsertAccounts(payload);
     if (error) {
       console.error("Billing -> Accounts Sync Error:", error.message);
     } else {
