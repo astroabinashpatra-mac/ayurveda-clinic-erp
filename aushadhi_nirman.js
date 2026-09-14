@@ -1034,3 +1034,75 @@ window.nrmSaveRM = async function() {
     alert("Operation failed: " + err.message);
   }
 };
+
+
+
+// ==========================================
+// BULLETPROOF MASTER RECIPES RENDER ENGINE
+// ==========================================
+window.renderMasterRecipesTable = function() {
+  const tb = document.getElementById('tbody-master-recipes') || document.getElementById('tbody-recipes');
+  if (!tb) return;
+
+  const recipes = (window.nrmState && window.nrmState.recipes) ? window.nrmState.recipes : [];
+  const rawMaterials = (window.nrmState && window.nrmState.raw) ? window.nrmState.raw : [];
+
+  if (!recipes || recipes.length === 0) {
+    tb.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 1.5rem; color: #9ca3af;">No master recipes configured. Click + Add Master Recipe to create one.</td></tr>';
+    return;
+  }
+
+  tb.innerHTML = recipes.map(r => {
+    try {
+      let ingText = [];
+
+      // 1. Try parsing JSON ingredients column
+      if (r.ingredients) {
+        let ingData = r.ingredients;
+        if (typeof ingData === 'string') {
+          try { ingData = JSON.parse(ingData); } catch(e) {}
+        }
+        if (Array.isArray(ingData)) {
+          ingText = ingData.map(item => {
+            const matchedRaw = rawMaterials.find(rm => rm.id === item.id || rm.id === item.raw_id || String(rm.id) === String(item.id));
+            const rawName = matchedRaw ? matchedRaw.name : (item.name || item.id || 'Material');
+            const qty = item.qty || item.req_qty || item.quantity || 0;
+            const unit = matchedRaw ? (matchedRaw.unit || '') : (item.unit || '');
+            return `${rawName} (${qty} ${unit})`.trim();
+          });
+        }
+      }
+
+      // 2. Fallback to legacy raw_req_id & req_qty_per_unit if ingredients array is empty
+      if (ingText.length === 0 && r.raw_req_id) {
+        const matchedRaw = rawMaterials.find(rm => rm.id === r.raw_req_id || String(rm.id) === String(r.raw_req_id));
+        const rawName = matchedRaw ? matchedRaw.name : r.raw_req_id;
+        const qty = r.req_qty_per_unit || 0;
+        const unit = matchedRaw ? (matchedRaw.unit || '') : '';
+        ingText.push(`${rawName} (${qty} ${unit})`.trim());
+      }
+
+      const ingDisplay = ingText.length > 0 
+        ? ingText.join(', ') 
+        : '<span style="color: #64748b; font-style: italic;">No ingredients listed</span>';
+
+      return `
+        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); color: white;">
+          <td style="padding: 0.75rem; font-weight: bold; color: #9ca3af; font-size: 0.85rem;">${r.id || '-'}</td>
+          <td style="padding: 0.75rem; font-weight: bold; color: white;">${r.name || '-'}</td>
+          <td style="padding: 0.75rem; font-family: monospace; color: #cbd5e1;">${r.barcode || '-'}</td>
+          <td style="padding: 0.75rem; font-size: 0.85rem; color: #e2e8f0;">${ingDisplay}</td>
+          <td style="padding: 0.75rem;">
+            <button onclick="window.editRecipe('${r.id}')" style="background: #2563eb; color: white; border: none; padding: 0.25rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; margin-right: 0.4rem;">Edit</button>
+            <button onclick="window.deleteRecipe('${r.id}')" style="background: #dc2626; color: white; border: none; padding: 0.25rem 0.6rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">Delete</button>
+          </td>
+        </tr>
+      `;
+    } catch (err) {
+      console.error("Error rendering recipe row:", err, r);
+      return '';
+    }
+  }).join('');
+};
+
+window.renderRecipesTable = window.renderMasterRecipesTable;
