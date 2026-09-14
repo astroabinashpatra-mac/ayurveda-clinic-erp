@@ -311,20 +311,17 @@ window.nrmSaveRM = async function() {
       name: name,
       category: cat,
       unit: unit,
-      stock: qty,
-      status: qty <= reorder ? 'LOW STOCK' : 'SUFFICIENT'
+      stock: qty
     };
 
     if (window.nrmEditingRMId) {
-      // 1. Try update with reorder_limit & purchase_rate
       let { error } = await db.from('raw_materials').update({
         ...basePayload,
         reorder_limit: reorder,
         purchase_rate: cost
       }).eq('id', window.nrmEditingRMId);
 
-      // 2. Fallback if column names differ in Supabase schema
-      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.code === '42703')) {
+      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.message.includes('status') || error.code === '42703')) {
         let res = await db.from('raw_materials').update({
           ...basePayload,
           reorder: reorder,
@@ -332,7 +329,6 @@ window.nrmSaveRM = async function() {
         }).eq('id', window.nrmEditingRMId);
 
         if (res.error) {
-          // 3. Final fallback with essential core columns only
           const minRes = await db.from('raw_materials').update(basePayload).eq('id', window.nrmEditingRMId);
           error = minRes.error;
         } else {
@@ -352,7 +348,7 @@ window.nrmSaveRM = async function() {
       };
 
       let { error } = await db.from('raw_materials').insert([insertPayload]);
-      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.code === '42703')) {
+      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.message.includes('status') || error.code === '42703')) {
         let res = await db.from('raw_materials').insert([{ id: newId, ...basePayload, reorder: reorder, cost: cost }]);
         if (res.error) {
           res = await db.from('raw_materials').insert([{ id: newId, ...basePayload }]);
@@ -1024,20 +1020,17 @@ window.nrmSaveRM = async function() {
       name: name,
       category: cat,
       unit: unit,
-      stock: qty,
-      status: qty <= reorder ? 'LOW STOCK' : 'SUFFICIENT'
+      stock: qty
     };
 
     if (window.nrmEditingRMId) {
-      // 1. Try update with reorder_limit & purchase_rate
       let { error } = await db.from('raw_materials').update({
         ...basePayload,
         reorder_limit: reorder,
         purchase_rate: cost
       }).eq('id', window.nrmEditingRMId);
 
-      // 2. Fallback if column names differ in Supabase schema
-      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.code === '42703')) {
+      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.message.includes('status') || error.code === '42703')) {
         let res = await db.from('raw_materials').update({
           ...basePayload,
           reorder: reorder,
@@ -1045,7 +1038,6 @@ window.nrmSaveRM = async function() {
         }).eq('id', window.nrmEditingRMId);
 
         if (res.error) {
-          // 3. Final fallback with essential core columns only
           const minRes = await db.from('raw_materials').update(basePayload).eq('id', window.nrmEditingRMId);
           error = minRes.error;
         } else {
@@ -1065,7 +1057,7 @@ window.nrmSaveRM = async function() {
       };
 
       let { error } = await db.from('raw_materials').insert([insertPayload]);
-      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.code === '42703')) {
+      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.message.includes('status') || error.code === '42703')) {
         let res = await db.from('raw_materials').insert([{ id: newId, ...basePayload, reorder: reorder, cost: cost }]);
         if (res.error) {
           res = await db.from('raw_materials').insert([{ id: newId, ...basePayload }]);
