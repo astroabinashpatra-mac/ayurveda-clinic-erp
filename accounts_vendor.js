@@ -1,12 +1,11 @@
-
 // Safe helper to insert records into accounts_vendors regardless of table schema
 window.safeInsertAccounts = async function(payload) {
   const db = window.supabaseClient || window.sbClient || window.supabase;
   if (!db) return { error: { message: "Database client missing" } };
 
-  // First try inserting full payload
-  let { data, error } = await window.safeInsertAccounts(payload);
-  
+  // First try inserting full payload into accounts_vendors
+  let { data, error } = await db.from('accounts_vendors').insert([payload]);
+
   // Fallback if 'type' column doesn't exist in table schema
   if (error && (error.message.includes('type') || error.code === '42703')) {
     const fallbackPayload = { ...payload };
@@ -45,16 +44,16 @@ function ensureAccountsModals() {
           <h3 style="color: white; margin: 0; font-size: 1.15rem;">+ Register Supplier / Vendor</h3>
           <button onclick="window.closeRegisterVendorModal()" style="background: none; border: none; color: #9ca3af; font-size: 1.5rem; cursor: pointer; line-height: 1;">&times;</button>
         </div>
-        
+
         <div style="margin-bottom: 1rem;">
           <label for="vnd-name" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Company / Vendor Name *</label>
-          <input name="vnd-name"   type="text" id="vnd-name" placeholder="e.g. Dabur India Ltd / Apex Lab Supplies" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+          <input name="vnd-name" type="text" id="vnd-name" placeholder="e.g. Dabur India Ltd / Apex Lab Supplies" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
           <div>
             <label for="vnd-cat" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Category</label>
-            <select name="vnd-cat"   id="vnd-cat" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <select name="vnd-cat" id="vnd-cat" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
               <option value="Raw Material Supplier">Raw Material Supplier</option>
               <option value="Herbal Pharma">Herbal Pharma</option>
               <option value="Equipment & Instruments">Equipment & Instruments</option>
@@ -65,24 +64,24 @@ function ensureAccountsModals() {
           </div>
           <div>
             <label for="vnd-mobile" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Mobile Number *</label>
-            <input name="vnd-mobile"   type="text" id="vnd-mobile" placeholder="e.g. 9876543210" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <input name="vnd-mobile" type="text" id="vnd-mobile" placeholder="e.g. 9876543210" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
           </div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
           <div>
             <label for="vnd-email" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Email ID</label>
-            <input name="vnd-email"   type="email" id="vnd-email" placeholder="vendor@example.com" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <input name="vnd-email" type="email" id="vnd-email" placeholder="vendor@example.com" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
           </div>
           <div>
             <label for="vnd-gst" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">GST No.</label>
-            <input name="vnd-gst"   type="text" id="vnd-gst" placeholder="e.g. 21AAAAA0000A1Z5" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <input name="vnd-gst" type="text" id="vnd-gst" placeholder="e.g. 21AAAAA0000A1Z5" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
           </div>
         </div>
 
         <div style="margin-bottom: 1.5rem;">
           <label for="vnd-address" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Address</label>
-          <textarea name="vnd-address"   id="vnd-address" rows="2" placeholder="Full business address..." style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box; resize: vertical;"></textarea>
+          <textarea name="vnd-address" id="vnd-address" rows="2" placeholder="Full business address..." style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box; resize: vertical;"></textarea>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
@@ -103,11 +102,11 @@ function ensureAccountsModals() {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
           <div>
             <label for="ldr-date" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">DATE *</label>
-            <input name="ldr-date"   type="date" id="ldr-date" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <input name="ldr-date" type="date" id="ldr-date" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
           </div>
           <div>
             <label for="ldr-type" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">TYPE *</label>
-            <select name="ldr-type"   id="ldr-type" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <select name="ldr-type" id="ldr-type" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
               <option value="Expense Outflow">✓ Expense Outflow</option>
               <option value="Income Inflow">Income Inflow</option>
             </select>
@@ -116,17 +115,17 @@ function ensureAccountsModals() {
 
         <div style="margin-bottom: 1rem;">
           <label for="ldr-particulars" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">PARTICULARS / CATEGORY *</label>
-          <input name="ldr-particulars"   type="text" id="ldr-particulars" placeholder="e.g. Raw Material Purchase / Electricity Bill / Patient Fee" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+          <input name="ldr-particulars" type="text" id="ldr-particulars" placeholder="e.g. Raw Material Purchase / Electricity Bill / Patient Fee" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
           <div>
             <label for="ldr-amount" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">AMOUNT (₹) *</label>
-            <input name="ldr-amount"   type="number" step="0.01" id="ldr-amount" placeholder="0.00" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <input name="ldr-amount" type="number" step="0.01" id="ldr-amount" placeholder="0.00" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
           </div>
           <div>
             <label for="ldr-mode" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">PAYMENT MODE</label>
-            <select name="ldr-mode"   id="ldr-mode" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <select name="ldr-mode" id="ldr-mode" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
               <option value="Cash">Cash</option>
               <option value="UPI / Online">UPI / Online</option>
               <option value="Bank Transfer">Bank Transfer</option>
@@ -152,7 +151,7 @@ window.openRegisterVendorModal = function() {
   if (document.getElementById('vnd-email')) document.getElementById('vnd-email').value = '';
   if (document.getElementById('vnd-gst')) document.getElementById('vnd-gst').value = '';
   if (document.getElementById('vnd-address')) document.getElementById('vnd-address').value = '';
-  
+
   const m = document.getElementById('modal-register-vendor');
   if (m) m.style.display = 'flex';
 };
@@ -168,7 +167,7 @@ window.openRecordLedgerModal = function() {
   if (document.getElementById('ldr-date')) document.getElementById('ldr-date').value = new Date().toISOString().split('T')[0];
   if (document.getElementById('ldr-particulars')) document.getElementById('ldr-particulars').value = '';
   if (document.getElementById('ldr-amount')) document.getElementById('ldr-amount').value = '';
-  
+
   const m = document.getElementById('modal-record-ledger');
   if (m) m.style.display = 'flex';
 };
@@ -239,7 +238,7 @@ window.loadVendors = async function() {
   try {
     let vendors = [];
     const { data, error } = await db.from('accounts_vendors').select('*');
-    
+
     if (!error && data) {
       vendors = data;
     } else {
@@ -306,7 +305,6 @@ window.deleteVendor = async function(id) {
   if (!db) return alert("Database not ready.");
 
   await db.from('accounts_vendors').delete().eq('id', id);
-  await db.from('accounts_vendors').delete().eq('id', id);
   alert("Vendor deleted!");
   window.loadVendors();
 };
@@ -363,7 +361,6 @@ window.loadAccounts = async function() {
     console.error("Error loading accounts:", err);
   }
 };
-
 
 window.applyAccountsFilters = function() {
   const search = (document.getElementById('acc-ledger-search')?.value || '').toLowerCase();
@@ -427,7 +424,6 @@ window.applyAccountsFilters = function() {
     return true;
   });
 
-  // Apply Sorting
   filtered.sort((a, b) => {
     const dateA = new Date(a.date || a.created_at || 0).getTime();
     const dateB = new Date(b.date || b.created_at || 0).getTime();
@@ -460,7 +456,7 @@ window.renderAccountsTable = function() {
     const badge = isOutflow 
       ? '<span style="background: rgba(239,68,68,0.2); color: #ef4444; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.75rem;">Expense Outflow</span>'
       : '<span style="background: rgba(16,185,129,0.2); color: #10b981; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.75rem;">Income Inflow</span>';
-    
+
     const dt = a.date || (a.created_at ? new Date(a.created_at).toLocaleDateString('en-IN') : '-');
 
     return `
@@ -523,7 +519,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 400);
 });
 
-
 // ==========================================
 // CENTRAL BILLING TO ACCOUNTS SYNC ENGINE
 // ==========================================
@@ -572,7 +567,7 @@ document.addEventListener('submit', function(e) {
   const form = e.target;
   if (!form) return;
   const fid = (form.id || '').toLowerCase();
-  
+
   if (fid.includes('bill') || fid.includes('invoice') || fid.includes('central-billing')) {
     setTimeout(() => {
       const patientName = document.getElementById('bill-patient-name')?.value || 
@@ -598,17 +593,14 @@ document.addEventListener('submit', function(e) {
   }
 }, true);
 
-
-
 // SAFE ACCOUNTS & VENDORS LOADER ENGINE
 window.loadAccountsAndVendors = async function() {
   const db = window.supabaseClient || window.sbClient || window.supabase;
   if (!db) return;
 
   try {
-    // 1. Fetch records safely from accounts_vendors table
     let { data, error } = await db.from('accounts_vendors').select('*');
-    
+
     if (error) {
       console.warn("Accounts fetch fallback:", error.message);
       data = [];
@@ -616,8 +608,7 @@ window.loadAccountsAndVendors = async function() {
 
     const items = data || [];
     window.accState = window.accState || {};
-    
-    // Separate Vendors from Financial Ledger in memory
+
     window.accState.vendors = items.filter(i => i.is_vendor || i.type === 'Vendor' || i.category === 'Vendor_Registration' || i.company_name);
     window.accState.ledger = items.filter(i => !i.company_name);
     window.accState.filteredLedger = [...window.accState.ledger];
