@@ -294,52 +294,93 @@ window.closeMasterRecipeModal = function() {
 // ==========================================
 
 window.nrmSaveRM = async function() {
+  const name = document.getElementById('nrm-rm-name')?.value?.trim();
+  const cat = document.getElementById('nrm-rm-cat')?.value;
+  const unit = document.getElementById('nrm-rm-unit')?.value;
+  const qty = parseFloat(document.getElementById('nrm-rm-qty')?.value || 0);
+  const reorder = parseFloat(document.getElementById('nrm-rm-reorder')?.value || 10);
+  const cost = parseFloat(document.getElementById('nrm-rm-cost')?.value || 0);
+
+  if (!name) return alert("Please enter material name.");
+
+  const db = window.supabaseClient || window.sbClient || window.supabase;
+  if (!db || typeof db.from !== 'function') return alert("Database connection not ready.");
+
   try {
-    const db = window.supabaseClient || window.sbClient || window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
-    if (!db) return alert("Database connection not ready.");
-
-    const name = document.getElementById('nrm-rm-name') ? document.getElementById('nrm-rm-name').value.trim() : '';
-    const cat = document.getElementById('nrm-rm-cat') ? document.getElementById('nrm-rm-cat').value : 'Herbs';
-    const unit = document.getElementById('nrm-rm-unit') ? document.getElementById('nrm-rm-unit').value : 'gms';
-    const qty = document.getElementById('nrm-rm-qty') ? parseFloat(document.getElementById('nrm-rm-qty').value) : 0;
-    const reorder = document.getElementById('nrm-rm-reorder') ? parseFloat(document.getElementById('nrm-rm-reorder').value) : 10;
-    const cost = document.getElementById('nrm-rm-cost') ? parseFloat(document.getElementById('nrm-rm-cost').value) : 0;
-
-    if (!name || isNaN(qty) || isNaN(cost)) {
-      return alert("Please fill in Material Name, Initial Quantity, and Total Cost.");
-    }
-
-    const payload = {
-      id: 'RAW-' + Date.now(),
+    const basePayload = {
       name: name,
       category: cat,
       unit: unit,
       stock: qty,
-      reorder: reorder,
-      purchase_rate: cost
+      status: qty <= reorder ? 'LOW STOCK' : 'SUFFICIENT'
     };
 
-    const { error } = await db.from('raw_materials').insert([payload]);
-    if (error) return alert("Database Error: " + error.message);
+    if (window.nrmEditingRMId) {
+      // 1. Try update with reorder_limit & purchase_rate
+      let { error } = await db.from('raw_materials').update({
+        ...basePayload,
+        reorder_limit: reorder,
+        purchase_rate: cost
+      }).eq('id', window.nrmEditingRMId);
 
-    try {
-      await db.from('accounts_vendors').insert([{
-        type: 'Expense',
-        title: `RM Purchase: ${name}`,
-        category: 'Raw Materials',
-        amount: cost,
-        status: 'Paid'
-      }]);
-    } catch (e) { console.warn("Accounts sync skipped", e); }
+      // 2. Fallback if column names differ in Supabase schema
+      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.code === '42703')) {
+        let res = await db.from('raw_materials').update({
+          ...basePayload,
+          reorder: reorder,
+          cost: cost
+        }).eq('id', window.nrmEditingRMId);
 
-    alert("Raw Material saved & Expense synced to Accounts!");
-    const modal = document.getElementById('nrm-modal-rm');
-    if (modal) modal.style.display = 'none';
+        if (res.error) {
+          // 3. Final fallback with essential core columns only
+          const minRes = await db.from('raw_materials').update(basePayload).eq('id', window.nrmEditingRMId);
+          error = minRes.error;
+        } else {
+          error = null;
+        }
+      }
 
-    if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
-    else if (typeof loadNirmanData === 'function') loadNirmanData();
-  } catch (err) {
-    alert("Save Error: " + err.message);
+      if (error) return alert("Update error: " + error.message);
+      alert("Raw material updated successfully!");
+    } else {
+      const newId = 'RAW-' + Date.now();
+      let insertPayload = {
+        id: newId,
+        ...basePayload,
+        reorder_limit: reorder,
+        purchase_rate: cost
+      };
+
+      let { error } = await db.from('raw_materials').insert([insertPayload]);
+      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.code === '42703')) {
+        let res = await db.from('raw_materials').insert([{ id: newId, ...basePayload, reorder: reorder, cost: cost }]);
+        if (res.error) {
+          res = await db.from('raw_materials').insert([{ id: newId, ...basePayload }]);
+        }
+        error = res.error;
+      }
+
+      if (error) return alert("Save error: " + error.message);
+
+      if (cost > 0 && typeof window.safeInsertAccounts === 'function') {
+        await window.safeInsertAccounts({
+          type: 'Expense',
+          title: `Raw Material Purchase: ${name}`,
+          category: 'Aushadhi Nirman Procurement',
+          amount: cost,
+          status: 'Paid',
+          created_at: new Date().toISOString()
+        });
+      }
+      alert("Raw material created successfully!");
+    }
+
+    window.closeRawMaterialModal();
+    if (typeof window.loadAushadhiNirmanData === 'function') window.loadAushadhiNirmanData();
+    else location.reload();
+  } catch(err) {
+    console.error("Save RM Error:", err);
+    alert("Operation failed: " + err.message);
   }
 };
 
@@ -976,49 +1017,73 @@ window.nrmSaveRM = async function() {
   if (!name) return alert("Please enter material name.");
 
   const db = window.supabaseClient || window.sbClient || window.supabase;
-  if (!db || typeof db.from !== 'function') return alert("Database not connected.");
+  if (!db || typeof db.from !== 'function') return alert("Database connection not ready.");
 
   try {
+    const basePayload = {
+      name: name,
+      category: cat,
+      unit: unit,
+      stock: qty,
+      status: qty <= reorder ? 'LOW STOCK' : 'SUFFICIENT'
+    };
+
     if (window.nrmEditingRMId) {
-      // UPDATE Existing Record
-      const { error } = await db.from('raw_materials').update({
-        name: name,
-        category: cat,
-        unit: unit,
-        stock: qty,
+      // 1. Try update with reorder_limit & purchase_rate
+      let { error } = await db.from('raw_materials').update({
+        ...basePayload,
         reorder_limit: reorder,
-        purchase_rate: cost,
-        status: qty <= reorder ? 'LOW STOCK' : 'SUFFICIENT'
+        purchase_rate: cost
       }).eq('id', window.nrmEditingRMId);
+
+      // 2. Fallback if column names differ in Supabase schema
+      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.code === '42703')) {
+        let res = await db.from('raw_materials').update({
+          ...basePayload,
+          reorder: reorder,
+          cost: cost
+        }).eq('id', window.nrmEditingRMId);
+
+        if (res.error) {
+          // 3. Final fallback with essential core columns only
+          const minRes = await db.from('raw_materials').update(basePayload).eq('id', window.nrmEditingRMId);
+          error = minRes.error;
+        } else {
+          error = null;
+        }
+      }
 
       if (error) return alert("Update error: " + error.message);
       alert("Raw material updated successfully!");
     } else {
-      // INSERT New Record
       const newId = 'RAW-' + Date.now();
-      const payload = {
+      let insertPayload = {
         id: newId,
-        name: name,
-        category: cat,
-        unit: unit,
-        stock: qty,
+        ...basePayload,
         reorder_limit: reorder,
-        purchase_rate: cost,
-        status: qty <= reorder ? 'LOW STOCK' : 'SUFFICIENT'
+        purchase_rate: cost
       };
 
-      const { error } = await db.from('raw_materials').insert([payload]);
+      let { error } = await db.from('raw_materials').insert([insertPayload]);
+      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.code === '42703')) {
+        let res = await db.from('raw_materials').insert([{ id: newId, ...basePayload, reorder: reorder, cost: cost }]);
+        if (res.error) {
+          res = await db.from('raw_materials').insert([{ id: newId, ...basePayload }]);
+        }
+        error = res.error;
+      }
+
       if (error) return alert("Save error: " + error.message);
 
-      if (cost > 0) {
-        await db.from('accounts_vendors').insert([{
+      if (cost > 0 && typeof window.safeInsertAccounts === 'function') {
+        await window.safeInsertAccounts({
           type: 'Expense',
           title: `Raw Material Purchase: ${name}`,
           category: 'Aushadhi Nirman Procurement',
           amount: cost,
           status: 'Paid',
           created_at: new Date().toISOString()
-        }]);
+        });
       }
       alert("Raw material created successfully!");
     }
