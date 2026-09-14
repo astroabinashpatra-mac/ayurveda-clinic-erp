@@ -293,74 +293,44 @@ window.closeMasterRecipeModal = function() {
 // EXPLICIT GLOBAL BINDINGS FOR SAVE & RECIPES
 // ==========================================
 
+
+// ==========================================
+// BULLETPROOF RAW MATERIAL UPDATE ENGINE
+// ==========================================
 window.nrmSaveRM = async function() {
   const name = document.getElementById('nrm-rm-name')?.value?.trim();
-  const cat = document.getElementById('nrm-rm-cat')?.value;
-  const unit = document.getElementById('nrm-rm-unit')?.value;
+  const cat = document.getElementById('nrm-rm-cat')?.value || 'Herbs';
+  const unit = document.getElementById('nrm-rm-unit')?.value || 'kg';
   const qty = parseFloat(document.getElementById('nrm-rm-qty')?.value || 0);
-  const reorder = parseFloat(document.getElementById('nrm-rm-reorder')?.value || 10);
   const cost = parseFloat(document.getElementById('nrm-rm-cost')?.value || 0);
 
   if (!name) return alert("Please enter material name.");
 
   const db = window.supabaseClient || window.sbClient || window.supabase;
-  if (!db || typeof db.from !== 'function') return alert("Database connection not ready.");
+  if (!db || typeof db.from !== 'function') return alert("Database client not ready.");
+
+  // Payload containing ONLY columns existing in Supabase raw_materials table
+  const cleanPayload = {
+    name: name,
+    category: cat,
+    unit: unit,
+    stock: qty
+  };
 
   try {
-    const basePayload = {
-      name: name,
-      category: cat,
-      unit: unit,
-      stock: qty
-    };
-
     if (window.nrmEditingRMId) {
-      let { error } = await db.from('raw_materials').update({
-        ...basePayload,
-        reorder_limit: reorder,
-        purchase_rate: cost
-      }).eq('id', window.nrmEditingRMId);
-
-      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.message.includes('status') || error.code === '42703')) {
-        let res = await db.from('raw_materials').update({
-          ...basePayload,
-          reorder: reorder,
-          cost: cost
-        }).eq('id', window.nrmEditingRMId);
-
-        if (res.error) {
-          const minRes = await db.from('raw_materials').update(basePayload).eq('id', window.nrmEditingRMId);
-          error = minRes.error;
-        } else {
-          error = null;
-        }
-      }
-
+      // UPDATE: Transmit only name, category, unit, stock
+      const { error } = await db.from('raw_materials').update(cleanPayload).eq('id', window.nrmEditingRMId);
       if (error) return alert("Update error: " + error.message);
       alert("Raw material updated successfully!");
     } else {
+      // INSERT: New ID + core payload
       const newId = 'RAW-' + Date.now();
-      let insertPayload = {
-        id: newId,
-        ...basePayload,
-        reorder_limit: reorder,
-        purchase_rate: cost
-      };
-
-      let { error } = await db.from('raw_materials').insert([insertPayload]);
-      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.message.includes('status') || error.code === '42703')) {
-        let res = await db.from('raw_materials').insert([{ id: newId, ...basePayload, reorder: reorder, cost: cost }]);
-        if (res.error) {
-          res = await db.from('raw_materials').insert([{ id: newId, ...basePayload }]);
-        }
-        error = res.error;
-      }
-
+      const { error } = await db.from('raw_materials').insert([{ id: newId, ...cleanPayload }]);
       if (error) return alert("Save error: " + error.message);
 
       if (cost > 0 && typeof window.safeInsertAccounts === 'function') {
         await window.safeInsertAccounts({
-          type: 'Expense',
           title: `Raw Material Purchase: ${name}`,
           category: 'Aushadhi Nirman Procurement',
           amount: cost,
@@ -372,8 +342,11 @@ window.nrmSaveRM = async function() {
     }
 
     window.closeRawMaterialModal();
-    if (typeof window.loadAushadhiNirmanData === 'function') window.loadAushadhiNirmanData();
-    else location.reload();
+    if (typeof window.loadAushadhiNirmanData === 'function') {
+      window.loadAushadhiNirmanData();
+    } else {
+      location.reload();
+    }
   } catch(err) {
     console.error("Save RM Error:", err);
     alert("Operation failed: " + err.message);
@@ -1002,74 +975,44 @@ window.editRawMaterial = async function(id) {
 
 window.nrmEditRM = window.editRawMaterial;
 
+
+// ==========================================
+// BULLETPROOF RAW MATERIAL UPDATE ENGINE
+// ==========================================
 window.nrmSaveRM = async function() {
   const name = document.getElementById('nrm-rm-name')?.value?.trim();
-  const cat = document.getElementById('nrm-rm-cat')?.value;
-  const unit = document.getElementById('nrm-rm-unit')?.value;
+  const cat = document.getElementById('nrm-rm-cat')?.value || 'Herbs';
+  const unit = document.getElementById('nrm-rm-unit')?.value || 'kg';
   const qty = parseFloat(document.getElementById('nrm-rm-qty')?.value || 0);
-  const reorder = parseFloat(document.getElementById('nrm-rm-reorder')?.value || 10);
   const cost = parseFloat(document.getElementById('nrm-rm-cost')?.value || 0);
 
   if (!name) return alert("Please enter material name.");
 
   const db = window.supabaseClient || window.sbClient || window.supabase;
-  if (!db || typeof db.from !== 'function') return alert("Database connection not ready.");
+  if (!db || typeof db.from !== 'function') return alert("Database client not ready.");
+
+  // Payload containing ONLY columns existing in Supabase raw_materials table
+  const cleanPayload = {
+    name: name,
+    category: cat,
+    unit: unit,
+    stock: qty
+  };
 
   try {
-    const basePayload = {
-      name: name,
-      category: cat,
-      unit: unit,
-      stock: qty
-    };
-
     if (window.nrmEditingRMId) {
-      let { error } = await db.from('raw_materials').update({
-        ...basePayload,
-        reorder_limit: reorder,
-        purchase_rate: cost
-      }).eq('id', window.nrmEditingRMId);
-
-      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.message.includes('status') || error.code === '42703')) {
-        let res = await db.from('raw_materials').update({
-          ...basePayload,
-          reorder: reorder,
-          cost: cost
-        }).eq('id', window.nrmEditingRMId);
-
-        if (res.error) {
-          const minRes = await db.from('raw_materials').update(basePayload).eq('id', window.nrmEditingRMId);
-          error = minRes.error;
-        } else {
-          error = null;
-        }
-      }
-
+      // UPDATE: Transmit only name, category, unit, stock
+      const { error } = await db.from('raw_materials').update(cleanPayload).eq('id', window.nrmEditingRMId);
       if (error) return alert("Update error: " + error.message);
       alert("Raw material updated successfully!");
     } else {
+      // INSERT: New ID + core payload
       const newId = 'RAW-' + Date.now();
-      let insertPayload = {
-        id: newId,
-        ...basePayload,
-        reorder_limit: reorder,
-        purchase_rate: cost
-      };
-
-      let { error } = await db.from('raw_materials').insert([insertPayload]);
-      if (error && (error.message.includes('reorder_limit') || error.message.includes('purchase_rate') || error.message.includes('status') || error.code === '42703')) {
-        let res = await db.from('raw_materials').insert([{ id: newId, ...basePayload, reorder: reorder, cost: cost }]);
-        if (res.error) {
-          res = await db.from('raw_materials').insert([{ id: newId, ...basePayload }]);
-        }
-        error = res.error;
-      }
-
+      const { error } = await db.from('raw_materials').insert([{ id: newId, ...cleanPayload }]);
       if (error) return alert("Save error: " + error.message);
 
       if (cost > 0 && typeof window.safeInsertAccounts === 'function') {
         await window.safeInsertAccounts({
-          type: 'Expense',
           title: `Raw Material Purchase: ${name}`,
           category: 'Aushadhi Nirman Procurement',
           amount: cost,
@@ -1081,8 +1024,11 @@ window.nrmSaveRM = async function() {
     }
 
     window.closeRawMaterialModal();
-    if (typeof window.loadAushadhiNirmanData === 'function') window.loadAushadhiNirmanData();
-    else location.reload();
+    if (typeof window.loadAushadhiNirmanData === 'function') {
+      window.loadAushadhiNirmanData();
+    } else {
+      location.reload();
+    }
   } catch(err) {
     console.error("Save RM Error:", err);
     alert("Operation failed: " + err.message);
