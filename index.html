@@ -735,8 +735,8 @@ function removeRecipeIngredient(index) {
           <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.5rem;">+ Add New Room / Resource</span>
           <form onsubmit="saveScheduleRoom(event)" style="display:flex; gap:0.75rem; align-items:flex-end;">
             <div class="form-group" style="flex:1;">
-              <label>ROOM NAME & DESCRIPTION</label>
-              <input type="text" id="sch-new-room-name" class="form-control" placeholder="e.g. Room 4 (Pizhichil)" required />
+              <label for="sch-new-room-name">ROOM NAME & DESCRIPTION</label>
+<input  type="text" id="sch-new-room-name" class="form-control" placeholder="e.g. Room 4 (Pizhichil)" required />
             </div>
             <button type="submit" class="btn btn-orange">Add Room</button>
           </form>
@@ -971,15 +971,16 @@ function removeRecipeIngredient(index) {
       </div>
       <div class="form-grid grid-3">
         <div class="form-group">
-          <label>SELECT REGISTERED PATIENT *</label>
-          <input type="text" id="rx-p-search" list="dl-patients" class="form-control" placeholder="Type Name, Mobile No, or UHID..." onfocus="populateRxPatientDatalist()" oninput="onRxPatientSelect()" required />
+          <label for="rx-p-search">SELECT REGISTERED PATIENT *</label>
+<input  type="text" id="rx-p-search" list="dl-patients" class="form-control" placeholder="Type Name, Mobile No, or UHID..." onfocus="populateRxPatientDatalist()" oninput="onRxPatientSelect()" required />
           <datalist id="dl-patients"></datalist>
           <input type="hidden" id="rx-patient-id" />
         </div>
-        <div class="form-group"><label>PRESCRIPTION DATE *</label><input type="date" id="rx-date" class="form-control" required /></div>
+        <div class="form-group"><label for="rx-date">PRESCRIPTION DATE *</label>
+<input  type="date" id="rx-date" class="form-control" required /></div>
         <div class="form-group">
-          <label>ATTENDING DOCTOR (VAIDYA) *</label>
-          <select id="rx-doctor" class="form-control">
+          <label for="rx-doctor">ATTENDING DOCTOR (VAIDYA) *</label>
+<select  id="rx-doctor" class="form-control">
             <option>Dr. Pruthweeraj Singh (Chief Vaidya)</option>
             <option>Dr. Abinash Patra (Vaidya)</option>
           </select>
@@ -988,34 +989,47 @@ function removeRecipeIngredient(index) {
       <div style="background:var(--bg-dark); border:1px solid var(--border-dark); padding:0.75rem; border-radius:8px; margin-bottom:0.75rem;">
         <span style="font-size:0.65rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.4rem;">PATIENT EMR VITALS (AUTO-FILLED)</span>
         <div class="form-grid grid-7">
-          <div><label>MOBILE NO</label><input type="text" id="rx-v-mobile" class="form-control" readonly /></div>
-          <div><label>AGE</label><input type="text" id="rx-v-age" class="form-control" readonly /></div>
-          <div><label>GENDER</label><input type="text" id="rx-v-gender" class="form-control" readonly /></div>
-          <div><label>PRAKRITI</label><input type="text" id="rx-v-prakriti" class="form-control" readonly /></div>
-          <div><label>WEIGHT (KG)</label><input type="text" id="rx-v-weight" class="form-control" readonly /></div>
-          <div><label>B.P. (mmHg)</label><input type="text" id="rx-v-bp" class="form-control" readonly /></div>
-          <div><label>PULSE (/MIN)</label><input type="text" id="rx-v-pulse" class="form-control" readonly /></div>
+          <div><label for="rx-v-mobile">MOBILE NO</label>
+<input  type="text" id="rx-v-mobile" class="form-control" readonly /></div>
+          <div><label for="rx-v-age">AGE</label>
+<input  type="text" id="rx-v-age" class="form-control" readonly /></div>
+          <div><label for="rx-v-gender">GENDER</label>
+<input  type="text" id="rx-v-gender" class="form-control" readonly /></div>
+          <div><label for="rx-v-prakriti">PRAKRITI</label>
+<input  type="text" id="rx-v-prakriti" class="form-control" readonly /></div>
+          <div><label for="rx-v-weight">WEIGHT (KG)</label>
+<input  type="text" id="rx-v-weight" class="form-control" readonly /></div>
+          <div><label for="rx-v-bp">B.P. (mmHg)</label>
+<input  type="text" id="rx-v-bp" class="form-control" readonly /></div>
+          <div><label for="rx-v-pulse">PULSE (/MIN)</label>
+<input  type="text" id="rx-v-pulse" class="form-control" readonly /></div>
         </div>
       </div>
       <div class="form-grid grid-2">
-        <div class="form-group"><label>DIAGNOSIS / NIDAN *</label><input type="text" id="rx-diag" placeholder="e.g. Sandhivata, Agnimandya, Amavata" class="form-control" /></div>
-        <div class="form-group"><label>VAIDYA CONSULTATION FEE (₹) *</label><input type="number" id="rx-consult-fee" value="300" class="form-control" onkeyup="renderRxItemsTable()" /></div>
+        <div class="form-group"><label for="rx-diag">DIAGNOSIS / NIDAN *</label>
+<input  type="text" id="rx-diag" placeholder="e.g. Sandhivata, Agnimandya, Amavata" class="form-control" /></div>
+        <div class="form-group"><label for="rx-consult-fee">VAIDYA CONSULTATION FEE (₹) *</label>
+<input  type="number" id="rx-consult-fee" value="300" class="form-control" onkeyup="renderRxItemsTable()" /></div>
       </div>
       <div style="background:var(--bg-dark); border:1px solid var(--border-dark); padding:0.85rem; border-radius:8px; margin-bottom:0.75rem;">
         <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.5rem;">+ ADD PRESCRIBED MEDICINE, THERAPY, OR DIAGNOSTIC TEST</span>
         <div class="form-grid grid-5" style="align-items:end;">
           <div class="form-group">
-            <label>CATEGORY</label>
-            <select id="rx-type" class="form-control">
+            <label for="rx-type">CATEGORY</label>
+<select  id="rx-type" class="form-control">
               <option value="Medicine">Medicine 💊</option>
               <option value="Therapy">Therapy ✨</option>
               <option value="Diagnostic Test">Diagnostic Test 🧪</option>
             </select>
           </div>
-          <div class="form-group"><label>ITEM / THERAPY NAME *</label><input type="text" id="rx-item" placeholder="e.g. Mahanarayana Thailam / Shirodhara" class="form-control" /></div>
-          <div class="form-group"><label>DOSAGE / INSTRUCTIONS</label><input type="text" id="rx-dose" placeholder="e.g. 20ml BD after meals" class="form-control" /></div>
-          <div class="form-group"><label>UNIT PRICE (₹)</label><input type="number" id="rx-price" value="150" class="form-control" /></div>
-          <div class="form-group"><label>QTY / SESSIONS</label><input type="number" id="rx-qty" value="1" min="1" class="form-control" /></div>
+          <div class="form-group"><label for="rx-item">ITEM / THERAPY NAME *</label>
+<input  type="text" id="rx-item" placeholder="e.g. Mahanarayana Thailam / Shirodhara" class="form-control" /></div>
+          <div class="form-group"><label for="rx-dose">DOSAGE / INSTRUCTIONS</label>
+<input  type="text" id="rx-dose" placeholder="e.g. 20ml BD after meals" class="form-control" /></div>
+          <div class="form-group"><label for="rx-price">UNIT PRICE (₹)</label>
+<input  type="number" id="rx-price" value="150" class="form-control" /></div>
+          <div class="form-group"><label for="rx-qty">QTY / SESSIONS</label>
+<input  type="number" id="rx-qty" value="1" min="1" class="form-control" /></div>
         </div>
         <button type="button" class="btn btn-orange" onclick="addRxItem()" style="margin-top:0.4rem;">+ Add To Prescription</button>
         <table class="data-table" style="margin-top:0.75rem;">
@@ -1026,8 +1040,8 @@ function removeRecipeIngredient(index) {
         </table>
       </div>
       <div class="form-group" style="margin-bottom:1rem;">
-        <label>DIET & LIFESTYLE GUIDELINES (PATHYA & APATHYA)</label>
-        <textarea id="rx-instructions" class="form-control" rows="2" placeholder="e.g. Take warm water, avoid cold/fermented food..."></textarea>
+        <label for="rx-instructions">DIET & LIFESTYLE GUIDELINES (PATHYA & APATHYA)</label>
+<textarea  id="rx-instructions" class="form-control" rows="2" placeholder="e.g. Take warm water, avoid cold/fermented food..."></textarea>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <button type="button" class="btn btn-secondary" onclick="printPrescription()">🖨️ Print Prescription</button>
@@ -1047,15 +1061,15 @@ function removeRecipeIngredient(index) {
       </div>
       <div class="form-grid grid-2" style="margin-bottom:0.75rem;">
         <div class="form-group">
-          <label>CUSTOMER TYPE *</label>
-          <select id="pos-cust-type" class="form-control" onchange="togglePosCustType(this.value)">
+          <label for="pos-cust-type">CUSTOMER TYPE *</label>
+<select  id="pos-cust-type" class="form-control" onchange="togglePosCustType(this.value)">
             <option value="otc">Over The Counter Sale</option>
             <option value="registered">Registered Patient (EMR Directory)</option>
           </select>
         </div>
         <div class="form-group">
-          <label>PAYMENT MODE *</label>
-          <select id="pos-pay-mode" class="form-control">
+          <label for="pos-pay-mode">PAYMENT MODE *</label>
+<select  id="pos-pay-mode" class="form-control">
             <option>Cash</option>
             <option>UPI / QR</option>
             <option>Card</option>
@@ -1064,12 +1078,14 @@ function removeRecipeIngredient(index) {
         </div>
       </div>
       <div id="pos-otc-box" class="form-grid grid-2" style="margin-bottom:0.75rem;">
-        <div class="form-group"><label>CUSTOMER NAME *</label><input type="text" id="pos-cust-name" class="form-control" value="Walk-in Customer" /></div>
-        <div class="form-group"><label>MOBILE NO *</label><input type="text" id="pos-cust-mobile" class="form-control" placeholder="10-digit mobile" /></div>
+        <div class="form-group"><label for="pos-cust-name">CUSTOMER NAME *</label>
+<input  type="text" id="pos-cust-name" class="form-control" value="Walk-in Customer" /></div>
+        <div class="form-group"><label for="pos-cust-mobile">MOBILE NO *</label>
+<input  type="text" id="pos-cust-mobile" class="form-control" placeholder="10-digit mobile" /></div>
       </div>
       <div id="pos-reg-box" class="form-group" style="margin-bottom:0.75rem; display:none;">
-        <label>SEARCH REGISTERED PATIENT (EMR DIRECTORY) *</label>
-        <input type="text" id="pos-p-search" list="dl-pos-patients" class="form-control" oninput="onPosPatientSelect()" placeholder="Type Patient Name, Mobile No, or UHID..." />
+        <label for="pos-p-search">SEARCH REGISTERED PATIENT (EMR DIRECTORY) *</label>
+<input  type="text" id="pos-p-search" list="dl-pos-patients" class="form-control" oninput="onPosPatientSelect()" placeholder="Type Patient Name, Mobile No, or UHID..." />
         <datalist id="dl-pos-patients"></datalist>
         <input type="hidden" id="pos-patient-id" />
       </div>
@@ -1077,10 +1093,11 @@ function removeRecipeIngredient(index) {
         <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.5rem;">SELECT MEDICINES / ITEMS</span>
         <div class="form-grid grid-4" style="align-items:end;">
           <div class="form-group" style="grid-column:span 2;">
-            <label>MEDICINE STOCK ITEM *</label>
-            <select id="pos-med-select" class="form-control"></select>
+            <label for="pos-med-select">MEDICINE STOCK ITEM *</label>
+<select  id="pos-med-select" class="form-control"></select>
           </div>
-          <div class="form-group"><label>QUANTITY *</label><input type="number" id="pos-qty" class="form-control" value="1" min="1" /></div>
+          <div class="form-group"><label for="pos-qty">QUANTITY *</label>
+<input  type="number" id="pos-qty" class="form-control" value="1" min="1" /></div>
           <button type="button" class="btn btn-orange" onclick="addPosCartItem()">+ Add to Bill</button>
         </div>
         <table class="data-table" style="margin-top:0.5rem;">
@@ -1093,23 +1110,23 @@ function removeRecipeIngredient(index) {
       <div style="background:var(--panel-dark); padding:1rem; border-radius:8px; border:1px solid var(--border-dark); margin-bottom:1rem;">
         <div class="form-grid grid-4">
           <div class="form-group">
-            <label>DISCOUNT MODE</label>
-            <select id="pos-disc-type" class="form-control" onchange="onPosDiscountModeChange()">
+            <label for="pos-disc-type">DISCOUNT MODE</label>
+<select  id="pos-disc-type" class="form-control" onchange="onPosDiscountModeChange()">
               <option value="percent">Percentage (%)</option>
               <option value="amount">Amount (₹)</option>
             </select>
           </div>
           <div class="form-group">
-            <label id="pos-disc-label">DISCOUNT VALUE *</label>
-            <input type="number" step="0.01" id="pos-disc-val" class="form-control" value="0" onkeyup="calculatePosTotals()" onchange="calculatePosTotals()" />
+            <label for="pos-disc-val" id="pos-disc-label">DISCOUNT VALUE *</label>
+<input  type="number" step="0.01" id="pos-disc-val" class="form-control" value="0" onkeyup="calculatePosTotals()" onchange="calculatePosTotals()" />
           </div>
           <div class="form-group">
-            <label>TAX / GST (%) *</label>
-            <input type="number" step="0.01" id="pos-tax-percent" class="form-control" value="0" onkeyup="calculatePosTotals()" onchange="calculatePosTotals()" />
+            <label for="pos-tax-percent">TAX / GST (%) *</label>
+<input  type="number" step="0.01" id="pos-tax-percent" class="form-control" value="0" onkeyup="calculatePosTotals()" onchange="calculatePosTotals()" />
           </div>
           <div class="form-group">
-            <label>AMOUNT PAYING NOW (₹) *</label>
-            <input type="number" step="0.01" id="pos-paid-amt" class="form-control" style="font-weight:bold; color:var(--accent-green);" oninput="userEditedPaidAmt=true; calculatePosTotals();" />
+            <label for="pos-paid-amt">AMOUNT PAYING NOW (₹) *</label>
+<input  type="number" step="0.01" id="pos-paid-amt" class="form-control" style="font-weight:bold; color:var(--accent-green);" oninput="userEditedPaidAmt=true; calculatePosTotals();" />
           </div>
         </div>
         <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:0.5rem; margin-top:0.75rem; background:var(--bg-dark); padding:0.75rem; border-radius:6px; font-size:0.8rem;">
@@ -1134,24 +1151,30 @@ function removeRecipeIngredient(index) {
       <form onsubmit="savePharmacyStock(event)">
         <input type="hidden" id="ph-item-id" />
         <div class="form-group" style="margin-bottom:0.75rem;">
-          <label>MEDICINE NAME *</label>
-          <input type="text" id="ph-name" class="form-control" placeholder="e.g. Ashwagandha Churna (100g)" required />
+          <label for="ph-name">MEDICINE NAME *</label>
+<input  type="text" id="ph-name" class="form-control" placeholder="e.g. Ashwagandha Churna (100g)" required />
         </div>
         <div class="form-grid grid-2" style="margin-bottom:0.75rem;">
-          <div class="form-group"><label>BARCODE *</label><input type="text" id="ph-barcode" class="form-control" required /></div>
-          <div class="form-group"><label>BATCH CODE *</label><input type="text" id="ph-batch" class="form-control" required /></div>
+          <div class="form-group"><label for="ph-barcode">BARCODE *</label>
+<input  type="text" id="ph-barcode" class="form-control" required /></div>
+          <div class="form-group"><label for="ph-batch">BATCH CODE *</label>
+<input  type="text" id="ph-batch" class="form-control" required /></div>
         </div>
         <div class="form-grid grid-2" style="margin-bottom:0.75rem;">
-          <div class="form-group"><label>EXPIRY (MM/YYYY) *</label><input type="text" id="ph-expiry" class="form-control" placeholder="12/2028" required /></div>
+          <div class="form-group"><label for="ph-expiry">EXPIRY (MM/YYYY) *</label>
+<input  type="text" id="ph-expiry" class="form-control" placeholder="12/2028" required /></div>
           <div class="form-group">
-            <label>SUPPLIER / VENDOR *</label>
-            <select id="ph-vendor-select" class="form-control" required></select>
+            <label for="ph-vendor-select">SUPPLIER / VENDOR *</label>
+<select  id="ph-vendor-select" class="form-control" required></select>
           </div>
         </div>
         <div class="form-grid grid-3" style="margin-bottom:1.25rem;">
-          <div class="form-group"><label>PURCHASE RATE (₹) *</label><input type="number" step="0.01" id="ph-purchase-rate" class="form-control" placeholder="e.g. 180" required /></div>
-          <div class="form-group"><label>SELLING PRICE (₹) *</label><input type="number" step="0.01" id="ph-price" class="form-control" placeholder="e.g. 350" required /></div>
-          <div class="form-group"><label>STOCK QUANTITY *</label><input type="number" id="ph-stock-qty" class="form-control" placeholder="e.g. 50" required /></div>
+          <div class="form-group"><label for="ph-purchase-rate">PURCHASE RATE (₹) *</label>
+<input  type="number" step="0.01" id="ph-purchase-rate" class="form-control" placeholder="e.g. 180" required /></div>
+          <div class="form-group"><label for="ph-price">SELLING PRICE (₹) *</label>
+<input  type="number" step="0.01" id="ph-price" class="form-control" placeholder="e.g. 350" required /></div>
+          <div class="form-group"><label for="ph-stock-qty">STOCK QUANTITY *</label>
+<input  type="number" id="ph-stock-qty" class="form-control" placeholder="e.g. 50" required /></div>
         </div>
         <button type="submit" class="btn btn-orange" style="width:100%; justify-content:center; font-size:0.9rem;">Save Inventory Item</button>
       </form>
@@ -1169,34 +1192,39 @@ function removeRecipeIngredient(index) {
         <div style="background:var(--bg-dark); padding:1rem; border-radius:8px; border:1px solid var(--border-dark); margin-bottom:1rem;">
           <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.75rem;">1. Personal Information</span>
           <div class="form-grid grid-3">
-            <div class="form-group"><label>FIRST NAME *</label><input type="text" id="e-fname" class="form-control" placeholder="e.g. Ramesh" required /></div>
-            <div class="form-group"><label>MIDDLE NAME</label><input type="text" id="e-mname" class="form-control" placeholder="e.g. Kumar" /></div>
-            <div class="form-group"><label>LAST NAME *</label><input type="text" id="e-lname" class="form-control" placeholder="e.g. Sharma" required /></div>
+            <div class="form-group"><label for="e-fname">FIRST NAME *</label>
+<input  type="text" id="e-fname" class="form-control" placeholder="e.g. Ramesh" required /></div>
+            <div class="form-group"><label for="e-mname">MIDDLE NAME</label>
+<input  type="text" id="e-mname" class="form-control" placeholder="e.g. Kumar" /></div>
+            <div class="form-group"><label for="e-lname">LAST NAME *</label>
+<input  type="text" id="e-lname" class="form-control" placeholder="e.g. Sharma" required /></div>
           </div>
           <div class="form-grid grid-3">
-            <div class="form-group"><label>DATE OF BIRTH *</label><input type="date" id="e-dob" class="form-control" required /></div>
+            <div class="form-group"><label for="e-dob">DATE OF BIRTH *</label>
+<input  type="date" id="e-dob" class="form-control" required /></div>
             <div class="form-group">
-              <label>GOVERNMENT ID TYPE *</label>
-              <select id="e-govtid-type" class="form-control">
+              <label for="e-govtid-type">GOVERNMENT ID TYPE *</label>
+<select  id="e-govtid-type" class="form-control">
                 <option>PAN & Aadhaar (India)</option>
                 <option>Passport</option>
                 <option>Voter ID</option>
               </select>
             </div>
-            <div class="form-group"><label>TAX ID / PAN NUMBER</label><input type="text" id="e-pan" class="form-control" placeholder="e.g. ABCDE1234F" /></div>
+            <div class="form-group"><label for="e-pan">TAX ID / PAN NUMBER</label>
+<input  type="text" id="e-pan" class="form-control" placeholder="e.g. ABCDE1234F" /></div>
           </div>
           <div class="form-grid grid-2">
             <div class="form-group">
-              <label>GENDER *</label>
-              <select id="e-gender" class="form-control">
+              <label for="e-gender">GENDER *</label>
+<select  id="e-gender" class="form-control">
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
                 <option value="Other">Other</option>
               </select>
             </div>
             <div class="form-group">
-              <label>MARITAL STATUS *</label>
-              <select id="e-marital" class="form-control">
+              <label for="e-marital">MARITAL STATUS *</label>
+<select  id="e-marital" class="form-control">
                 <option value="Single">Single</option>
                 <option value="Married">Married</option>
               </select>
@@ -1207,22 +1235,27 @@ function removeRecipeIngredient(index) {
         <div style="background:var(--bg-dark); padding:1rem; border-radius:8px; border:1px solid var(--border-dark); margin-bottom:1rem;">
           <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.75rem;">2. Contact Details</span>
           <div class="form-grid grid-2">
-            <div class="form-group"><label>PERSONAL MOBILE NUMBER *</label><input type="text" id="e-mobile" maxlength="10" class="form-control" placeholder="10-digit mobile" required /></div>
-            <div class="form-group"><label>PERSONAL EMAIL ADDRESS</label><input type="email" id="e-pemail" class="form-control" placeholder="personal@email.com" /></div>
+            <div class="form-group"><label for="e-mobile">PERSONAL MOBILE NUMBER *</label>
+<input  type="text" id="e-mobile" maxlength="10" class="form-control" placeholder="10-digit mobile" required /></div>
+            <div class="form-group"><label for="e-pemail">PERSONAL EMAIL ADDRESS</label>
+<input  type="email" id="e-pemail" class="form-control" placeholder="personal@email.com" /></div>
           </div>
           <div class="form-grid grid-2">
-            <div class="form-group"><label>CURRENT RESIDENTIAL ADDRESS</label><input type="text" id="e-caddr" class="form-control" placeholder="Full residential street address..." /></div>
-            <div class="form-group"><label>PERMANENT ADDRESS</label><input type="text" id="e-paddr" class="form-control" placeholder="Permanent address if different..." /></div>
+            <div class="form-group"><label for="e-caddr">CURRENT RESIDENTIAL ADDRESS</label>
+<input  type="text" id="e-caddr" class="form-control" placeholder="Full residential street address..." /></div>
+            <div class="form-group"><label for="e-paddr">PERMANENT ADDRESS</label>
+<input  type="text" id="e-paddr" class="form-control" placeholder="Permanent address if different..." /></div>
           </div>
         </div>
 
         <div style="background:var(--bg-dark); padding:1rem; border-radius:8px; border:1px solid var(--border-dark); margin-bottom:1rem;">
           <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.75rem;">3. Employment & Job Details</span>
           <div class="form-grid grid-3">
-            <div class="form-group"><label>JOB TITLE *</label><input type="text" id="e-title" class="form-control" placeholder="e.g. Senior Panchakarma Vaidya" required /></div>
+            <div class="form-group"><label for="e-title">JOB TITLE *</label>
+<input  type="text" id="e-title" class="form-control" placeholder="e.g. Senior Panchakarma Vaidya" required /></div>
             <div class="form-group">
-              <label>DEPARTMENT *</label>
-              <select id="e-dept" class="form-control">
+              <label for="e-dept">DEPARTMENT *</label>
+<select  id="e-dept" class="form-control">
                 <option>Consultation & Panchakarma</option>
                 <option>Pharmacy & Store</option>
                 <option>Therapist Team</option>
@@ -1230,13 +1263,15 @@ function removeRecipeIngredient(index) {
                 <option>Administration</option>
               </select>
             </div>
-            <div class="form-group"><label>JOINING / HIRE DATE *</label><input type="date" id="e-jdate" class="form-control" required /></div>
+            <div class="form-group"><label for="e-jdate">JOINING / HIRE DATE *</label>
+<input  type="date" id="e-jdate" class="form-control" required /></div>
           </div>
           <div class="form-grid grid-3">
-            <div class="form-group"><label>WORK EMAIL / EMPLOYEE ID</label><input type="text" id="e-wemail" class="form-control" placeholder="ramesh@ayurcare.com" /></div>
+            <div class="form-group"><label for="e-wemail">WORK EMAIL / EMPLOYEE ID</label>
+<input  type="text" id="e-wemail" class="form-control" placeholder="ramesh@ayurcare.com" /></div>
             <div class="form-group">
-              <label>SYSTEM ROLE ACCESS *</label>
-              <select id="e-role" class="form-control">
+              <label for="e-role">SYSTEM ROLE ACCESS *</label>
+<select  id="e-role" class="form-control">
                 <option value="Doctor (Vaidya)">Doctor (Vaidya)</option>
                 <option value="Therapist">Therapist</option>
                 <option value="Pharmacist">Pharmacist</option>
@@ -1245,8 +1280,8 @@ function removeRecipeIngredient(index) {
               </select>
             </div>
             <div class="form-group">
-              <label>SHIFT TIMING *</label>
-              <select id="e-shift" class="form-control">
+              <label for="e-shift">SHIFT TIMING *</label>
+<select  id="e-shift" class="form-control">
                 <option>Morning (8:00 AM - 4:00 PM)</option>
                 <option>Evening (12:00 PM - 8:00 PM)</option>
                 <option>Full Day Shift</option>
@@ -1258,14 +1293,20 @@ function removeRecipeIngredient(index) {
         <div style="background:var(--bg-dark); padding:1rem; border-radius:8px; border:1px solid var(--border-dark); margin-bottom:1.25rem;">
           <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.75rem;">4. Payroll, Financial Info & Portal Credentials</span>
           <div class="form-grid grid-3">
-            <div class="form-group"><label>BANK NAME</label><input type="text" id="e-bank" class="form-control" placeholder="e.g. State Bank of India" /></div>
-            <div class="form-group"><label>ACCOUNT NUMBER</label><input type="text" id="e-accno" class="form-control" placeholder="Direct deposit account #" /></div>
-            <div class="form-group"><label>IFSC / ROUTING CODE</label><input type="text" id="e-ifsc" class="form-control" placeholder="e.g. SBIN0001020" /></div>
+            <div class="form-group"><label for="e-bank">BANK NAME</label>
+<input  type="text" id="e-bank" class="form-control" placeholder="e.g. State Bank of India" /></div>
+            <div class="form-group"><label for="e-accno">ACCOUNT NUMBER</label>
+<input  type="text" id="e-accno" class="form-control" placeholder="Direct deposit account #" /></div>
+            <div class="form-group"><label for="e-ifsc">IFSC / ROUTING CODE</label>
+<input  type="text" id="e-ifsc" class="form-control" placeholder="e.g. SBIN0001020" /></div>
           </div>
           <div class="form-grid grid-3">
-            <div class="form-group"><label>UPI ID</label><input type="text" id="e-upi" class="form-control" placeholder="e.g. user@upi" /></div>
-            <div class="form-group"><label>MONTHLY BASE SALARY (₹) *</label><input type="number" id="e-salary" class="form-control" placeholder="50000" required /></div>
-            <div class="form-group"><label>PORTAL ACCOUNT PASSWORD</label><input type="password" id="e-password" class="form-control" placeholder="Initial system password" /></div>
+            <div class="form-group"><label for="e-upi">UPI ID</label>
+<input  type="text" id="e-upi" class="form-control" placeholder="e.g. user@upi" /></div>
+            <div class="form-group"><label for="e-salary">MONTHLY BASE SALARY (₹) *</label>
+<input  type="number" id="e-salary" class="form-control" placeholder="50000" required /></div>
+            <div class="form-group"><label for="e-password">PORTAL ACCOUNT PASSWORD</label>
+<input  type="password" id="e-password" class="form-control" placeholder="Initial system password" /></div>
           </div>
         </div>
         <button type="submit" class="btn btn-orange" style="width:100%; justify-content:center; font-size:0.95rem;">Save Complete Employee Record</button>
@@ -1281,16 +1322,21 @@ function removeRecipeIngredient(index) {
       </div>
       <form onsubmit="savePayment(event)">
         <input type="hidden" id="pay-bill-id" />
-        <div class="form-group" style="margin-bottom:0.5rem;"><label>BILL NO</label><input type="text" id="pay-bill-no" class="form-control" readonly /></div>
-        <div class="form-group" style="margin-bottom:0.5rem;"><label>PATIENT NAME</label><input type="text" id="pay-patient-name" class="form-control" readonly /></div>
+        <div class="form-group" style="margin-bottom:0.5rem;"><label for="pay-bill-no">BILL NO</label>
+<input  type="text" id="pay-bill-no" class="form-control" readonly /></div>
+        <div class="form-group" style="margin-bottom:0.5rem;"><label for="pay-patient-name">PATIENT NAME</label>
+<input  type="text" id="pay-patient-name" class="form-control" readonly /></div>
         <div class="form-grid grid-2" style="margin-bottom:0.5rem;">
-          <div><label>TOTAL AMOUNT (₹)</label><input type="text" id="pay-total-amt" class="form-control" readonly /></div>
-          <div><label>ALREADY PAID (₹)</label><input type="text" id="pay-already-paid" class="form-control" readonly /></div>
+          <div><label for="pay-total-amt">TOTAL AMOUNT (₹)</label>
+<input  type="text" id="pay-total-amt" class="form-control" readonly /></div>
+          <div><label for="pay-already-paid">ALREADY PAID (₹)</label>
+<input  type="text" id="pay-already-paid" class="form-control" readonly /></div>
         </div>
-        <div class="form-group" style="margin-bottom:0.5rem;"><label>BALANCE DUE (₹)</label><input type="text" id="pay-due-amt" class="form-control" style="color:var(--accent-orange); font-weight:bold;" readonly /></div>
+        <div class="form-group" style="margin-bottom:0.5rem;"><label for="pay-due-amt">BALANCE DUE (₹)</label>
+<input  type="text" id="pay-due-amt" class="form-control" style="color:var(--accent-orange); font-weight:bold;" readonly /></div>
         <div class="form-group" style="margin-bottom:1rem;">
-          <label>ENTER PAYMENT AMOUNT TO COLLECT (₹) *</label>
-          <input type="number" step="0.01" id="pay-collect-amt" class="form-control" style="font-size:1.1rem; font-weight:bold; color:var(--accent-green);" required />
+          <label for="pay-collect-amt">ENTER PAYMENT AMOUNT TO COLLECT (₹) *</label>
+<input  type="number" step="0.01" id="pay-collect-amt" class="form-control" style="font-size:1.1rem; font-weight:bold; color:var(--accent-green);" required />
         </div>
         <button type="submit" class="btn btn-green" style="width:100%; justify-content:center; font-size:1rem;">Confirm & Update Ledger</button>
       </form>
@@ -1307,12 +1353,12 @@ function removeRecipeIngredient(index) {
         <input type="hidden" id="pr-edit-id" />
         <div class="form-grid grid-2" style="margin-bottom:1.25rem;">
           <div class="form-group">
-            <label>DAYS WORKED (OUT OF 30) *</label>
-            <input type="number" id="pr-days-worked" class="form-control" min="0" max="30" value="30" required />
+            <label for="pr-days-worked">DAYS WORKED (OUT OF 30) *</label>
+<input  type="number" id="pr-days-worked" class="form-control" min="0" max="30" value="30" required />
           </div>
           <div class="form-group">
-            <label>COMMISSION EARNED (₹) *</label>
-            <input type="number" step="0.01" id="pr-commission" class="form-control" value="0" required />
+            <label for="pr-commission">COMMISSION EARNED (₹) *</label>
+<input  type="number" step="0.01" id="pr-commission" class="form-control" value="0" required />
           </div>
         </div>
         <button type="submit" class="btn btn-orange" style="width:100%; justify-content:center; font-size:0.9rem;">Calculate & Save</button>
@@ -1326,8 +1372,10 @@ function removeRecipeIngredient(index) {
         <div style="background:var(--bg-dark); border:1px solid var(--border-dark); padding:0.85rem; border-radius:8px; margin-bottom:1.25rem;">
           <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.5rem;">🌿 ADD RAW INGREDIENTS (MULTIPLE)</span>
           <div class="form-grid grid-3" style="align-items:end;">
-            <div class="form-group"><label>RAW MATERIAL *</label><select id="recipe-rm-select" id="recipe-rm-select" id="rc-add-raw-id" class="form-control"></select></div>
-            <div class="form-group"><label>QTY PER UNIT *</label><input id="recipe-qty-input" id="recipe-qty-input" type="number" step="0.001" id="rc-add-qty" class="form-control" placeholder="e.g. 0.25" /></div>
+            <div class="form-group"><label for="recipe-rm-select">RAW MATERIAL *</label>
+<select  id="recipe-rm-select" id="recipe-rm-select" id="rc-add-raw-id" class="form-control"></select></div>
+            <div class="form-group"><label for="recipe-qty-input">QTY PER UNIT *</label>
+<input  id="recipe-qty-input" id="recipe-qty-input" type="number" step="0.001" id="rc-add-qty" class="form-control" placeholder="e.g. 0.25" /></div>
             <button type="button" onclick="addIngredientToRecipe()"  type="button" onclick="addIngredientToRecipe(event)"  type="button" onclick="addIngredientToRecipe(event)"  type="button"  type="button"  type="button"  type="button" class="btn btn-orange" onclick="addRecipeIngredientRow()" onclick="addIngredientToRecipeTable()" onclick="handleAddIngredient()" onclick="addIngredientToRecipe()">+ Add Ingredient</button>
           </div>
           <table class="data-table" style="margin-top:0.75rem;">
@@ -1344,15 +1392,21 @@ function removeRecipeIngredient(index) {
     <div class="modal-container" style="max-width: 550px;">
       <div class="modal-header"><h3>⚙️ Execute Batch Production Routine</h3><button class="modal-close" onclick="closeModal('md-batch-prod')">✕</button></div>
       <form onsubmit="runProductionEngine(event)">
-        <div class="form-group" style="margin-bottom:0.75rem;"><label>MASTER RECIPE *</label><select id="bp-recipe-id" class="form-control" required></select></div>
+        <div class="form-group" style="margin-bottom:0.75rem;"><label for="bp-recipe-id">MASTER RECIPE *</label>
+<select  id="bp-recipe-id" class="form-control" required></select></div>
         <div class="form-grid grid-2">
-          <div class="form-group"><label>UNITS TO PRODUCE *</label><input type="number" id="bp-units" class="form-control" value="20" min="1" required /></div>
-          <div class="form-group"><label>BATCH CODE *</label><input type="text" id="bp-batch-code" class="form-control" value="BATCH-2026-01" required /></div>
+          <div class="form-group"><label for="bp-units">UNITS TO PRODUCE *</label>
+<input  type="number" id="bp-units" class="form-control" value="20" min="1" required /></div>
+          <div class="form-group"><label for="bp-batch-code">BATCH CODE *</label>
+<input  type="text" id="bp-batch-code" class="form-control" value="BATCH-2026-01" required /></div>
         </div>
         <div class="form-grid grid-3" style="margin-top:0.5rem; margin-bottom:1.25rem;">
-          <div class="form-group"><label>EXPIRY (MM/YYYY) *</label><input type="text" id="bp-expiry" class="form-control" value="12/2028" required /></div>
-          <div class="form-group"><label>PRODUCTION COST (₹/UNIT) *</label><input type="number" step="0.01" id="bp-cost-price" class="form-control" placeholder="e.g. 250" value="250" required /></div>
-          <div class="form-group"><label>SELLING PRICE (₹/UNIT) *</label><input type="number" step="0.01" id="bp-price" class="form-control" placeholder="e.g. 650" value="650" required /></div>
+          <div class="form-group"><label for="bp-expiry">EXPIRY (MM/YYYY) *</label>
+<input  type="text" id="bp-expiry" class="form-control" value="12/2028" required /></div>
+          <div class="form-group"><label for="bp-cost-price">PRODUCTION COST (₹/UNIT) *</label>
+<input  type="number" step="0.01" id="bp-cost-price" class="form-control" placeholder="e.g. 250" value="250" required /></div>
+          <div class="form-group"><label for="bp-price">SELLING PRICE (₹/UNIT) *</label>
+<input  type="number" step="0.01" id="bp-price" class="form-control" placeholder="e.g. 650" value="650" required /></div>
         </div>
         <button type="submit" class="btn btn-blue" style="width:100%; justify-content:center; font-size:0.9rem;">Run Production & Transfer Stock to Pharmacy</button>
       </form>
@@ -1365,14 +1419,20 @@ function removeRecipeIngredient(index) {
       <form onsubmit="savePatient(event)">
         <input type="hidden" id="p-id" />
         <div class="form-grid grid-3">
-          <div class="form-group"><label>FULL NAME *</label><input type="text" id="p-name" class="form-control" required /></div>
-          <div class="form-group"><label>MOBILE NO *</label><input type="text" id="p-mobile" maxlength="10" class="form-control" required /></div>
-          <div class="form-group"><label>AGE *</label><input type="number" id="p-age" class="form-control" required /></div>
+          <div class="form-group"><label for="p-name">FULL NAME *</label>
+<input  type="text" id="p-name" class="form-control" required /></div>
+          <div class="form-group"><label for="p-mobile">MOBILE NO *</label>
+<input  type="text" id="p-mobile" maxlength="10" class="form-control" required /></div>
+          <div class="form-group"><label for="p-age">AGE *</label>
+<input  type="number" id="p-age" class="form-control" required /></div>
         </div>
         <div class="form-grid grid-3">
-          <div class="form-group"><label>GENDER</label><select id="p-gender" class="form-control"><option>Male</option><option>Female</option></select></div>
-          <div class="form-group"><label>PRAKRITI</label><select id="p-prakriti" class="form-control"><option>Vata</option><option>Pitta</option><option>Kapha</option></select></div>
-          <div class="form-group"><label>WEIGHT (KG)</label><input type="number" id="p-weight" class="form-control" /></div>
+          <div class="form-group"><label for="p-gender">GENDER</label>
+<select  id="p-gender" class="form-control"><option>Male</option><option>Female</option></select></div>
+          <div class="form-group"><label for="p-prakriti">PRAKRITI</label>
+<select  id="p-prakriti" class="form-control"><option>Vata</option><option>Pitta</option><option>Kapha</option></select></div>
+          <div class="form-group"><label for="p-weight">WEIGHT (KG)</label>
+<input  type="number" id="p-weight" class="form-control" /></div>
         </div>
         <button type="submit" class="btn btn-orange" style="width:100%; margin-top:1rem;">Save Patient</button>
       </form>
@@ -1383,10 +1443,13 @@ function removeRecipeIngredient(index) {
     <div class="modal-container" style="max-width: 450px;">
       <div class="modal-header"><h3>Add Therapy Master</h3><button class="modal-close" onclick="closeModal('md-therapy-add')">✕</button></div>
       <form onsubmit="saveTherapy(event)">
-        <div class="form-group"><label>THERAPY NAME</label><input type="text" id="th-name" class="form-control" required /></div>
+        <div class="form-group"><label for="th-name">THERAPY NAME</label>
+<input  type="text" id="th-name" class="form-control" required /></div>
         <div class="form-grid grid-2">
-          <div class="form-group"><label>DURATION (MINS)</label><input type="number" id="th-dur" class="form-control" value="45" required /></div>
-          <div class="form-group"><label>PRICE (₹)</label><input type="number" id="th-price" class="form-control" required /></div>
+          <div class="form-group"><label for="th-dur">DURATION (MINS)</label>
+<input  type="number" id="th-dur" class="form-control" value="45" required /></div>
+          <div class="form-group"><label for="th-price">PRICE (₹)</label>
+<input  type="number" id="th-price" class="form-control" required /></div>
         </div>
         <button type="submit" class="btn btn-orange" style="width:100%; margin-top:1rem;">Save Therapy</button>
       </form>
@@ -1397,9 +1460,12 @@ function removeRecipeIngredient(index) {
     <div class="modal-container" style="max-width: 450px;">
       <div class="modal-header"><h3>Record Accounts / Vendor Entry</h3><button class="modal-close" onclick="closeModal('md-acc-add')">✕</button></div>
       <form onsubmit="saveAccounts(event)">
-        <div class="form-group"><label>TYPE</label><select id="acc-type" class="form-control"><option>Expense</option><option>Vendor</option></select></div>
-        <div class="form-group"><label>TITLE / NAME</label><input type="text" id="acc-title" class="form-control" required /></div>
-        <div class="form-group"><label>AMOUNT (₹)</label><input type="number" id="acc-amt" class="form-control" required /></div>
+        <div class="form-group"><label for="acc-type">TYPE</label>
+<select  id="acc-type" class="form-control"><option>Expense</option><option>Vendor</option></select></div>
+        <div class="form-group"><label for="acc-title">TITLE / NAME</label>
+<input  type="text" id="acc-title" class="form-control" required /></div>
+        <div class="form-group"><label for="acc-amt">AMOUNT (₹)</label>
+<input  type="number" id="acc-amt" class="form-control" required /></div>
         <button type="submit" class="btn btn-orange" style="width:100%; margin-top:1rem;">Save Entry</button>
       </form>
     </div>
@@ -1409,9 +1475,12 @@ function removeRecipeIngredient(index) {
     <div class="modal-container" style="max-width: 450px;">
       <div class="modal-header"><h3>Allocate IPD Bed</h3><button class="modal-close" onclick="closeModal('md-ipd-add')">✕</button></div>
       <form onsubmit="saveIPDBed(event)">
-        <div class="form-group"><label>BED NO</label><input type="text" id="ipd-bed" class="form-control" placeholder="BED-101" required /></div>
-        <div class="form-group"><label>PATIENT NAME</label><input type="text" id="ipd-pname" class="form-control" required /></div>
-        <div class="form-group"><label>DAILY CHARGE (₹)</label><input type="number" id="ipd-rate" class="form-control" value="1500" required /></div>
+        <div class="form-group"><label for="ipd-bed">BED NO</label>
+<input  type="text" id="ipd-bed" class="form-control" placeholder="BED-101" required /></div>
+        <div class="form-group"><label for="ipd-pname">PATIENT NAME</label>
+<input  type="text" id="ipd-pname" class="form-control" required /></div>
+        <div class="form-group"><label for="ipd-rate">DAILY CHARGE (₹)</label>
+<input  type="number" id="ipd-rate" class="form-control" value="1500" required /></div>
         <button type="submit" class="btn btn-orange" style="width:100%; margin-top:1rem;">Allocate Bed</button>
       </form>
     </div>
@@ -2278,7 +2347,7 @@ ${instructions}
 
       const checkContainer = document.getElementById('sch-room-checkboxes');
       if (checkContainer) {
-        let html = `<label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;"><input type="checkbox" checked onchange="filterScheduleRoom('All', null)" /> All Rooms</label>`;
+        let html = `<label for="res-pname" style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;"><input type="checkbox" checked onchange="filterScheduleRoom('All', null)" /> All Rooms</label>`;
         rooms.forEach(r => {
           html += `<label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;"><input type="checkbox" ${selectedScheduleRoomFilter === 'All' || selectedScheduleRoomFilter === r.room_name ? 'checked' : ''} onchange="filterScheduleRoom('${r.room_name}', null)" /> ${r.room_name}</label>`;
         });
@@ -3428,17 +3497,17 @@ function removeRecipeIngredient(index) {
 
         <div style="margin-bottom:0.85rem;">
           <label style="font-size:0.65rem; font-weight:bold; color:#64748b; display:block; margin-bottom:0.3rem;">👤 PATIENT NAME</label>
-          <input type="text" id="res-pname" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" placeholder="Enter patient name..." required />
+<input  type="text" id="res-pname" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" placeholder="Enter patient name..." required />
         </div>
 
         <div style="margin-bottom:0.85rem;">
-          <label style="font-size:0.65rem; font-weight:bold; color:#64748b; display:block; margin-bottom:0.3rem;">📱 MOBILE NUMBER</label>
-          <input type="text" id="res-pmobile" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" placeholder="10-digit mobile" />
+          <label for="res-pmobile" style="font-size:0.65rem; font-weight:bold; color:#64748b; display:block; margin-bottom:0.3rem;">📱 MOBILE NUMBER</label>
+<input  type="text" id="res-pmobile" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" placeholder="10-digit mobile" />
         </div>
 
         <div style="margin-bottom:1.25rem;">
-          <label style="font-size:0.65rem; font-weight:bold; color:#64748b; display:block; margin-bottom:0.3rem;">THERAPY / ROOM</label>
-          <select id="res-room-select" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" required></select>
+          <label for="res-room-select" style="font-size:0.65rem; font-weight:bold; color:#64748b; display:block; margin-bottom:0.3rem;">THERAPY / ROOM</label>
+<select  id="res-room-select" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" required></select>
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
@@ -3454,9 +3523,12 @@ function removeRecipeIngredient(index) {
     <div class="modal-container" style="max-width: 450px;">
       <div class="modal-header"><h3>Add Document Entry</h3><button class="modal-close" onclick="closeModal('md-doc-add')">✕</button></div>
       <form onsubmit="saveDocument(event)">
-        <div class="form-group" style="margin-bottom:0.75rem;"><label>DOCUMENT TITLE *</label><input type="text" id="doc-title" class="form-control" required /></div>
-        <div class="form-group" style="margin-bottom:0.75rem;"><label>CATEGORY</label><select id="doc-cat" class="form-control"><option>Clinical Consent</option><option>Staff Policy</option><option>Certificate</option></select></div>
-        <div class="form-group" style="margin-bottom:1rem;"><label>FILE LINK / URL</label><input type="text" id="doc-url" class="form-control" placeholder="https://..." /></div>
+        <div class="form-group" style="margin-bottom:0.75rem;"><label for="doc-title">DOCUMENT TITLE *</label>
+<input  type="text" id="doc-title" class="form-control" required /></div>
+        <div class="form-group" style="margin-bottom:0.75rem;"><label for="doc-cat">CATEGORY</label>
+<select  id="doc-cat" class="form-control"><option>Clinical Consent</option><option>Staff Policy</option><option>Certificate</option></select></div>
+        <div class="form-group" style="margin-bottom:1rem;"><label for="doc-url">FILE LINK / URL</label>
+<input  type="text" id="doc-url" class="form-control" placeholder="https://..." /></div>
         <button type="submit" class="btn btn-orange" style="width:100%;">Save Document</button>
       </form>
     </div>
@@ -3467,9 +3539,12 @@ function removeRecipeIngredient(index) {
     <div class="modal-container" style="max-width: 450px;">
       <div class="modal-header"><h3>Grant Staff Role Access</h3><button class="modal-close" onclick="closeModal('md-stf-add')">✕</button></div>
       <form onsubmit="saveStaffUser(event)">
-        <div class="form-group" style="margin-bottom:0.75rem;"><label>USERNAME *</label><input type="text" id="stf-uname" class="form-control" required /></div>
-        <div class="form-group" style="margin-bottom:0.75rem;"><label>SYSTEM ROLE *</label><select id="stf-role" class="form-control"><option>Doctor / Vaidya</option><option>Pharmacist</option><option>Receptionist</option><option>Admin</option></select></div>
-        <div class="form-group" style="margin-bottom:1rem;"><label>PERMISSIONS</label><input type="text" id="stf-perm" class="form-control" placeholder="e.g. Full Read/Write Access" required /></div>
+        <div class="form-group" style="margin-bottom:0.75rem;"><label for="stf-uname">USERNAME *</label>
+<input  type="text" id="stf-uname" class="form-control" required /></div>
+        <div class="form-group" style="margin-bottom:0.75rem;"><label for="stf-role">SYSTEM ROLE *</label>
+<select  id="stf-role" class="form-control"><option>Doctor / Vaidya</option><option>Pharmacist</option><option>Receptionist</option><option>Admin</option></select></div>
+        <div class="form-group" style="margin-bottom:1rem;"><label for="stf-perm">PERMISSIONS</label>
+<input  type="text" id="stf-perm" class="form-control" placeholder="e.g. Full Read/Write Access" required /></div>
         <button type="submit" class="btn btn-orange" style="width:100%;">Save User Access</button>
       </form>
     </div>
