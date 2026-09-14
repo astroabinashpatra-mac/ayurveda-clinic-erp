@@ -1,6 +1,6 @@
 /**
  * MODULE 11 - ACCOUNTS & VENDORS FULL ENGINE
- * Includes: Resilient Supabase Sync, Real-time KPIs, Filter/Search, Statement Printing
+ * Features: Financial Ledger, Structured Vendor Directory (GSTIN, Phone, Address), KPIs & Print
  */
 
 function getDb() {
@@ -12,7 +12,7 @@ window.accState = {
   filteredEntries: []
 };
 
-// Resilient insert helper supporting column fallback across accounts tables
+// Resilient insert helper supporting full vendor & financial schema
 window.safeInsertAccounts = async function(payload) {
   const db = getDb();
   if (!db) return { error: { message: "Database client missing" } };
@@ -21,9 +21,14 @@ window.safeInsertAccounts = async function(payload) {
     id: payload.id || ('ACC-' + Date.now()),
     type: payload.type || 'Expense Outflow',
     title: payload.title || payload.company_name || 'Transaction Entry',
+    company_name: payload.company_name || payload.title || '',
     category: payload.category || 'General',
     amount: parseFloat(payload.amount || 0),
-    status: payload.status || 'Paid',
+    mobile: payload.mobile || '',
+    email: payload.email || '',
+    gst_no: payload.gst_no || '',
+    address: payload.address || '',
+    status: payload.status || 'Active',
     mode: payload.mode || 'Cash',
     created_at: payload.created_at || new Date().toISOString()
   };
@@ -31,12 +36,13 @@ window.safeInsertAccounts = async function(payload) {
   let { data, error } = await db.from('accounts_vendors').insert([fullPayload]);
   if (!error) return { data, error: null };
 
-  // Fallback for schema mismatches
+  // Schema fallback for missing optional columns
   const minimalPayload = {
     id: fullPayload.id,
     title: fullPayload.title,
     category: fullPayload.category,
     amount: fullPayload.amount,
+    status: fullPayload.status,
     created_at: fullPayload.created_at
   };
 
@@ -47,7 +53,7 @@ window.safeInsertAccounts = async function(payload) {
   return res;
 };
 
-// Inject Record Entry Modal into DOM
+// Inject Extended Vendor & Expense Entry Modal into DOM
 function ensureAccountsModals() {
   let container = document.getElementById('acc-modals-container');
   if (!container) {
@@ -58,9 +64,9 @@ function ensureAccountsModals() {
 
   container.innerHTML = `
     <div id="modal-record-ledger" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999; padding: 1rem;">
-      <div style="background: #1e293b; width: 500px; max-width: 95vw; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);">
+      <div style="background: #1e293b; width: 560px; max-width: 95vw; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; border-bottom: 1px solid #334155; padding-bottom: 0.8rem;">
-          <h3 style="color: white; margin: 0; font-size: 1.15rem;">+ Record Expense / Vendor Entry</h3>
+          <h3 style="color: white; margin: 0; font-size: 1.15rem;">+ Record Expense / Vendor Directory Entry</h3>
           <button type="button" onclick="window.closeRecordLedgerModal()" style="background: none; border: none; color: #ef4444; font-size: 1.5rem; cursor: pointer; font-weight: bold;">✕</button>
         </div>
 
@@ -68,41 +74,64 @@ function ensureAccountsModals() {
           <div>
             <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">ENTRY TYPE *</label>
             <select id="ldr-type" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+              <option value="Vendor Registration">Vendor Registration</option>
               <option value="Expense Outflow">Expense Outflow</option>
               <option value="Income Inflow">Income Inflow</option>
-              <option value="Vendor Registration">Vendor Registration</option>
             </select>
           </div>
           <div>
-            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">AMOUNT (₹)</label>
+            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">CATEGORY</label>
+            <select id="ldr-cat" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+              <option value="Raw Material Supplier">Raw Material Supplier</option>
+              <option value="Herbal Pharma">Herbal Pharma</option>
+              <option value="Equipment & Instruments">Equipment & Instruments</option>
+              <option value="Clinical Services">Clinical Services</option>
+              <option value="Maintenance & Utilities">Maintenance & Utilities</option>
+              <option value="General Vendor">General Vendor</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">COMPANY / VENDOR NAME / TITLE *</label>
+          <input type="text" id="ldr-title" placeholder="e.g. Dabur India Ltd / Apex Lab Supplies / Electricity Bill" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+        </div>
+
+        <!-- Vendor Directory Specific Fields -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">MOBILE NUMBER</label>
+            <input type="text" id="ldr-mobile" placeholder="e.g. 9876543210" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+          </div>
+          <div>
+            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">EMAIL ID</label>
+            <input type="email" id="ldr-email" placeholder="vendor@example.com" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">GSTIN / TAX NO.</label>
+            <input type="text" id="ldr-gst" placeholder="e.g. 21AAAAA0000A1Z5" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+          </div>
+          <div>
+            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">AMOUNT (₹) / OPENING BAL</label>
             <input type="number" step="0.01" id="ldr-amount" placeholder="0.00" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
           </div>
         </div>
 
         <div style="margin-bottom: 1rem;">
-          <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">TITLE / VENDOR NAME *</label>
-          <input type="text" id="ldr-title" placeholder="e.g. Dabur India Ltd / Raw Material Purchase / Rent" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+          <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">BUSINESS ADDRESS</label>
+          <textarea id="ldr-address" rows="2" placeholder="Full address..." style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box; resize: vertical;"></textarea>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-          <div>
-            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">CATEGORY</label>
-            <select id="ldr-cat" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
-              <option value="Raw Materials">Raw Materials</option>
-              <option value="Procurement">Procurement</option>
-              <option value="Utilities & Rent">Utilities & Rent</option>
-              <option value="Clinical Services">Clinical Services</option>
-              <option value="General Expense">General Expense</option>
-            </select>
-          </div>
-          <div>
-            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">STATUS</label>
-            <select id="ldr-status" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
-              <option value="Paid">Paid</option>
-              <option value="Pending">Pending</option>
-              <option value="Active">Active</option>
-            </select>
-          </div>
+        <div style="margin-bottom: 1.5rem;">
+          <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">STATUS</label>
+          <select id="ldr-status" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+            <option value="Active">Active</option>
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending</option>
+          </select>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
@@ -118,10 +147,15 @@ function ensureAccountsModals() {
 window.openRecordLedgerModal = function() {
   ensureAccountsModals();
   if (document.getElementById('ldr-title')) document.getElementById('ldr-title').value = '';
+  if (document.getElementById('ldr-mobile')) document.getElementById('ldr-mobile').value = '';
+  if (document.getElementById('ldr-email')) document.getElementById('ldr-email').value = '';
+  if (document.getElementById('ldr-gst')) document.getElementById('ldr-gst').value = '';
+  if (document.getElementById('ldr-address')) document.getElementById('ldr-address').value = '';
   if (document.getElementById('ldr-amount')) document.getElementById('ldr-amount').value = '';
   const m = document.getElementById('modal-record-ledger');
   if (m) m.style.display = 'flex';
 };
+
 window.closeRecordLedgerModal = function() {
   const m = document.getElementById('modal-record-ledger');
   if (m) m.style.display = 'none';
@@ -129,30 +163,39 @@ window.closeRecordLedgerModal = function() {
 
 // Save Entry Function
 window.saveAccountsEntry = async function() {
-  const type = document.getElementById('ldr-type')?.value || 'Expense Outflow';
+  const type = document.getElementById('ldr-type')?.value || 'Vendor Registration';
   const title = document.getElementById('ldr-title')?.value?.trim();
+  const category = document.getElementById('ldr-cat')?.value || 'General Vendor';
+  const mobile = document.getElementById('ldr-mobile')?.value?.trim() || '';
+  const email = document.getElementById('ldr-email')?.value?.trim() || '';
+  const gst = document.getElementById('ldr-gst')?.value?.trim() || '';
+  const address = document.getElementById('ldr-address')?.value?.trim() || '';
   const amount = parseFloat(document.getElementById('ldr-amount')?.value || 0);
-  const category = document.getElementById('ldr-cat')?.value || 'General';
-  const status = document.getElementById('ldr-status')?.value || 'Paid';
+  const status = document.getElementById('ldr-status')?.value || 'Active';
 
-  if (!title) return alert("Please enter title or vendor name.");
+  if (!title) return alert("Please enter company or vendor name.");
 
   const { error } = await window.safeInsertAccounts({
     type: type,
     title: title,
+    company_name: title,
     category: category,
+    mobile: mobile,
+    email: email,
+    gst_no: gst,
+    address: address,
     amount: amount,
     status: status
   });
 
   if (error) return alert("Save Error: " + error.message);
 
-  alert("Record saved successfully!");
+  alert("Vendor / Expense record saved successfully!");
   window.closeRecordLedgerModal();
   window.loadAccountsData();
 };
 
-// Data Fetching & Dashboard Update
+// Data Fetching
 window.loadAccountsData = async function() {
   const db = getDb();
   if (!db || typeof db.from !== 'function') return;
@@ -171,7 +214,7 @@ window.loadAccountsData = async function() {
   }
 };
 
-// Filter & KPI Calculation Logic
+// Filter & Search Logic
 window.applyAccountsFilters = function() {
   const search = (document.getElementById('acc-search')?.value || '').toLowerCase();
   const typeFilter = document.getElementById('acc-filter-type')?.value || 'all';
@@ -179,11 +222,13 @@ window.applyAccountsFilters = function() {
   const now = new Date();
 
   let filtered = (window.accState.rawEntries || []).filter(item => {
-    const titleText = (item.title || item.company_name || item.particulars || '').toLowerCase();
+    const titleText = (item.title || item.company_name || '').toLowerCase();
     const catText = (item.category || '').toLowerCase();
-    const itemType = (item.type || 'Expense Outflow').toLowerCase();
+    const gstText = (item.gst_no || '').toLowerCase();
+    const mobileText = (item.mobile || '').toLowerCase();
+    const itemType = (item.type || '').toLowerCase();
 
-    if (search && !titleText.includes(search) && !catText.includes(search)) return false;
+    if (search && !titleText.includes(search) && !catText.includes(search) && !gstText.includes(search) && !mobileText.includes(search)) return false;
 
     if (typeFilter === 'debit' && !itemType.includes('outflow') && !itemType.includes('expense')) return false;
     if (typeFilter === 'credit' && !itemType.includes('inflow') && !itemType.includes('income') && !itemType.includes('vendor')) return false;
@@ -210,7 +255,7 @@ window.applyAccountsFilters = function() {
   window.renderAccountsTable();
 };
 
-// Table Renderer & KPI Updates
+// Table Renderer with Contact & GSTIN details for Vendors
 window.renderAccountsTable = function() {
   let income = 0, expense = 0;
   
@@ -219,7 +264,7 @@ window.renderAccountsTable = function() {
     const amt = parseFloat(r.amount || 0);
     if (typeStr.includes('outflow') || typeStr.includes('expense')) {
       expense += amt;
-    } else {
+    } else if (typeStr.includes('inflow') || typeStr.includes('income')) {
       income += amt;
     }
   });
@@ -242,104 +287,44 @@ window.renderAccountsTable = function() {
 
   const rows = window.accState.filteredEntries;
   if (!rows || rows.length === 0) {
-    tb.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 1.5rem; color: #9ca3af;">No transaction or vendor records found for selected filters.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 1.5rem; color: #9ca3af;">No records found. Click + Record Expense / Vendor Directory Entry to add one.</td></tr>';
     return;
   }
 
   tb.innerHTML = rows.map(r => {
-    const typeStr = (r.type || 'Expense').toLowerCase();
+    const typeStr = (r.type || 'Vendor Registration').toLowerCase();
     const isOutflow = typeStr.includes('outflow') || typeStr.includes('expense');
 
-    const typeBadge = isOutflow
-      ? `<span style="background: rgba(239,68,68,0.2); color: #ef4444; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.75rem;">${r.type || 'Expense Outflow'}</span>`
-      : `<span style="background: rgba(16,185,129,0.2); color: #10b981; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.75rem;">${r.type || 'Income / Vendor'}</span>`;
+    let typeBadge = `<span style="background: rgba(245,158,11,0.2); color: #f59e0b; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.75rem;">Vendor Directory</span>`;
+    if (isOutflow) {
+      typeBadge = `<span style="background: rgba(239,68,68,0.2); color: #ef4444; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.75rem;">Expense Outflow</span>`;
+    } else if (typeStr.includes('inflow') || typeStr.includes('income')) {
+      typeBadge = `<span style="background: rgba(16,185,129,0.2); color: #10b981; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: bold; font-size: 0.75rem;">Income Inflow</span>`;
+    }
 
-    const statusColor = (r.status || 'Paid').toLowerCase() === 'paid' ? '#10b981' : '#f59e0b';
+    const contactMeta = [
+      r.mobile ? `📞 ${r.mobile}` : '',
+      r.email ? `✉️ ${r.email}` : '',
+      r.gst_no ? `GST: <span style="color:#f59e0b; font-family:monospace;">${r.gst_no}</span>` : ''
+    ].filter(Boolean).join(' | ');
+
+    const titleDisplay = `
+      <div style="font-weight: bold;">${r.title || r.company_name || '-'}</div>
+      ${contactMeta ? `<div style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.2rem;">${contactMeta}</div>` : ''}
+    `;
+
+    const statusColor = (r.status || 'Active').toLowerCase() === 'paid' || (r.status || '').toLowerCase() === 'active' ? '#10b981' : '#f59e0b';
 
     return `
       <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); color: white;">
         <td style="padding: 0.65rem;">${typeBadge}</td>
-        <td style="padding: 0.65rem; font-weight: bold;">${r.title || r.company_name || r.particulars || '-'}</td>
-        <td style="padding: 0.65rem; color: #cbd5e1;">${r.category || '-'}</td>
+        <td style="padding: 0.65rem;">${titleDisplay}</td>
+        <td style="padding: 0.65rem; color: #cbd5e1;">${r.category || 'General Vendor'}</td>
         <td style="padding: 0.65rem; font-weight: bold; color: ${isOutflow ? '#ef4444' : '#10b981'};">₹${parseFloat(r.amount || 0).toFixed(2)}</td>
-        <td style="padding: 0.65rem;"><span style="color: ${statusColor}; font-weight: bold; font-size: 0.85rem;">${r.status || 'Paid'}</span></td>
+        <td style="padding: 0.65rem;"><span style="color: ${statusColor}; font-weight: bold; font-size: 0.85rem;">${r.status || 'Active'}</span></td>
       </tr>
     `;
   }).join('');
-};
-
-// Print Statement Functionality
-window.printAccountsStatement = function() {
-  const data = window.accState.filteredEntries || [];
-  if (data.length === 0) return alert("No transactions available to print under current filters.");
-
-  let printRows = '';
-  let totalDebit = 0, totalCredit = 0;
-
-  data.forEach(d => {
-    const typeStr = (d.type || 'Expense').toLowerCase();
-    const isOutflow = typeStr.includes('outflow') || typeStr.includes('expense');
-    const amt = parseFloat(d.amount || 0);
-
-    if (isOutflow) totalDebit += amt; else totalCredit += amt;
-
-    printRows += `
-      <tr>
-        <td style="border: 1px solid #ddd; padding: 8px;">${new Date(d.created_at || Date.now()).toLocaleDateString()}</td>
-        <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; color: ${isOutflow ? '#dc2626' : '#16a34a'};">${d.type || 'Transaction'}</td>
-        <td style="border: 1px solid #ddd; padding: 8px;">${d.title || d.company_name || '-'}</td>
-        <td style="border: 1px solid #ddd; padding: 8px;">${d.category || '-'}</td>
-        <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">₹${amt.toFixed(2)}</td>
-        <td style="border: 1px solid #ddd; padding: 8px;">${d.status || 'Paid'}</td>
-      </tr>
-    `;
-  });
-
-  const win = window.open('', '_blank');
-  win.document.write(`
-    <html>
-      <head>
-        <title>Accounts Ledger Statement</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
-          table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-          th { background: #f3f4f6; border: 1px solid #ddd; padding: 10px; text-align: left; }
-          .summary { margin-top: 20px; font-size: 1.1rem; font-weight: bold; background: #f8fafc; padding: 15px; border-radius: 6px; }
-        </style>
-      </head>
-      <body>
-        <h2>AASU AROGYAM ERP - Financial Ledger Statement</h2>
-        <p>Generated on: ${new Date().toLocaleString()}</p>
-        <table>
-          <thead>
-            <tr><th>Date</th><th>Type</th><th>Title / Vendor</th><th>Category</th><th>Amount</th><th>Status</th></tr>
-          </thead>
-          <tbody>${printRows}</tbody>
-        </table>
-        <div class="summary">
-          Total Inflow: ₹${totalCredit.toFixed(2)} | Total Outflow: ₹${totalDebit.toFixed(2)} | Net Balance: ₹${(totalCredit - totalDebit).toFixed(2)}
-        </div>
-      </body>
-    </html>
-  `);
-  win.document.close();
-  win.print();
-};
-
-// Module 7 Billing Sync Listener
-window.syncBillToAccounts = async function(billData) {
-  if (!billData || !billData.amount) return;
-  const amt = parseFloat(billData.amount || 0);
-  if (isNaN(amt) || amt <= 0) return;
-
-  await window.safeInsertAccounts({
-    type: 'Income Inflow',
-    title: `Patient Bill #${billData.invoice_no || 'INV'} (${billData.patient_name || 'Patient'})`,
-    category: 'Patient Billing',
-    amount: amt,
-    status: 'Paid'
-  });
-  window.loadAccountsData();
 };
 
 window.loadAccounts = window.loadAccountsData;
