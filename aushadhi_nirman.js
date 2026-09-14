@@ -14,7 +14,7 @@
     }
 
     try {
-      const { data: raw } = await db.from('raw_materials').select('*').order('created_at', { ascending: false });
+      const { data: raw } = await db.from('raw_materials').select('*');
       const tbRaw = document.getElementById('tbody-raw-materials') || document.getElementById('nrm-tb-raw');
       if (tbRaw && raw) {
         tbRaw.innerHTML = raw.map(r => `
@@ -32,7 +32,7 @@
         `).join('') || '<tr><td colspan="7" style="text-align:center; padding:1rem; color:white;">No raw materials found.</td></tr>';
       }
 
-      const { data: rec } = await db.from('master_recipes').select('*').order('created_at', { ascending: false });
+      const { data: rec } = await db.from('master_recipes').select('*');
       const tbRec = document.getElementById('tbody-master-recipes') || document.getElementById('nrm-tb-recipes');
       if (tbRec && rec) {
         tbRec.innerHTML = rec.map(r => `
@@ -862,7 +862,7 @@ async function renderMasterRecipesTable() {
   if (!db || typeof db.from !== 'function') return;
 
   try {
-    const { data: rec, error } = await db.from('master_recipes').select('*').order('created_at', { ascending: false });
+    const { data: rec, error } = await db.from('master_recipes').select('*');
     if (error) return console.error("Fetch master recipes error:", error.message);
     
     window.nrmState = window.nrmState || {};

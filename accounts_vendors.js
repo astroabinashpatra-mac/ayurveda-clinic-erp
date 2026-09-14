@@ -238,12 +238,12 @@ window.loadVendors = async function() {
 
   try {
     let vendors = [];
-    const { data, error } = await db.from('accounts_vendors').select('*').order('created_at', { ascending: false });
+    const { data, error } = await db.from('accounts_vendors').select('*');
     
     if (!error && data) {
       vendors = data;
     } else {
-      const alt = await db.from('accounts_vendors').select('*').eq('type', 'Vendor_Registration').order('created_at', { ascending: false });
+      const alt = await db.from('accounts_vendors').select('*').eq('type', 'Vendor_Registration');
       if (alt.data) {
         vendors = alt.data.map(a => ({
           id: a.id,
@@ -354,7 +354,7 @@ window.loadAccounts = async function() {
   if (!db || typeof db.from !== 'function') return;
 
   try {
-    const { data, error } = await db.from('accounts_vendors').select('*').order('created_at', { ascending: false });
+    const { data, error } = await db.from('accounts_vendors').select('*');
     if (error) return console.error("Accounts Fetch Error:", error.message);
 
     window.accState.ledger = data || [];
