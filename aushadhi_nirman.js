@@ -896,3 +896,138 @@ if (typeof loadAushadhiNirmanData === 'function') {
     renderMasterRecipesTable();
   };
 }
+
+
+// ==========================================
+// RAW MATERIAL EDIT & PRE-FILL HANDLER
+// ==========================================
+window.nrmEditingRMId = null;
+
+window.openRawMaterialModal = function() {
+  if (typeof ensureNirmanModals === 'function') ensureNirmanModals();
+  window.nrmEditingRMId = null;
+  
+  const modal = document.getElementById('nrm-modal-rm');
+  const title = modal ? modal.querySelector('h3') : null;
+  const saveBtn = modal ? modal.querySelector('button[onclick*="nrmSaveRM"]') : null;
+  
+  if (title) title.innerText = "Add Raw Material";
+  if (saveBtn) saveBtn.innerText = "Save & Sync Expense";
+
+  if (document.getElementById('nrm-rm-name')) document.getElementById('nrm-rm-name').value = '';
+  if (document.getElementById('nrm-rm-cat')) document.getElementById('nrm-rm-cat').value = 'Herbs';
+  if (document.getElementById('nrm-rm-unit')) document.getElementById('nrm-rm-unit').value = 'kg';
+  if (document.getElementById('nrm-rm-qty')) document.getElementById('nrm-rm-qty').value = '';
+  if (document.getElementById('nrm-rm-reorder')) document.getElementById('nrm-rm-reorder').value = '10';
+  if (document.getElementById('nrm-rm-cost')) document.getElementById('nrm-rm-cost').value = '';
+
+  if (modal) modal.style.display = 'flex';
+};
+
+window.closeRawMaterialModal = function() {
+  const modal = document.getElementById('nrm-modal-rm');
+  if (modal) modal.style.display = 'none';
+  window.nrmEditingRMId = null;
+};
+
+window.editRawMaterial = async function(id) {
+  if (typeof ensureNirmanModals === 'function') ensureNirmanModals();
+  window.nrmEditingRMId = id;
+
+  const db = window.supabaseClient || window.sbClient || window.supabase;
+  let item = (window.nrmState && window.nrmState.raw) ? window.nrmState.raw.find(r => r.id === id || String(r.id) === String(id)) : null;
+
+  if (!item && db && typeof db.from === 'function') {
+    try {
+      const { data } = await db.from('raw_materials').select('*').eq('id', id).single();
+      if (data) item = data;
+    } catch(e) {}
+  }
+
+  if (!item) return alert("Raw material details not found in database.");
+
+  const modal = document.getElementById('nrm-modal-rm');
+  const title = modal ? modal.querySelector('h3') : null;
+  const saveBtn = modal ? modal.querySelector('button[onclick*="nrmSaveRM"]') : null;
+  
+  if (title) title.innerText = "Edit Raw Material";
+  if (saveBtn) saveBtn.innerText = "Update Material";
+
+  if (document.getElementById('nrm-rm-name')) document.getElementById('nrm-rm-name').value = item.name || '';
+  if (document.getElementById('nrm-rm-cat')) document.getElementById('nrm-rm-cat').value = item.category || 'Herbs';
+  if (document.getElementById('nrm-rm-unit')) document.getElementById('nrm-rm-unit').value = item.unit || 'kg';
+  if (document.getElementById('nrm-rm-qty')) document.getElementById('nrm-rm-qty').value = item.stock || item.qty || '0';
+  if (document.getElementById('nrm-rm-reorder')) document.getElementById('nrm-rm-reorder').value = item.reorder_limit || item.reorder || '10';
+  if (document.getElementById('nrm-rm-cost')) document.getElementById('nrm-rm-cost').value = item.purchase_rate || item.total_cost || item.cost || '0';
+
+  if (modal) modal.style.display = 'flex';
+};
+
+window.nrmEditRM = window.editRawMaterial;
+
+window.nrmSaveRM = async function() {
+  const name = document.getElementById('nrm-rm-name')?.value?.trim();
+  const cat = document.getElementById('nrm-rm-cat')?.value;
+  const unit = document.getElementById('nrm-rm-unit')?.value;
+  const qty = parseFloat(document.getElementById('nrm-rm-qty')?.value || 0);
+  const reorder = parseFloat(document.getElementById('nrm-rm-reorder')?.value || 10);
+  const cost = parseFloat(document.getElementById('nrm-rm-cost')?.value || 0);
+
+  if (!name) return alert("Please enter material name.");
+
+  const db = window.supabaseClient || window.sbClient || window.supabase;
+  if (!db || typeof db.from !== 'function') return alert("Database not connected.");
+
+  try {
+    if (window.nrmEditingRMId) {
+      // UPDATE Existing Record
+      const { error } = await db.from('raw_materials').update({
+        name: name,
+        category: cat,
+        unit: unit,
+        stock: qty,
+        reorder_limit: reorder,
+        purchase_rate: cost,
+        status: qty <= reorder ? 'LOW STOCK' : 'SUFFICIENT'
+      }).eq('id', window.nrmEditingRMId);
+
+      if (error) return alert("Update error: " + error.message);
+      alert("Raw material updated successfully!");
+    } else {
+      // INSERT New Record
+      const newId = 'RAW-' + Date.now();
+      const payload = {
+        id: newId,
+        name: name,
+        category: cat,
+        unit: unit,
+        stock: qty,
+        reorder_limit: reorder,
+        purchase_rate: cost,
+        status: qty <= reorder ? 'LOW STOCK' : 'SUFFICIENT'
+      };
+
+      const { error } = await db.from('raw_materials').insert([payload]);
+      if (error) return alert("Save error: " + error.message);
+
+      if (cost > 0) {
+        await db.from('accounts_vendors').insert([{
+          type: 'Expense',
+          title: `Raw Material Purchase: ${name}`,
+          category: 'Aushadhi Nirman Procurement',
+          amount: cost,
+          status: 'Paid',
+          created_at: new Date().toISOString()
+        }]);
+      }
+      alert("Raw material created successfully!");
+    }
+
+    window.closeRawMaterialModal();
+    if (typeof window.loadAushadhiNirmanData === 'function') window.loadAushadhiNirmanData();
+    else location.reload();
+  } catch(err) {
+    console.error("Save RM Error:", err);
+    alert("Operation failed: " + err.message);
+  }
+};
