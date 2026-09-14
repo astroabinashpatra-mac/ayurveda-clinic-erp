@@ -1,3 +1,16 @@
+
+const formatIngredients = (ingList) => {
+  if (!ingList) return "-";
+  let items = typeof ingList === "string" ? JSON.parse(ingList) : ingList;
+  if (!Array.isArray(items) || items.length === 0) return "-";
+  return items.map(ing => {
+    const name = ing.name || ing.raw_name || ing.item_name || ing.title || "Item";
+    const qty = ing.qty ?? ing.req_qty ?? ing.quantity ?? "";
+    const unit = ing.unit || "g";
+    return `${name} (${qty} ${unit})`;
+  }).join(", ");
+};
+
 /**
  * AUSHADHI NIRMAN - ISOLATED MODULE 5 ENGINE
  */
