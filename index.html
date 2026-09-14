@@ -773,7 +773,7 @@ function removeRecipeIngredient(index) {
         <div class="section-header">
           <h3 style="color:var(--accent-orange);">🏺 MASTER RECIPES & PRODUCTION ENGINE</h3>
           <div style="display:flex; gap:0.5rem;">
-            <button type="button" id="btn-add-master-recipe" onclick="openMasterRecipeModal()"  type="button" onclick="openMasterRecipeModal()"  type="button" onclick="openMasterRecipeModal()"  class="btn btn-orange" onclick="openRecipeModal()">+ Add Master Recipe</button>
+            <button type="button" onclick="const m = document.getElementById(\'modal-master-recipe\') || document.getElementById(\'modal-recipe\') || document.getElementById(\'masterRecipeModal\'); if(m) m.style.display=\'flex\'; else if(window.openMasterRecipeModal) window.openMasterRecipeModal();" type="button" id="btn-add-master-recipe" onclick="openMasterRecipeModal()"  type="button" onclick="openMasterRecipeModal()"  type="button" onclick="openMasterRecipeModal()"  class="btn btn-orange" onclick="openRecipeModal()">+ Add Master Recipe</button>
             <button class="btn btn-blue" onclick="openModal('md-batch-prod')">⚙️ Execute Batch Production</button>
           </div>
         </div>
