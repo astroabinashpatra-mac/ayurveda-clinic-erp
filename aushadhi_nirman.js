@@ -197,9 +197,9 @@ function ensureNirmanModals() {
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 1.5rem;">
-          <div><label style="color:#9ca3af; font-size:0.8rem;">Init Qty</label><input type="number" id="nrm-rm-qty" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; box-sizing: border-box;"></div>
-          <div><label style="color:#9ca3af; font-size:0.8rem;">Reorder</label><input type="number" id="nrm-rm-reorder" value="10" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; box-sizing: border-box;"></div>
-          <div><label style="color:#9ca3af; font-size:0.8rem;">Cost (₹)</label><input type="number" id="nrm-rm-cost" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; box-sizing: border-box;"></div>
+          <div><label for="nrm-rm-qty" style="color:#9ca3af; font-size:0.8rem;">Init Qty</label><input  type="number" id="nrm-rm-qty" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; box-sizing: border-box;"></div>
+          <div><label for="nrm-rm-reorder" style="color:#9ca3af; font-size:0.8rem;">Reorder</label><input  type="number" id="nrm-rm-reorder" value="10" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; box-sizing: border-box;"></div>
+          <div><label for="nrm-rm-cost" style="color:#9ca3af; font-size:0.8rem;">Cost (₹)</label><input  type="number" id="nrm-rm-cost" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; box-sizing: border-box;"></div>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
@@ -649,15 +649,15 @@ function ensureNirmanModals() {
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
           <div>
-            <label style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Category</label>
-            <select id="nrm-rm-cat" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+            <label for="nrm-rm-cat" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Category</label>
+            <select  id="nrm-rm-cat" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
               <option value="Herbs">Herbs</option><option value="Roots">Roots</option><option value="Oil/Ghee">Oil/Ghee</option>
               <option value="Powder/Bhasma">Powder/Bhasma</option><option value="Mineral">Mineral</option><option value="Other">Other</option>
             </select>
           </div>
           <div>
-            <label style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Unit</label>
-            <select id="nrm-rm-unit" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+            <label for="nrm-rm-unit" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Unit</label>
+            <select  id="nrm-rm-unit" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
               <option value="gms">gms</option><option value="kg">kg</option><option value="ltrs">ltrs</option>
               <option value="counts">counts</option><option value="Ozs">Ozs</option><option value="mtrs">mtrs</option>
             </select>
@@ -665,9 +665,9 @@ function ensureNirmanModals() {
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 1.5rem;">
-          <div><label style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Init Qty</label><input type="number" id="nrm-rm-qty" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius:4px; box-sizing: border-box;"></div>
-          <div><label style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Reorder</label><input type="number" id="nrm-rm-reorder" value="10" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius:4px; box-sizing: border-box;"></div>
-          <div><label style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Total Cost (₹)</label><input type="number" id="nrm-rm-cost" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius:4px; box-sizing: border-box;"></div>
+          <div><label for="nrm-rm-qty" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Init Qty</label><input  type="number" id="nrm-rm-qty" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius:4px; box-sizing: border-box;"></div>
+          <div><label for="nrm-rm-reorder" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Reorder</label><input  type="number" id="nrm-rm-reorder" value="10" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius:4px; box-sizing: border-box;"></div>
+          <div><label for="nrm-rm-cost" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Total Cost (₹)</label><input  type="number" id="nrm-rm-cost" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius:4px; box-sizing: border-box;"></div>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
@@ -684,12 +684,12 @@ function ensureNirmanModals() {
         
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
           <div>
-            <label style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Medicine / Output Name</label>
-            <input type="text" id="nrm-rec-name" placeholder="e.g. Swarna Bhasma Mix" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing:border-box;">
+            <label for="nrm-rec-name" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Medicine / Output Name</label>
+            <input  type="text" id="nrm-rec-name" placeholder="e.g. Swarna Bhasma Mix" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing:border-box;">
           </div>
           <div>
-            <label style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Profit Margin %</label>
-            <input type="number" id="nrm-rec-margin" placeholder="20" value="20" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing:border-box;">
+            <label for="nrm-rec-margin" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Profit Margin %</label>
+            <input  type="number" id="nrm-rec-margin" placeholder="20" value="20" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing:border-box;">
           </div>
         </div>
 

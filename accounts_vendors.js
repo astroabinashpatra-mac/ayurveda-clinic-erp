@@ -47,14 +47,14 @@ function ensureAccountsModals() {
         </div>
         
         <div style="margin-bottom: 1rem;">
-          <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Company / Vendor Name *</label>
-          <input type="text" id="vnd-name" placeholder="e.g. Dabur India Ltd / Apex Lab Supplies" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+          <label for="vnd-name" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Company / Vendor Name *</label>
+          <input  type="text" id="vnd-name" placeholder="e.g. Dabur India Ltd / Apex Lab Supplies" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
           <div>
-            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Category</label>
-            <select id="vnd-cat" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <label for="vnd-cat" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Category</label>
+            <select  id="vnd-cat" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
               <option value="Raw Material Supplier">Raw Material Supplier</option>
               <option value="Herbal Pharma">Herbal Pharma</option>
               <option value="Equipment & Instruments">Equipment & Instruments</option>
@@ -64,25 +64,25 @@ function ensureAccountsModals() {
             </select>
           </div>
           <div>
-            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Mobile Number *</label>
-            <input type="text" id="vnd-mobile" placeholder="e.g. 9876543210" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <label for="vnd-mobile" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Mobile Number *</label>
+            <input  type="text" id="vnd-mobile" placeholder="e.g. 9876543210" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
           </div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
           <div>
-            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Email ID</label>
-            <input type="email" id="vnd-email" placeholder="vendor@example.com" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <label for="vnd-email" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Email ID</label>
+            <input  type="email" id="vnd-email" placeholder="vendor@example.com" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
           </div>
           <div>
-            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">GST No.</label>
-            <input type="text" id="vnd-gst" placeholder="e.g. 21AAAAA0000A1Z5" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <label for="vnd-gst" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">GST No.</label>
+            <input  type="text" id="vnd-gst" placeholder="e.g. 21AAAAA0000A1Z5" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
           </div>
         </div>
 
         <div style="margin-bottom: 1.5rem;">
-          <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Address</label>
-          <textarea id="vnd-address" rows="2" placeholder="Full business address..." style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box; resize: vertical;"></textarea>
+          <label for="vnd-address" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">Address</label>
+          <textarea  id="vnd-address" rows="2" placeholder="Full business address..." style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box; resize: vertical;"></textarea>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
@@ -102,12 +102,12 @@ function ensureAccountsModals() {
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
           <div>
-            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">DATE *</label>
-            <input type="date" id="ldr-date" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <label for="ldr-date" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">DATE *</label>
+            <input  type="date" id="ldr-date" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
           </div>
           <div>
-            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">TYPE *</label>
-            <select id="ldr-type" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <label for="ldr-type" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">TYPE *</label>
+            <select  id="ldr-type" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
               <option value="Expense Outflow">✓ Expense Outflow</option>
               <option value="Income Inflow">Income Inflow</option>
             </select>
@@ -115,18 +115,18 @@ function ensureAccountsModals() {
         </div>
 
         <div style="margin-bottom: 1rem;">
-          <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">PARTICULARS / CATEGORY *</label>
-          <input type="text" id="ldr-particulars" placeholder="e.g. Raw Material Purchase / Electricity Bill / Patient Fee" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+          <label for="ldr-particulars" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">PARTICULARS / CATEGORY *</label>
+          <input  type="text" id="ldr-particulars" placeholder="e.g. Raw Material Purchase / Electricity Bill / Patient Fee" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
           <div>
-            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">AMOUNT (₹) *</label>
-            <input type="number" step="0.01" id="ldr-amount" placeholder="0.00" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <label for="ldr-amount" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">AMOUNT (₹) *</label>
+            <input  type="number" step="0.01" id="ldr-amount" placeholder="0.00" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
           </div>
           <div>
-            <label style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">PAYMENT MODE</label>
-            <select id="ldr-mode" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <label for="ldr-mode" style="color: #9ca3af; font-size: 0.8rem; display: block; margin-bottom: 0.3rem;">PAYMENT MODE</label>
+            <select  id="ldr-mode" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
               <option value="Cash">Cash</option>
               <option value="UPI / Online">UPI / Online</option>
               <option value="Bank Transfer">Bank Transfer</option>
