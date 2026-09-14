@@ -364,15 +364,22 @@ window.loadAccounts = async function() {
   }
 };
 
+
 window.applyAccountsFilters = function() {
   const search = (document.getElementById('acc-ledger-search')?.value || '').toLowerCase();
   const typeFilter = document.getElementById('acc-filter-type')?.value || '';
   const periodFilter = document.getElementById('acc-filter-period')?.value || 'all';
+  const sortBy = document.getElementById('acc-sort-by')?.value || 'date_desc';
   const now = new Date();
 
-  window.accState.filteredLedger = (window.accState.ledger || []).filter(item => {
+  let filtered = (window.accState.ledger || []).filter(item => {
     const titleText = (item.title || item.category || '').toLowerCase();
-    if (search && !titleText.includes(search) && !(item.id || '').toLowerCase().includes(search)) return false;
+    const idText = (item.id || '').toLowerCase();
+    const modeText = (item.mode || '').toLowerCase();
+
+    if (search && !titleText.includes(search) && !idText.includes(search) && !modeText.includes(search)) {
+      return false;
+    }
 
     const itemType = (item.type || 'Expense Outflow').toLowerCase();
     if (typeFilter === 'debit' && !itemType.includes('outflow') && !itemType.includes('expense') && !itemType.includes('debit')) return false;
@@ -420,6 +427,21 @@ window.applyAccountsFilters = function() {
     return true;
   });
 
+  // Apply Sorting
+  filtered.sort((a, b) => {
+    const dateA = new Date(a.date || a.created_at || 0).getTime();
+    const dateB = new Date(b.date || b.created_at || 0).getTime();
+    const amtA = parseFloat(a.amount || 0);
+    const amtB = parseFloat(b.amount || 0);
+
+    if (sortBy === 'date_desc') return dateB - dateA;
+    if (sortBy === 'date_asc') return dateA - dateB;
+    if (sortBy === 'amount_desc') return amtB - amtA;
+    if (sortBy === 'amount_asc') return amtA - amtB;
+    return 0;
+  });
+
+  window.accState.filteredLedger = filtered;
   window.renderAccountsTable();
 };
 
