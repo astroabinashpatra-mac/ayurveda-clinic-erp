@@ -203,7 +203,7 @@ function ensureNirmanModals() {
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-          <button onclick="window.closeRawMaterialModal()" style="padding: 0.5rem 1rem; cursor: pointer; background: #475569; color: white; border: none; border-radius: 4px;">Cancel</button>
+          
           <button onclick="window.nrmSaveRM()" style="background: #ea580c; color: white; padding: 0.5rem 1rem; border: none; cursor: pointer; border-radius:4px; font-weight: bold;">Save & Sync Expense</button>
         </div>
       </div>
@@ -212,7 +212,7 @@ function ensureNirmanModals() {
     <!-- MODAL: RECIPE -->
     <div id="nrm-modal-recipe" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999;">
       <div style="background: #1e293b; width: 550px; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155;">
-        <h3 style="color: white; margin-top: 0;">Create Master Recipe</h3>
+        <h3 style="color: white; margin-top: 0;">Create Master Recipe<button type="button" id="btn-close-recipe-x" onclick="event.preventDefault(); event.stopPropagation(); if(window.closeMasterRecipeModal){window.closeMasterRecipeModal()} else{const m = this.closest('.modal, [id*=\'modal\']'); if(m) m.style.display=\'none\';}" style="position: absolute; top: 16px; right: 16px; background: #ef4444; color: white; border: none; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; z-index: 9999;">✕</button></h3>
         
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1rem;">
           <input name="nrm-rec-name"  type="text" id="nrm-rec-name" placeholder="Medicine Name" style="padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
@@ -234,7 +234,7 @@ function ensureNirmanModals() {
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-          <button onclick="window.closeMasterRecipeModal()" style="padding: 0.5rem 1rem; cursor: pointer; background: #475569; color: white; border: none; border-radius: 4px;">Cancel</button>
+          
           <button onclick="window.nrmSaveRecipe()" style="background: #2563eb; color: white; padding: 0.5rem 1rem; border: none; cursor: pointer; border-radius:4px; font-weight: bold;">Save Recipe</button>
         </div>
       </div>
@@ -671,7 +671,7 @@ function ensureNirmanModals() {
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-          <button onclick="window.closeRawMaterialModal()" style="padding: 0.5rem 1rem; cursor: pointer; background: #475569; color: white; border: none; border-radius: 4px;">Cancel</button>
+          
           <button onclick="window.nrmSaveRM()" style="background: #ea580c; color: white; padding: 0.5rem 1rem; border: none; cursor: pointer; border-radius:4px; font-weight: bold;">Save & Sync Expense</button>
         </div>
       </div>
@@ -722,7 +722,7 @@ function ensureNirmanModals() {
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-          <button onclick="window.closeMasterRecipeModal()" style="padding: 0.6rem 1.2rem; cursor: pointer; background: #475569; color: white; border: none; border-radius: 4px;">Cancel</button>
+          
           <button onclick="window.nrmSaveRecipe()" style="background: #2563eb; color: white; padding: 0.6rem 1.2rem; border: none; cursor: pointer; border-radius:4px; font-weight: bold;">Save Recipe</button>
         </div>
       </div>
