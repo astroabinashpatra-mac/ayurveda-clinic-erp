@@ -1119,3 +1119,5 @@ window.renderMasterRecipesTable = function() {
 };
 
 window.renderRecipesTable = window.renderMasterRecipesTable;
+
+window.openAddRawMaterialModal = function(){ const m=document.getElementById('modal-raw-material')||document.getElementById('modal-add-raw-material')||document.querySelector('[id*="raw-material"]'); if(m) m.style.display='flex'; };
