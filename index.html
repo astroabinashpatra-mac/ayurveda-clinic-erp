@@ -1752,7 +1752,7 @@ function removeRecipeIngredient(index) {
         permissions: document.getElementById('stf-perm').value,
         status: 'Active'
       };
-      if (sbClient) try { await sbClient.from('staff_users').insert([payload]); } catch(err){}
+      if (sbClient) try { await sbClient.from('employees').insert([payload]); } catch(err){}
       if (!db.staffUsers) db.staffUsers = [];
       db.staffUsers.push({ id: 'stf-' + Date.now(), ...payload });
       closeModal('md-stf-add');
@@ -1761,7 +1761,7 @@ function removeRecipeIngredient(index) {
 
     async function delStaffUser(id) {
       if (!confirm('Revoke access for this user?')) return;
-      if (sbClient) try { await sbClient.from('staff_users').delete().eq('id', id); } catch(err){}
+      if (sbClient) try { await sbClient.from('employees').delete().eq('id', id); } catch(err){}
       if (db.staffUsers) db.staffUsers = db.staffUsers.filter(s => s.id !== id);
       renderStaffUsers();
     }
@@ -3108,7 +3108,7 @@ Print receipt now?`)) printPosInvoice(billNo);
           const { data: res } = await sbClient.from('reservations').select('*'); if (res && res.length) db.reservations = res;
           const { data: rms } = await sbClient.from('therapy_rooms').select('*'); if (rms && rms.length) db.rooms = rms;
           const { data: doc } = await sbClient.from('clinic_documents').select('*'); if (doc && doc.length) db.documents = doc;
-          const { data: stf } = await sbClient.from('staff_users').select('*'); if (stf && stf.length) db.staffUsers = stf;
+          const { data: stf } = await sbClient.from('employees').select('*'); if (stf && stf.length) db.staffUsers = stf;
         } catch(err) { console.error('Supabase fetch error:', err); }
       }
 
