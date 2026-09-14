@@ -205,7 +205,7 @@ window.saveVendor = async function() {
   };
 
   try {
-    let { error } = await db.from('vendors').insert([payload]);
+    let { error } = await db.from('accounts_vendors').insert([payload]);
     if (error && (error.message.includes('relation') || error.code === '42P01')) {
       const altPayload = {
         id: payload.id,
@@ -238,7 +238,7 @@ window.loadVendors = async function() {
 
   try {
     let vendors = [];
-    const { data, error } = await db.from('vendors').select('*').order('created_at', { ascending: false });
+    const { data, error } = await db.from('accounts_vendors').select('*').order('created_at', { ascending: false });
     
     if (!error && data) {
       vendors = data;
@@ -305,7 +305,7 @@ window.deleteVendor = async function(id) {
   const db = window.supabaseClient || window.sbClient || window.supabase;
   if (!db) return alert("Database not ready.");
 
-  await db.from('vendors').delete().eq('id', id);
+  await db.from('accounts_vendors').delete().eq('id', id);
   await db.from('accounts_vendors').delete().eq('id', id);
   alert("Vendor deleted!");
   window.loadVendors();
@@ -597,3 +597,36 @@ document.addEventListener('submit', function(e) {
     }, 400);
   }
 }, true);
+
+
+
+// SAFE ACCOUNTS & VENDORS LOADER ENGINE
+window.loadAccountsAndVendors = async function() {
+  const db = window.supabaseClient || window.sbClient || window.supabase;
+  if (!db) return;
+
+  try {
+    // 1. Fetch records safely from accounts_vendors table
+    let { data, error } = await db.from('accounts_vendors').select('*');
+    
+    if (error) {
+      console.warn("Accounts fetch fallback:", error.message);
+      data = [];
+    }
+
+    const items = data || [];
+    window.accState = window.accState || {};
+    
+    // Separate Vendors from Financial Ledger in memory
+    window.accState.vendors = items.filter(i => i.is_vendor || i.type === 'Vendor' || i.category === 'Vendor_Registration' || i.company_name);
+    window.accState.ledger = items.filter(i => !i.company_name);
+    window.accState.filteredLedger = [...window.accState.ledger];
+
+    if (typeof window.renderVendorsTable === 'function') window.renderVendorsTable();
+    if (typeof window.applyAccountsFilters === 'function') window.applyAccountsFilters();
+  } catch (err) {
+    console.warn("Accounts load exception suppressed:", err);
+  }
+};
+
+window.loadAccounts = window.loadAccountsAndVendors;
