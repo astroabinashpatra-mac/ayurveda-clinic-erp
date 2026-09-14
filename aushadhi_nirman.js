@@ -183,23 +183,23 @@ function ensureNirmanModals() {
     <div id="nrm-modal-rm" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999;">
       <div style="background: #1e293b; width: 450px; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155;">
         <h3 style="color: white; margin-top: 0;">Add / Edit Raw Material</h3>
-        <input type="text" id="nrm-rm-name" placeholder="Material Name (e.g., Ashwagandha)" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+        <input name="nrm-rm-name"  type="text" id="nrm-rm-name" placeholder="Material Name (e.g., Ashwagandha)" style="width: 100%; padding: 0.5rem; margin-bottom: 1rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-          <select id="nrm-rm-cat" style="padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+          <select name="nrm-rm-cat"  id="nrm-rm-cat" style="padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
             <option value="Herbs">Herbs</option><option value="Roots">Roots</option><option value="Oil/Ghee">Oil/Ghee</option>
             <option value="Powder/Bhasma">Powder/Bhasma</option><option value="Mineral">Mineral</option><option value="Other">Other</option>
           </select>
-          <select id="nrm-rm-unit" style="padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+          <select name="nrm-rm-unit"  id="nrm-rm-unit" style="padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
             <option value="gms">gms</option><option value="kg">kg</option><option value="ltrs">ltrs</option>
             <option value="counts">counts</option><option value="Ozs">Ozs</option><option value="mtrs">mtrs</option>
           </select>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 1.5rem;">
-          <div><label for="nrm-rm-qty" style="color:#9ca3af; font-size:0.8rem;">Init Qty</label><input  type="number" id="nrm-rm-qty" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; box-sizing: border-box;"></div>
-          <div><label for="nrm-rm-reorder" style="color:#9ca3af; font-size:0.8rem;">Reorder</label><input  type="number" id="nrm-rm-reorder" value="10" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; box-sizing: border-box;"></div>
-          <div><label for="nrm-rm-cost" style="color:#9ca3af; font-size:0.8rem;">Cost (₹)</label><input  type="number" id="nrm-rm-cost" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; box-sizing: border-box;"></div>
+          <div><label for="nrm-rm-qty" style="color:#9ca3af; font-size:0.8rem;">Init Qty</label><input name="nrm-rm-qty"   type="number" id="nrm-rm-qty" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; box-sizing: border-box;"></div>
+          <div><label for="nrm-rm-reorder" style="color:#9ca3af; font-size:0.8rem;">Reorder</label><input name="nrm-rm-reorder"   type="number" id="nrm-rm-reorder" value="10" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; box-sizing: border-box;"></div>
+          <div><label for="nrm-rm-cost" style="color:#9ca3af; font-size:0.8rem;">Cost (₹)</label><input name="nrm-rm-cost"   type="number" id="nrm-rm-cost" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; box-sizing: border-box;"></div>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
@@ -215,15 +215,15 @@ function ensureNirmanModals() {
         <h3 style="color: white; margin-top: 0;">Create Master Recipe</h3>
         
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-          <input type="text" id="nrm-rec-name" placeholder="Medicine Name" style="padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
-          <input type="number" id="nrm-rec-margin" placeholder="Margin % (e.g. 20)" value="20" style="padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+          <input name="nrm-rec-name"  type="text" id="nrm-rec-name" placeholder="Medicine Name" style="padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+          <input name="nrm-rec-margin"  type="number" id="nrm-rec-margin" placeholder="Margin % (e.g. 20)" value="20" style="padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
         </div>
 
         <div style="background: #0f172a; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
           <h4 style="color: #cbd5e1; margin-top: 0;">Add Raw Materials (BOM)</h4>
           <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-            <select id="nrm-rec-sel" style="flex: 2; padding: 0.5rem; background: #1e293b; color: white; border: 1px solid #334155;"></select>
-            <input type="number" id="nrm-rec-qty" placeholder="Qty" style="flex: 1; padding: 0.5rem; background: #1e293b; color: white; border: 1px solid #334155;">
+            <select name="nrm-rec-sel"  id="nrm-rec-sel" style="flex: 2; padding: 0.5rem; background: #1e293b; color: white; border: 1px solid #334155;"></select>
+            <input name="nrm-rec-qty"  type="number" id="nrm-rec-qty" placeholder="Qty" style="flex: 1; padding: 0.5rem; background: #1e293b; color: white; border: 1px solid #334155;">
             <button onclick="window.nrmAddBOM()" style="background: #ea580c; color: white; border: none; padding: 0.5rem 1rem; cursor: pointer; border-radius:4px; font-weight: bold;">Add</button>
           </div>
           <table style="width: 100%; color: white; text-align: left; font-size: 0.9rem;">
@@ -645,19 +645,19 @@ function ensureNirmanModals() {
     <div id="nrm-modal-rm" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999;">
       <div style="background: #1e293b; width: 450px; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
         <h3 style="color: white; margin-top: 0; margin-bottom: 1rem;">Add / Edit Raw Material</h3>
-        <input type="text" id="nrm-rm-name" placeholder="Material Name (e.g., Ashwagandha)" style="width: 100%; padding: 0.6rem; margin-bottom: 1rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+        <input name="nrm-rm-name"  type="text" id="nrm-rm-name" placeholder="Material Name (e.g., Ashwagandha)" style="width: 100%; padding: 0.6rem; margin-bottom: 1rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
           <div>
             <label for="nrm-rm-cat" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Category</label>
-            <select  id="nrm-rm-cat" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+            <select name="nrm-rm-cat"   id="nrm-rm-cat" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
               <option value="Herbs">Herbs</option><option value="Roots">Roots</option><option value="Oil/Ghee">Oil/Ghee</option>
               <option value="Powder/Bhasma">Powder/Bhasma</option><option value="Mineral">Mineral</option><option value="Other">Other</option>
             </select>
           </div>
           <div>
             <label for="nrm-rm-unit" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Unit</label>
-            <select  id="nrm-rm-unit" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+            <select name="nrm-rm-unit"   id="nrm-rm-unit" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
               <option value="gms">gms</option><option value="kg">kg</option><option value="ltrs">ltrs</option>
               <option value="counts">counts</option><option value="Ozs">Ozs</option><option value="mtrs">mtrs</option>
             </select>
@@ -665,9 +665,9 @@ function ensureNirmanModals() {
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 1.5rem;">
-          <div><label for="nrm-rm-qty" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Init Qty</label><input  type="number" id="nrm-rm-qty" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius:4px; box-sizing: border-box;"></div>
-          <div><label for="nrm-rm-reorder" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Reorder</label><input  type="number" id="nrm-rm-reorder" value="10" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius:4px; box-sizing: border-box;"></div>
-          <div><label for="nrm-rm-cost" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Total Cost (₹)</label><input  type="number" id="nrm-rm-cost" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius:4px; box-sizing: border-box;"></div>
+          <div><label for="nrm-rm-qty" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Init Qty</label><input name="nrm-rm-qty"   type="number" id="nrm-rm-qty" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius:4px; box-sizing: border-box;"></div>
+          <div><label for="nrm-rm-reorder" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Reorder</label><input name="nrm-rm-reorder"   type="number" id="nrm-rm-reorder" value="10" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius:4px; box-sizing: border-box;"></div>
+          <div><label for="nrm-rm-cost" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Total Cost (₹)</label><input name="nrm-rm-cost"   type="number" id="nrm-rm-cost" style="width: 100%; padding: 0.5rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius:4px; box-sizing: border-box;"></div>
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
@@ -685,21 +685,21 @@ function ensureNirmanModals() {
         <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1.2rem;">
           <div>
             <label for="nrm-rec-name" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Medicine / Output Name</label>
-            <input  type="text" id="nrm-rec-name" placeholder="e.g. Swarna Bhasma Mix" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing:border-box;">
+            <input name="nrm-rec-name"   type="text" id="nrm-rec-name" placeholder="e.g. Swarna Bhasma Mix" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing:border-box;">
           </div>
           <div>
             <label for="nrm-rec-margin" style="color:#9ca3af; font-size:0.8rem; display:block; margin-bottom:0.3rem;">Profit Margin %</label>
-            <input  type="number" id="nrm-rec-margin" placeholder="20" value="20" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing:border-box;">
+            <input name="nrm-rec-margin"   type="number" id="nrm-rec-margin" placeholder="20" value="20" style="width:100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing:border-box;">
           </div>
         </div>
 
         <div style="background: #0f172a; padding: 1rem; border-radius: 6px; border: 1px solid #1e293b; margin-bottom: 1.2rem;">
           <h4 style="color: #cbd5e1; margin-top: 0; margin-bottom: 0.8rem; font-size:0.95rem;">Bill of Materials (BOM Ingredients)</h4>
           <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-            <select id="nrm-rec-sel" style="flex: 2; min-width: 0; padding: 0.6rem; background: #1e293b; color: white; border: 1px solid #334155; border-radius: 4px; outline:none; font-size:0.9rem;">
+            <select name="nrm-rec-sel"  id="nrm-rec-sel" style="flex: 2; min-width: 0; padding: 0.6rem; background: #1e293b; color: white; border: 1px solid #334155; border-radius: 4px; outline:none; font-size:0.9rem;">
               <option value="">-- Select Raw Material --</option>
             </select>
-            <input type="number" id="nrm-rec-qty" placeholder="Qty" style="width: 90px; padding: 0.6rem; background: #1e293b; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing:border-box;">
+            <input name="nrm-rec-qty"  type="number" id="nrm-rec-qty" placeholder="Qty" style="width: 90px; padding: 0.6rem; background: #1e293b; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing:border-box;">
             <button onclick="window.nrmAddBOM()" style="background: #ea580c; color: white; border: none; padding: 0.6rem 1.2rem; cursor: pointer; border-radius:4px; font-weight: bold; white-space:nowrap;">+ Add</button>
           </div>
           <div style="max-height: 180px; overflow-y: auto;">
