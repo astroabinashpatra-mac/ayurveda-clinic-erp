@@ -1004,3 +1004,35 @@ function removeRecipeIngredient(index) {
 
     <!-- MODULE 14: IPD WARD MANAGEMENT -->
     
+<script>
+window.switchTab = function(tabId, el) {
+  try {
+    // 1. Hide all module content sections
+    const allSections = document.querySelectorAll('.module-section, [id^="mod-"], #ipd, #dashboard');
+    allSections.forEach(sec => {
+      sec.style.display = 'none';
+      sec.classList.remove('active');
+    });
+
+    // 2. Locate target container (supports both 'ipd' and 'mod-ipd')
+    let target = document.getElementById(tabId) || 
+                 document.getElementById('mod-' + tabId) || 
+                 document.getElementById(tabId.replace('mod-', ''));
+
+    if (target) {
+      target.style.display = 'block';
+      target.classList.add('active');
+    } else {
+      console.warn('Target module container not found for ID:', tabId);
+    }
+
+    // 3. Update sidebar active state
+    const navItems = document.querySelectorAll('.sidebar li, .sidebar .item, nav li');
+    navItems.forEach(item => item.classList.remove('active'));
+    if (el) el.classList.add('active');
+
+  } catch (err) {
+    console.error('SwitchTab navigation error:', err);
+  }
+};
+</script>
