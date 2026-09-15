@@ -1,6 +1,5 @@
 /**
- * MODULE 14: IPD WARD MANAGEMENT ENGINE
- * Directly persistent modal data binder for Supabase
+ * MODULE 14: IPD WARD MANAGEMENT ENGINE (DYNAMIC MODAL RENDERER)
  */
 
 function getIpdDb() {
@@ -9,6 +8,61 @@ function getIpdDb() {
   if (typeof supabaseClient !== 'undefined' && supabaseClient && supabaseClient.from) return supabaseClient;
   return null;
 }
+
+// Auto-repair and render clean modal HTML
+window.ensureCleanModal = function() {
+  let modal = document.getElementById('modal-allocate-ipd');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-allocate-ipd';
+    modal.style.cssText = 'display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999; padding: 1rem;';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div style="background: #1e293b; width: 480px; max-width: 95vw; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; position: relative;">
+      <button type="button" onclick="document.getElementById('modal-allocate-ipd').style.display='none'" style="position: absolute; right: 1rem; top: 1rem; background: none; border: none; color: #9ca3af; font-size: 1.2rem; cursor: pointer;">✕</button>
+      <h3 style="color: white; margin-top: 0; margin-bottom: 1rem;">Allocate IPD Bed</h3>
+      
+      <div style="margin-bottom: 0.8rem;">
+        <label style="color: #9ca3af; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.3rem;">BED NO *</label>
+        <input type="text" id="ipd-field-bed-no" value="BED-101" placeholder="e.g. BED-101" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+      </div>
+
+      <div style="margin-bottom: 0.8rem;">
+        <label style="color: #9ca3af; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.3rem;">WARD TYPE *</label>
+        <select id="ipd-field-ward" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+          <option value="General Ward">General Ward</option>
+          <option value="Panchakarma Special">Panchakarma Special</option>
+          <option value="Deluxe Suite">Deluxe Suite</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 0.8rem;">
+        <label style="color: #9ca3af; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.3rem;">PATIENT NAME</label>
+        <input type="text" id="ipd-field-patient" placeholder="Full Patient Name" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+      </div>
+
+      <div style="margin-bottom: 0.8rem;">
+        <label style="color: #9ca3af; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.3rem;">ATTENDING VAIDYA / DOCTOR</label>
+        <input type="text" id="ipd-field-doctor" placeholder="Vaidya Name" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+      </div>
+
+      <div style="margin-bottom: 1.2rem;">
+        <label style="color: #9ca3af; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.3rem;">DAILY CHARGE (₹)</label>
+        <input type="number" id="ipd-field-rate" value="1500" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+      </div>
+
+      <button type="button" onclick="window.submitIpdAllocation()" style="width: 100%; padding: 0.75rem; background: #ea580c; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">Allocate Bed</button>
+    </div>
+  `;
+};
+
+window.openAllocateModal = function() {
+  window.ensureCleanModal();
+  const modal = document.getElementById('modal-allocate-ipd');
+  if (modal) modal.style.display = 'flex';
+};
 
 window.loadIpdData = async function() {
   const db = getIpdDb();
@@ -74,71 +128,49 @@ window.renderIpdTable = function(beds, admissions) {
 
 window.submitIpdAllocation = async function() {
   const db = getIpdDb();
-  if (!db) return alert("Database client initializing... Please try again in a moment.");
+  if (!db) return alert("Database client initializing... Please try again.");
 
-  // Direct element lookup with fallback to generic inputs
-  const bedNoInput = document.getElementById('ipd-field-bed-no') || document.querySelector('input[placeholder*="BED-"]');
-  const wardSelect = document.getElementById('ipd-field-ward') || document.querySelector('select');
-  const patientInput = document.getElementById('ipd-field-patient') || document.querySelector('input[placeholder*="Patient"]');
-  const doctorInput = document.getElementById('ipd-field-doctor') || document.querySelector('input[placeholder*="Vaidya"]');
-  const rateInput = document.getElementById('ipd-field-rate') || document.querySelector('input[type="number"]');
-
-  const bedNo = bedNoInput ? bedNoInput.value.trim() : 'BED-' + Math.floor(100 + Math.random() * 900);
-  const wardType = wardSelect ? wardSelect.value : 'General Ward';
-  const patientName = patientInput ? patientInput.value.trim() : '';
-  const doctorName = doctorInput ? doctorInput.value.trim() : '';
-  const dailyRate = rateInput ? parseFloat(rateInput.value) || 1500 : 1500;
+  const bedNo = document.getElementById('ipd-field-bed-no')?.value.trim();
+  const ward = document.getElementById('ipd-field-ward')?.value;
+  const patient = document.getElementById('ipd-field-patient')?.value.trim();
+  const doctor = document.getElementById('ipd-field-doctor')?.value.trim();
+  const rate = parseFloat(document.getElementById('ipd-field-rate')?.value || 1500);
 
   if (!bedNo) return alert("Please enter a bed number.");
 
   const bedId = 'BED-' + Date.now();
-  const isOccupied = patientName.length > 0;
+  const isOccupied = patient.length > 0;
 
-  // 1. Insert Bed Record
   const { error: bedErr } = await db.from('ipd_beds').insert([{
     id: bedId,
     room_no: bedNo,
     bed_no: bedNo,
-    ward_type: wardType,
-    daily_rate: dailyRate,
+    ward_type: ward,
+    daily_rate: rate,
     status: isOccupied ? 'Occupied' : 'Available'
   }]);
 
-  if (bedErr) return alert("Error creating bed: " + bedErr.message);
+  if (bedErr) return alert("Error saving bed: " + bedErr.message);
 
-  // 2. Insert Admission Record if Patient Name provided
   if (isOccupied) {
     await db.from('ipd_admissions').insert([{
       id: 'ADM-' + Date.now(),
-      patient_name: patientName,
-      doctor_name: doctorName,
+      patient_name: patient,
+      doctor_name: doctor,
       bed_id: bedId,
       status: 'Admitted',
       admission_date: new Date().toISOString()
     }]);
   }
 
-  // Close Modal
-  const visibleModals = document.querySelectorAll('div[style*="display: flex"], div[style*="display:block"], .modal-overlay');
-  visibleModals.forEach(m => {
-    if (m.innerText.includes('Allocate IPD Bed')) m.style.display = 'none';
-  });
-
+  document.getElementById('modal-allocate-ipd').style.display = 'none';
   alert("IPD Bed allocated successfully!");
   window.loadIpdData();
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    const allocBtns = document.querySelectorAll('button');
-    allocBtns.forEach(b => {
-      if (b.innerText.trim() === 'Allocate Bed') {
-        b.onclick = (e) => {
-          e.preventDefault();
-          window.submitIpdAllocation();
-        };
-      }
-    });
-    window.loadIpdData();
-  }, 500);
+  window.ensureCleanModal();
+  const btn = document.querySelector('#mod-ipd button, #ipd button');
+  if (btn) btn.onclick = window.openAllocateModal;
+  setTimeout(window.loadIpdData, 500);
 });
