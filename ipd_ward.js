@@ -1,5 +1,5 @@
 /**
- * MODULE 14: IPD WARD MANAGEMENT ENGINE (DYNAMIC MODAL RENDERER)
+ * MODULE 14: IPD WARD MANAGEMENT ENGINE (DYNAMIC & ROBUST)
  */
 
 function getIpdDb() {
@@ -9,7 +9,7 @@ function getIpdDb() {
   return null;
 }
 
-// Auto-repair and render clean modal HTML
+// 1. Ensure modal element exists and is freshly formatted
 window.ensureCleanModal = function() {
   let modal = document.getElementById('modal-allocate-ipd');
   if (!modal) {
@@ -21,7 +21,7 @@ window.ensureCleanModal = function() {
 
   modal.innerHTML = `
     <div style="background: #1e293b; width: 480px; max-width: 95vw; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; position: relative;">
-      <button type="button" onclick="document.getElementById('modal-allocate-ipd').style.display='none'" style="position: absolute; right: 1rem; top: 1rem; background: none; border: none; color: #9ca3af; font-size: 1.2rem; cursor: pointer;">✕</button>
+      <button type="button" onclick="window.closeAllocateModal()" style="position: absolute; right: 1rem; top: 1rem; background: none; border: none; color: #9ca3af; font-size: 1.2rem; cursor: pointer;">✕</button>
       <h3 style="color: white; margin-top: 0; margin-bottom: 1rem;">Allocate IPD Bed</h3>
       
       <div style="margin-bottom: 0.8rem;">
@@ -58,12 +58,26 @@ window.ensureCleanModal = function() {
   `;
 };
 
+// 2. Modal open/close handlers with input resets
 window.openAllocateModal = function() {
   window.ensureCleanModal();
   const modal = document.getElementById('modal-allocate-ipd');
-  if (modal) modal.style.display = 'flex';
+  if (modal) {
+    modal.style.display = 'flex';
+    // Generate fresh Bed ID suggestion
+    const bedNoField = document.getElementById('ipd-field-bed-no');
+    if (bedNoField && bedNoField.value === '') {
+      bedNoField.value = 'BED-' + Math.floor(100 + Math.random() * 900);
+    }
+  }
 };
 
+window.closeAllocateModal = function() {
+  const modal = document.getElementById('modal-allocate-ipd');
+  if (modal) modal.style.display = 'none';
+};
+
+// 3. Load live bed allocation and admission data
 window.loadIpdData = async function() {
   const db = getIpdDb();
   if (!db) return;
@@ -82,6 +96,7 @@ window.loadIpdData = async function() {
   }
 };
 
+// 4. Populate table rows dynamically
 window.renderIpdTable = function(beds, admissions) {
   const ipdSection = document.getElementById('mod-ipd') || document.getElementById('ipd');
   if (!ipdSection) return;
@@ -126,6 +141,7 @@ window.renderIpdTable = function(beds, admissions) {
   }).join('');
 };
 
+// 5. Submit form and reset inputs
 window.submitIpdAllocation = async function() {
   const db = getIpdDb();
   if (!db) return alert("Database client initializing... Please try again.");
@@ -163,14 +179,25 @@ window.submitIpdAllocation = async function() {
     }]);
   }
 
-  document.getElementById('modal-allocate-ipd').style.display = 'none';
+  // Reset patient & doctor inputs for next allocation
+  if (document.getElementById('ipd-field-patient')) document.getElementById('ipd-field-patient').value = '';
+  if (document.getElementById('ipd-field-doctor')) document.getElementById('ipd-field-doctor').value = '';
+
+  window.closeAllocateModal();
   alert("IPD Bed allocated successfully!");
   window.loadIpdData();
 };
 
+// 6. Global event delegation for trigger button & initial load
+document.addEventListener('click', function(e) {
+  const target = e.target.closest('button');
+  if (target && target.innerText.includes('Allocate IPD Bed')) {
+    e.preventDefault();
+    window.openAllocateModal();
+  }
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   window.ensureCleanModal();
-  const btn = document.querySelector('#mod-ipd button, #ipd button');
-  if (btn) btn.onclick = window.openAllocateModal;
   setTimeout(window.loadIpdData, 500);
 });
