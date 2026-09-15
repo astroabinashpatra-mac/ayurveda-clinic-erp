@@ -1,12 +1,11 @@
 /**
- * MODULE 14: IPD WARD MANAGEMENT ENGINE (UUID COMPATIBLE & FULL INTEGRATION)
- * Includes: Bed Allocation, Daily Vitals, Running Charges & Discharge Engine
+ * MODULE 14: IPD WARD MANAGEMENT ENGINE (UUID & SUPABASE INTEGRATED)
+ * Features: Bed Allocation, Clinical Daily Notes, Running Ledger, and Discharge Engine
  */
 
 window.SUPABASE_URL = window.SUPABASE_URL || "https://apmegpiztygfmltrsgkb.supabase.co";
 window.SUPABASE_KEY = window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwbWVncGl6dHlnZm1sdHJzZ2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTA5OTksImV4cCI6MjEwNDY4Njk5OX0.kutc4qsOtMgN-7ggRS6ObclwmZWhgihf5snkxbIzlmA";
 
-// Standard RFC4122 UUID generator for Postgres compatibility
 function generateUUID() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
@@ -23,7 +22,7 @@ function getIpdDb() {
   if (typeof supabaseClient !== 'undefined' && supabaseClient && supabaseClient.from) return supabaseClient;
   
   if (window.supabase && window.supabase.createClient) {
-    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_KEY);
     window.sbClient = window.supabaseClient;
     return window.supabaseClient;
   }
@@ -64,7 +63,7 @@ window.ensureCleanModal = function() {
   }
 
   modal.innerHTML = `
-    <div style="background: #1e293b; width: 480px; max-width: 95vw; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; position: relative;">
+    <div style="background: #1e293b; width: 480px; max-width: 95vw; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; position: relative; color: white;">
       <button type="button" onclick="window.closeAllocateModal()" style="position: absolute; right: 1rem; top: 1rem; background: none; border: none; color: #9ca3af; font-size: 1.2rem; cursor: pointer;">✕</button>
       <h3 style="color: white; margin-top: 0; margin-bottom: 1rem;">Allocate IPD Bed</h3>
       
@@ -147,7 +146,7 @@ window.renderIpdTable = function(beds, admissions) {
   const tbody = ipdSection.querySelector('tbody');
   if (!tbody) return;
 
-  if (beds.length === 0) {
+  if (!beds || beds.length === 0) {
     tbody.innerHTML = `
       <tr>
         <td colspan="6" style="text-align: center; color: #9ca3af; padding: 2rem;">
@@ -163,7 +162,6 @@ window.renderIpdTable = function(beds, admissions) {
     const isOccupied = bed.status === 'Occupied' || !!adm;
     const statusColor = isOccupied ? '#ef4444' : '#10b981';
     
-    // Resolve Patient Name, Dates, and IDs with Fallbacks
     const rawPatientName = adm ? adm.patient_name : (bed.patient_name || '');
     const patientName = rawPatientName.trim() !== '' ? rawPatientName : (isOccupied ? 'Admitted Patient' : '—');
     const admId = adm ? adm.id : bed.id;
@@ -270,12 +268,6 @@ window.submitIpdAllocation = async function() {
 };
 
 window.submitIpdForm = window.submitIpdAllocation;
-
-/**
- * ==============================================================
- * IPD PROGRESS, BILLING & DISCHARGE ENGINE (PHASE 1, 2, 3)
- * ==============================================================
- */
 
 // 5. Dynamic Modal for Managing Admitted Patients
 window.ensureIpdManageModal = function() {
@@ -431,7 +423,7 @@ window.loadIpdNotes = async function(admId) {
   `).join('');
 };
 
-// 9. Append Charge to Master Billing Record (with Auto-Create Fallback)
+// 9. Append Charge to Master Billing Record
 window.addIpdCharge = async function() {
   const db = getIpdDb();
   if (!db) return alert("Database offline.");
@@ -444,14 +436,12 @@ window.addIpdCharge = async function() {
 
   if (!item || total <= 0) return alert("Enter a valid item and price.");
 
-  // Use maybeSingle to prevent 406 errors when no bill exists yet
   let { data: billRes } = await db.from('billing')
     .select('*')
     .eq('rx_no', bedNo)
     .eq('payment_status', 'Unpaid')
     .maybeSingle();
 
-  // If no bill exists yet (e.g. manual SQL bed entry), create one on the fly
   if (!billRes) {
     const billNo = 'BILL-IPD-' + Math.floor(100000 + Math.random() * 900000);
     const rawSubtitle = document.getElementById('ipd-manage-subtitle')?.innerText || '';
@@ -496,7 +486,7 @@ window.addIpdCharge = async function() {
   window.loadIpdRunningBill(bedNo);
 };
 
-// 10. Fetch Running Bill Total (Safe Call)
+// 10. Fetch Running Bill Total
 window.loadIpdRunningBill = async function(bedNo) {
   const db = getIpdDb();
   if (!db) return;
