@@ -21,7 +21,8 @@ function getDb() {
 // Module 5: Integrated Production & Raw Material Deduction Engine
 async function executeProductionBatch(recipeId, targetQty, batchNo) {
   try {
-    if (!supabaseClient) throw new Error("Supabase client not initialized.");
+    const db = getDb();
+  if (!db) throw new Error("Supabase client not initialized.");
     
     // 1. Fetch Recipe details and ingredients (BOM)
     const { data: recipe, error: recipeErr } = await supabaseClient
