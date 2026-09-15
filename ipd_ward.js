@@ -2,10 +2,20 @@
  * MODULE 14: IPD WARD MANAGEMENT ENGINE (DYNAMIC & ROBUST)
  */
 
+const SUPABASE_URL = "https://apmegpiztygfmltrsgkb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwbWVncGl6dHlnZm1sdHJzZ2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTA5OTksImV4cCI6MjEwNDY4Njk5OX0.kutc4qsOtMgN-7ggRS6ObclwmZWhgihf5snkxbIzlmA";
+
 function getIpdDb() {
   if (window.supabaseClient && window.supabaseClient.from) return window.supabaseClient;
   if (window.sbClient && window.sbClient.from) return window.sbClient;
   if (typeof supabaseClient !== 'undefined' && supabaseClient && supabaseClient.from) return supabaseClient;
+  
+  // Direct fallback to prevent "Database client initializing" error
+  if (window.supabase && window.supabase.createClient) {
+    window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    window.sbClient = window.supabaseClient;
+    return window.supabaseClient;
+  }
   return null;
 }
 
@@ -64,9 +74,8 @@ window.openAllocateModal = function() {
   const modal = document.getElementById('modal-allocate-ipd');
   if (modal) {
     modal.style.display = 'flex';
-    // Generate fresh Bed ID suggestion
     const bedNoField = document.getElementById('ipd-field-bed-no');
-    if (bedNoField && bedNoField.value === '') {
+    if (bedNoField && (!bedNoField.value || bedNoField.value === 'BED-101')) {
       bedNoField.value = 'BED-' + Math.floor(100 + Math.random() * 900);
     }
   }
@@ -122,15 +131,15 @@ window.renderIpdTable = function(beds, admissions) {
 
     return `
       <tr style="border-bottom: 1px solid #334155; font-size: 0.85rem; color: #f8fafc;">
-        <td style="padding: 0.75rem; font-weight: bold; color: #ea580c;">${bed.bed_no}</td>
+        <td style="padding: 0.75rem; font-weight: bold; color: #ea580c;">${bed.bed_no || bed.room_no}</td>
         <td style="padding: 0.75rem; color: #cbd5e1;">${bed.ward_type || 'General Ward'}</td>
         <td style="padding: 0.75rem; color: ${isOccupied ? '#ffffff' : '#9ca3af'}; font-weight: ${isOccupied ? 'bold' : 'normal'};">
           ${adm ? adm.patient_name : (bed.patient_name || '—')}
         </td>
         <td style="padding: 0.75rem; color: #9ca3af;">
-          ${adm ? new Date(adm.admission_date).toLocaleDateString() : new Date(bed.created_at).toLocaleDateString()}
+          ${adm ? new Date(adm.admission_date).toLocaleDateString() : new Date(bed.created_at || Date.now()).toLocaleDateString()}
         </td>
-        <td style="padding: 0.75rem;">₹${parseFloat(bed.daily_rate || 0).toFixed(2)}</td>
+        <td style="padding: 0.75rem;">₹${parseFloat(bed.daily_rate || bed.daily_charge || 0).toFixed(2)}</td>
         <td style="padding: 0.75rem;">
           <span style="background: rgba(255,255,255,0.05); color: ${statusColor}; border: 1px solid ${statusColor}; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
             ${isOccupied ? 'Occupied' : 'Available'}
@@ -144,7 +153,7 @@ window.renderIpdTable = function(beds, admissions) {
 // 5. Submit form and reset inputs
 window.submitIpdAllocation = async function() {
   const db = getIpdDb();
-  if (!db) return alert("Database client initializing... Please try again.");
+  if (!db) return alert("Database client initialization failed. Please refresh the page.");
 
   const bedNo = document.getElementById('ipd-field-bed-no')?.value.trim();
   const ward = document.getElementById('ipd-field-ward')?.value;
@@ -179,7 +188,6 @@ window.submitIpdAllocation = async function() {
     }]);
   }
 
-  // Reset patient & doctor inputs for next allocation
   if (document.getElementById('ipd-field-patient')) document.getElementById('ipd-field-patient').value = '';
   if (document.getElementById('ipd-field-doctor')) document.getElementById('ipd-field-doctor').value = '';
 
@@ -187,6 +195,8 @@ window.submitIpdAllocation = async function() {
   alert("IPD Bed allocated successfully!");
   window.loadIpdData();
 };
+
+window.submitIpdForm = window.submitIpdAllocation;
 
 // 6. Global event delegation for trigger button & initial load
 document.addEventListener('click', function(e) {
