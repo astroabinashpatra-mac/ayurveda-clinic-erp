@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AASU AROGYAM ERP - Hospital Management System</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
 // Module 5: Integrated Production & Raw Material Deduction Engine
 async function executeProductionBatch(recipeId, targetQty, batchNo) {
   try {
@@ -89,8 +89,6 @@ async function executeProductionBatch(recipeId, targetQty, batchNo) {
   }
 }
 
-
-
 // Calculate total production cost and suggested selling price live in recipe builder
 function calculateRecipeCost() {
   const rows = document.querySelectorAll('#recipe-ingredients-table tbody tr');
@@ -125,8 +123,6 @@ function calculateRecipeCost() {
   if (elSuggestedMRP) elSuggestedMRP.value = (unitCost * 1.40).toFixed(2);
 }
 
-
-
 // Global ESC key listener to close open modals across all modules
 document.addEventListener('keydown', function(event) {
   if (event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27) {
@@ -150,8 +146,6 @@ document.addEventListener('keydown', function(event) {
     });
   }
 });
-
-
 
 // --- MODULE 5: RAW MATERIALS & MASTER RECIPES SYNC ENGINE ---
 
@@ -197,15 +191,15 @@ function addRecipeIngredientRow(selectedId = '', qty = 0) {
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td style="padding:0.4rem;">
-      <select name="erp-field-id-10000" id="erp-field-id-10000"  class="ing-material-select" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" onchange="onIngredientSelectChange(this)">
+      <select name="erp-field-id-10000" id="erp-field-id-10000" class="ing-material-select" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" onchange="onIngredientSelectChange(this)">
         <option value="">-- Select Raw Material --</option>
       </select>
     </td>
     <td style="padding:0.4rem;">
-      <input name="erp-field-id-10001" id="erp-field-id-10001"  type="number" step="0.01" class="ing-qty" value="${qty}" placeholder="0" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" oninput="calculateRecipeCost()">
+      <input name="erp-field-id-10001" id="erp-field-id-10001" type="number" step="0.01" class="ing-qty" value="${qty}" placeholder="0" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" oninput="calculateRecipeCost()">
     </td>
     <td style="padding:0.4rem;">
-      <input name="erp-field-id-10002" id="erp-field-id-10002"  type="number" step="0.01" class="ing-rate" value="0.00" placeholder="0.00" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" oninput="calculateRecipeCost()">
+      <input name="erp-field-id-10002" id="erp-field-id-10002" type="number" step="0.01" class="ing-rate" value="0.00" placeholder="0.00" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" oninput="calculateRecipeCost()">
     </td>
     <td class="ing-total-cost" style="padding:0.4rem; font-weight:bold; color:var(--accent-green);">₹0.00</td>
     <td style="padding:0.4rem; text-align:center;">
@@ -267,8 +261,6 @@ function calculateRecipeCost() {
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(syncRawMaterialsToRecipeBuilder, 1000);
 });
-
-
 
 window.currentRecipeIngredients = window.currentRecipeIngredients || [];
 
@@ -346,7 +338,6 @@ function removeRecipeIngredient(index) {
   window.currentRecipeIngredients.splice(index, 1);
   renderRecipeIngredientsTable();
 }
-
 </script>
 
   <style>
@@ -462,8 +453,8 @@ function removeRecipeIngredient(index) {
       #sidebar, #main-content, .modal-overlay { display: none !important; }
     }
   </style>
-                          <link rel="icon" type="image/png" href="data:image/png;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iI2ZmZmZmZiIvPgogIDwhLS0gQmx1ZSBIdW1hbiBGaWd1cmUgLyBTd2lybCAtLT4KICA8Y2lyY2xlIGN4PSIyNiIgY3k9IjE4IiByPSIzLjUiIGZpbGw9IiMwMjg0YzciLz4KICA8cGF0aCBkPSJNMjYgMjQgQzIwIDMwIDE4IDQyIDI3IDUyIEMyMSA0NCAyMSAzNCAyNyAyNiBaIiBmaWxsPSIjMDI4NGM3Ii8+CiAgPCEtLSBHcmVlbiBMZWFmIEVsZW1lbnQgLS0+CiAgPHBhdGggZD0iTTI5IDUyIEMzOCA0MiA0NSAyOCAzNiAxNiBDMzggMjggMzQgNDIgMjkgNTIgWiIgZmlsbD0iIzY1YTMwZCIvPgogIDxwYXRoIGQ9Ik0zMCA0OCBDMzcgMzggNDIgMjggMzYgMTggQzM4IDI4IDM0IDM4IDMwIDQ4IFoiIGZpbGw9IiM4NGNjMTYiLz4KPC9zdmc+Cg==">
-  <link rel="apple-touch-icon" href="data:image/png;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iI2ZmZmZmZiIvPgogIDwhLS0gQmx1ZSBIdW1hbiBGaWd1cmUgLyBTd2lybCAtLT4KICA8Y2lyY2xlIGN4PSIyNiIgY3k9IjE4IiByPSIzLjUiIGZpbGw9IiMwMjg0YzciLz4KICA8cGF0aCBkPSJNMjYgMjQgQzIwIDMwIDE4IDQyIDI3IDUyIEMyMSA0NCAyMSAzNCAyNyAyNiBaIiBmaWxsPSIjMDI4NGM3Ii8+CiAgPCEtLSBHcmVlbiBMZWFmIEVsZW1lbnQgLS0+CiAgPHBhdGggZD0iTTI5IDUyIEMzOCA0MiA0NSAyOCAzNiAxNiBDMzggMjggMzQgNDIgMjkgNTIgWiIgZmlsbD0iIzY1YTMwZCIvPgogIDxwYXRoIGQ9Ik0zMCA0OCBDMzcgMzggNDIgMjggMzYgMTggQzM4IDI4IDM0IDM4IDMwIDQ4IFoiIGZpbGw9IiM4NGNjMTYiLz4KPC9zdmc+Cg==">
+  <link rel="icon" type="image/png" href="data:image/png;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iI2ZmZmZmZiIvPgogIDwhLS0gQmx1ZSBIdW1hbiBGaWd1cmUgLyBTd2lybCAtLT4KICA8Y2lyY2xlIGN4PSIyNiIgY3k9IjE4IiByPSIzLjUiIGZpbGw9IiMwMjg0YzciLz4KICA8cGF0aCBkPSJNMjYgMjQgQzIwIDMwIDE4IDQyIDI3IDUyIEMyMSA0NCAyMSAzNCAyNyAyNiZaIiBmaWxsPSIjMDI4NGM3Ii8+CiAgPCEtLSBHcmVlbiBMZWFmIEVsZW1lbnQgLS0+CiAgPHBhdGggZD0iTTI5IDUyIEMzOCA0MiA0NSAyOCAzNiAxNiBDMzggMjggMzQgNDIgMjkgNTIgWiIgZmlsbD0iIzY1YTMwZCIvPgogIDxwYXRoIGQ9Ik0zMCA0OCBDMzcgMzggNDIgMjggMzYgMTggQzM4IDI4IDM0IDM4IDMwIDQ4IFoiIGZpbGw9IiM4NGNjMTYiLz4KPC9zdmc+Cg==">
+  <link rel="apple-touch-icon" href="data:image/png;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0Ij4KICA8cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHJ4PSIxMiIgZmlsbD0iI2ZmZmZmZiIvPgogIDwhLS0gQmx1ZSBIdW1hbiBGaWd1cmUgLyBTd2lybCAtLT4KICA8Y2lyY2xlIGN4PSIyNiIgY3k9IjE4IiByPSIzLjUiIGZpbGw9IiMwMjg0YzciLz4KICA8cGF0aCBkPSJNMjYgMjQgQzIwIDMwIDE4IDQyIDI3IDUyIEMyMSA0NCAyMSAzNCAyNyAyNiZaIiBmaWxsPSIjMDI4NGM3Ii8+CiAgPCEtLSBHcmVlbiBMZWFmIEVsZW1lbnQgLS0+CiAgPHBhdGggZD0iTTI5IDUyIEMzOCA0MiA0NSAyOCAzNiAxNiBDMzggMjggMzQgNDIgMjkgNTIgWiIgZmlsbD0iIzY1YTMwZCIvPgogIDxwYXRoIGQ9Ik0zMCA0OCBDMzcgMzggNDIgMjggMzYgMTggQzM4IDI4IDM0IDM4IDMwIDQ4IFoiIGZpbGw9IiM4NGNjMTYiLz4KPC9zdmc+Cg==">
 <script>
 // Universal Supabase Client & ERP Auto-Sync Bridge
 (function() {
@@ -496,14 +487,12 @@ function removeRecipeIngredient(index) {
   }, 200);
 })();
 </script>
-<script src="accounts_vendor.js?v=1789372254"></script>
 </head>
 <body>
 
   <div id="sidebar">
     <div class="brand-header">
       <div style="display:flex; align-items:center; gap:0.6rem;">
-        
         <div>
           <div style="font-size:0.95rem; font-weight:bold;">AASU AROGYAM</div>
           <div style="font-size: 0.625rem; color: var(--text-muted);">AYURVEDIC ERP</div>
@@ -531,11 +520,11 @@ function removeRecipeIngredient(index) {
   <div id="main-content">
     <div class="theme-bar">
       <span style="font-size:0.75rem; font-weight:bold; color:var(--text-muted);">🎨 SYSTEM THEME & ENGINE:</span>
-      <select name="theme-selector"  id="theme-selector" onchange="changeTheme(this.value)">
-  <option value="1">1. Default Orange Slate</option>
-  <option value="2">2. Dark Slate</option>
-  <option value="3">3. Light Mode</option>
-</select>
+      <select name="theme-selector" id="theme-selector" onchange="changeTheme(this.value)">
+        <option value="1">1. Default Orange Slate</option>
+        <option value="2">2. Dark Slate</option>
+        <option value="3">3. Light Mode</option>
+      </select>
       <button id="mode-toggle-btn" onclick="toggleLightDarkMode()">☀️ Light Mode</button>
     </div>
 
@@ -621,7 +610,7 @@ function removeRecipeIngredient(index) {
         <button class="btn btn-orange" onclick="openNewRxModal()">+ Write E-Prescription</button>
       </div>
       <div style="margin-bottom:1rem;">
-        <input name="rx-search-input"  type="text" id="rx-search-input" class="form-control" placeholder="🔍 Search prescription by Patient Name, Mobile No, RX No, Doctor, or Diagnosis..." onkeyup="renderRx()" />
+        <input name="rx-search-input" type="text" id="rx-search-input" class="form-control" placeholder="🔍 Search prescription by Patient Name, Mobile No, RX No, Doctor, or Diagnosis..." onkeyup="renderRx()" />
       </div>
       <table class="data-table">
         <thead>
@@ -646,14 +635,14 @@ function removeRecipeIngredient(index) {
         <h2>🧑‍⚕️ Patient Directory & EMR Ledger</h2>
         <button class="btn btn-orange" onclick="openModal('md-patient')">+ Register New Patient</button>
       </div>
-      <input name="p-search"  type="text" id="p-search" class="form-control" placeholder="Search patient by Name, Mobile No, or UHID..." style="margin-bottom: 1rem;" onkeyup="renderPatients()" />
+      <input name="p-search" type="text" id="p-search" class="form-control" placeholder="Search patient by Name, Mobile No, or UHID..." style="margin-bottom: 1rem;" onkeyup="renderPatients()" />
       <table class="data-table">
         <thead><tr><th>UHID</th><th>FULL NAME</th><th>MOBILE NO</th><th>AGE / GENDER</th><th>PRAKRITI</th><th>WEIGHT / BP</th><th>ACTIONS</th></tr></thead>
         <tbody id="tbl-patients"></tbody>
       </table>
     </div>
 
-        <!-- MODULE 4: SCHEDULE & VISITS (UPGRADED SINGLE MODULE) -->
+    <!-- MODULE 4: SCHEDULE & VISITS -->
     <div id="mod-schedule" class="module-section">
       <div class="section-header">
         <div>
@@ -667,11 +656,11 @@ function removeRecipeIngredient(index) {
         </div>
       </div>
 
-      <!-- SUB-VIEW 1: USE (INTERACTIVE GRID & MINI CALENDAR) -->
+      <!-- SUB-VIEW 1: USE -->
       <div id="sch-view-use">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
           <div style="display:flex; align-items:center; gap:0.5rem;">
-            <select name="erp-field-id-10003" id="erp-field-id-10003"  class="form-control" style="width:auto; padding:0.3rem 0.6rem;" onchange="changeWeek(0)">
+            <select name="erp-field-id-10003" id="erp-field-id-10003" class="form-control" style="width:auto; padding:0.3rem 0.6rem;" onchange="changeWeek(0)">
               <option>Week</option>
             </select>
             <button class="btn btn-secondary" style="padding:0.3rem 0.75rem;" onclick="currentWeekOffset=0; renderScheduleGrid();">Today</button>
@@ -687,10 +676,8 @@ function removeRecipeIngredient(index) {
         </div>
 
         <div style="display:grid; grid-template-columns: 1fr 260px; gap:1rem;">
-          <!-- MAIN WEEK GRID -->
           <div class="sch-grid" id="sch-week-grid"></div>
 
-          <!-- RIGHT SIDEBAR WIDGETS -->
           <div>
             <div style="background:var(--panel-dark); border:1px solid var(--border-dark); border-radius:8px; padding:0.75rem; margin-bottom:1rem;">
               <div style="text-align:center; font-weight:bold; font-size:0.8rem; color:var(--accent-orange); margin-bottom:0.5rem;" id="sch-mini-month-title">SEPTEMBER 2026</div>
@@ -705,7 +692,7 @@ function removeRecipeIngredient(index) {
         </div>
       </div>
 
-      <!-- SUB-VIEW 2: SUPERVISE (RESERVATION MANAGEMENT TABLE) -->
+      <!-- SUB-VIEW 2: SUPERVISE -->
       <div id="sch-view-supervise" style="display:none;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
           <h3 style="color:var(--accent-orange); font-size:0.95rem;">SUPERVISE ALL RESERVATIONS</h3>
@@ -728,7 +715,7 @@ function removeRecipeIngredient(index) {
         </table>
       </div>
 
-      <!-- SUB-VIEW 3: CONFIGURE (ROOM & RESOURCE MANAGEMENT) -->
+      <!-- SUB-VIEW 3: CONFIGURE -->
       <div id="sch-view-configure" style="display:none;">
         <h3 style="color:var(--accent-orange); font-size:0.95rem; margin-bottom:1rem;">CONFIGURE SCHEDULE ROOMS & RESOURCES</h3>
         <div style="background:var(--panel-dark); border:1px solid var(--border-dark); border-radius:8px; padding:1rem; margin-bottom:1.5rem;">
@@ -736,7 +723,7 @@ function removeRecipeIngredient(index) {
           <form onsubmit="saveScheduleRoom(event)" style="display:flex; gap:0.75rem; align-items:flex-end;">
             <div class="form-group" style="flex:1;">
               <label for="sch-new-room-name">ROOM NAME & DESCRIPTION</label>
-<input name="sch-new-room-name"   type="text" id="sch-new-room-name" class="form-control" placeholder="e.g. Room 4 (Pizhichil)" required />
+              <input name="sch-new-room-name" type="text" id="sch-new-room-name" class="form-control" placeholder="e.g. Room 4 (Pizhichil)" required />
             </div>
             <button type="submit" class="btn btn-orange">Add Room</button>
           </form>
@@ -773,7 +760,7 @@ function removeRecipeIngredient(index) {
         <div class="section-header">
           <h3 style="color:var(--accent-orange);">🏺 MASTER RECIPES & PRODUCTION ENGINE</h3>
           <div style="display:flex; gap:0.5rem;">
-			<button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.openMasterRecipeModal();" style="background: #ea580c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold;">+ Add Master Recipe</button>
+            <button type="button" onclick="event.preventDefault(); event.stopPropagation(); window.openMasterRecipeModal();" style="background: #ea580c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold;">+ Add Master Recipe</button>
             <button class="btn btn-blue" onclick="openModal('md-batch-prod')">⚙️ Execute Batch Production</button>
           </div>
         </div>
@@ -808,7 +795,7 @@ function removeRecipeIngredient(index) {
 
       <div id="ph-view-sales" style="display:none;">
         <div style="margin-bottom:1rem;">
-          <input name="ph-sales-search"  type="text" id="ph-sales-search" class="form-control" placeholder="Search sales by Bill No, Customer Name, or Mobile..." onkeyup="renderPharmacySalesHistory()" />
+          <input name="ph-sales-search" type="text" id="ph-sales-search" class="form-control" placeholder="Search sales by Bill No, Customer Name, or Mobile..." onkeyup="renderPharmacySalesHistory()" />
         </div>
         <table class="data-table">
           <thead><tr><th>BILL NO</th><th>DATE</th><th>CUSTOMER NAME</th><th>MOBILE</th><th>PAYMENT MODE</th><th>TOTAL AMOUNT</th><th>ACTIONS</th></tr></thead>
@@ -831,7 +818,7 @@ function removeRecipeIngredient(index) {
         </div>
       </div>
       <div style="margin-bottom:1rem;">
-        <input name="bill-search-input"  type="text" id="bill-search-input" class="form-control" placeholder="🔍 Search patient ledger by Patient Name, UHID, Mobile No, or Bill No..." onkeyup="renderBilling()" />
+        <input name="bill-search-input" type="text" id="bill-search-input" class="form-control" placeholder="🔍 Search patient ledger by Patient Name, UHID, Mobile No, or Bill No..." onkeyup="renderBilling()" />
       </div>
       <table class="data-table">
         <thead>
@@ -913,70 +900,64 @@ function removeRecipeIngredient(index) {
     </div>
 
     <!-- MODULE 11: ACCOUNTS & VENDORS -->
-<div id="mod-accounts" class="module-section">
+    <div id="mod-accounts" class="module-section">
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; border: 1px solid #334155;">
+          <span style="color: #9ca3af; font-size: 0.85rem; font-weight: bold;">TOTAL INCOME</span>
+          <h2 id="kpi-income" style="color: #10b981; margin: 0.3rem 0 0 0;">₹0.00</h2>
+        </div>
+        <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; border: 1px solid #334155;">
+          <span style="color: #9ca3af; font-size: 0.85rem; font-weight: bold;">TOTAL EXPENSES</span>
+          <h2 id="kpi-expense" style="color: #ef4444; margin: 0.3rem 0 0 0;">₹0.00</h2>
+        </div>
+        <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; border: 1px solid #334155;">
+          <span style="color: #9ca3af; font-size: 0.85rem; font-weight: bold;">NET BALANCE</span>
+          <h2 id="kpi-net" style="color: #10b981; margin: 0.3rem 0 0 0;">₹0.00</h2>
+        </div>
+      </div>
 
-  <!-- KPI Overview Dashboard -->
-  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-    <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; border: 1px solid #334155;">
-      <span style="color: #9ca3af; font-size: 0.85rem; font-weight: bold;">TOTAL INCOME</span>
-      <h2 id="kpi-income" style="color: #10b981; margin: 0.3rem 0 0 0;">₹0.00</h2>
-    </div>
-    <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; border: 1px solid #334155;">
-      <span style="color: #9ca3af; font-size: 0.85rem; font-weight: bold;">TOTAL EXPENSES</span>
-      <h2 id="kpi-expense" style="color: #ef4444; margin: 0.3rem 0 0 0;">₹0.00</h2>
-    </div>
-    <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; border: 1px solid #334155;">
-      <span style="color: #9ca3af; font-size: 0.85rem; font-weight: bold;">NET BALANCE</span>
-      <h2 id="kpi-net" style="color: #10b981; margin: 0.3rem 0 0 0;">₹0.00</h2>
-    </div>
-  </div>
+      <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+          <h3 style="color: #ea580c; margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+            🏛️ ACCOUNTS & VENDOR DIRECTORY
+          </h3>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="button" onclick="window.printAccountsStatement()" style="background: #475569; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold;">🖨️ Print Statement</button>
+            <button type="button" onclick="window.openRecordLedgerModal()" style="background: #ea580c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold;">+ Record Expense / Vendor Entry</button>
+          </div>
+        </div>
 
-  <!-- Filter & Action Control Bar -->
-  <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
-      <h3 style="color: #ea580c; margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
-        🏛️ ACCOUNTS & VENDOR DIRECTORY
-      </h3>
-      <div style="display: flex; gap: 0.5rem;">
-        <button type="button" onclick="window.printAccountsStatement()" style="background: #475569; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold;">🖨️ Print Statement</button>
-        <button type="button" onclick="window.openRecordLedgerModal()" style="background: #ea580c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold;">+ Record Expense / Vendor Entry</button>
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.75rem;">
+          <input type="text" id="acc-search" oninput="window.applyAccountsFilters()" placeholder="🔍 Search description, vendor name, category..." style="padding: 0.55rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+          <select id="acc-filter-type" onchange="window.applyAccountsFilters()" style="padding: 0.55rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+            <option value="all">All Transaction Types</option>
+            <option value="debit">Expense Outflows Only</option>
+            <option value="credit">Income Inflows / Vendors</option>
+          </select>
+          <select id="acc-filter-period" onchange="window.applyAccountsFilters()" style="padding: 0.55rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
+            <option value="all">All Time</option>
+            <option value="today">Today</option>
+            <option value="this_week">This Week</option>
+            <option value="this_month">This Month</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1rem; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+          <thead>
+            <tr style="color: #9ca3af; border-bottom: 1px solid #334155; font-size: 0.85rem;">
+              <th style="padding: 0.65rem;">TYPE</th>
+              <th style="padding: 0.65rem;">TITLE / VENDOR</th>
+              <th style="padding: 0.65rem;">CATEGORY</th>
+              <th style="padding: 0.65rem;">AMOUNT (₹)</th>
+              <th style="padding: 0.65rem;">STATUS</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-accounts"></tbody>
+        </table>
       </div>
     </div>
-
-    <!-- Filters Row -->
-    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.75rem;">
-      <input type="text" id="acc-search" oninput="window.applyAccountsFilters()" placeholder="🔍 Search description, vendor name, category..." style="padding: 0.55rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
-      <select id="acc-filter-type" onchange="window.applyAccountsFilters()" style="padding: 0.55rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
-        <option value="all">All Transaction Types</option>
-        <option value="debit">Expense Outflows Only</option>
-        <option value="credit">Income Inflows / Vendors</option>
-      </select>
-      <select id="acc-filter-period" onchange="window.applyAccountsFilters()" style="padding: 0.55rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px;">
-        <option value="all">All Time</option>
-        <option value="today">Today</option>
-        <option value="this_week">This Week</option>
-        <option value="this_month">This Month</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- Unified Ledger & Vendor Table -->
-  <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1rem; overflow-x: auto;">
-    <table style="width: 100%; border-collapse: collapse; text-align: left;">
-      <thead>
-        <tr style="color: #9ca3af; border-bottom: 1px solid #334155; font-size: 0.85rem;">
-          <th style="padding: 0.65rem;">TYPE</th>
-          <th style="padding: 0.65rem;">TITLE / VENDOR</th>
-          <th style="padding: 0.65rem;">CATEGORY</th>
-          <th style="padding: 0.65rem;">AMOUNT (₹)</th>
-          <th style="padding: 0.65rem;">STATUS</th>
-        </tr>
-      </thead>
-      <tbody id="tbody-accounts"></tbody>
-    </table>
-  </div>
-
-</div>
 
     <!-- MODULE 12: CLINIC DOCUMENTS & CONSENT FORMS -->
     <div id="mod-documents" class="module-section">
@@ -1017,7 +998,7 @@ function removeRecipeIngredient(index) {
 
   <!-- ALL MODAL DIALOGS -->
   <div id="md-rx" class="modal-overlay">
-    <input name="editing-rx-id"  type="hidden" id="editing-rx-id" />
+    <input name="editing-rx-id" type="hidden" id="editing-rx-id" />
     <div class="modal-container" style="max-width: 950px;">
       <div class="modal-header">
         <h3>📜 Create Digital Ayurvedic E-Prescription</h3>
@@ -1026,15 +1007,16 @@ function removeRecipeIngredient(index) {
       <div class="form-grid grid-3">
         <div class="form-group">
           <label for="rx-p-search">SELECT REGISTERED PATIENT *</label>
-<input name="rx-p-search"   type="text" id="rx-p-search" list="dl-patients" class="form-control" placeholder="Type Name, Mobile No, or UHID..." onfocus="populateRxPatientDatalist()" oninput="onRxPatientSelect()" required />
+          <input name="rx-p-search" type="text" id="rx-p-search" list="dl-patients" class="form-control" placeholder="Type Name, Mobile No, or UHID..." onfocus="populateRxPatientDatalist()" oninput="onRxPatientSelect()" required />
           <datalist id="dl-patients"></datalist>
-          <input name="rx-patient-id"  type="hidden" id="rx-patient-id" />
+          <input name="rx-patient-id" type="hidden" id="rx-patient-id" />
         </div>
         <div class="form-group"><label for="rx-date">PRESCRIPTION DATE *</label>
-<input name="rx-date"   type="date" id="rx-date" class="form-control" required /></div>
+          <input name="rx-date" type="date" id="rx-date" class="form-control" required />
+        </div>
         <div class="form-group">
           <label for="rx-doctor">ATTENDING DOCTOR (VAIDYA) *</label>
-<select name="rx-doctor"   id="rx-doctor" class="form-control">
+          <select name="rx-doctor" id="rx-doctor" class="form-control">
             <option>Dr. Pruthweeraj Singh (Chief Vaidya)</option>
             <option>Dr. Abinash Patra (Vaidya)</option>
           </select>
@@ -1043,47 +1025,34 @@ function removeRecipeIngredient(index) {
       <div style="background:var(--bg-dark); border:1px solid var(--border-dark); padding:0.75rem; border-radius:8px; margin-bottom:0.75rem;">
         <span style="font-size:0.65rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.4rem;">PATIENT EMR VITALS (AUTO-FILLED)</span>
         <div class="form-grid grid-7">
-          <div><label for="rx-v-mobile">MOBILE NO</label>
-<input name="rx-v-mobile"   type="text" id="rx-v-mobile" class="form-control" readonly /></div>
-          <div><label for="rx-v-age">AGE</label>
-<input name="rx-v-age"   type="text" id="rx-v-age" class="form-control" readonly /></div>
-          <div><label for="rx-v-gender">GENDER</label>
-<input name="rx-v-gender"   type="text" id="rx-v-gender" class="form-control" readonly /></div>
-          <div><label for="rx-v-prakriti">PRAKRITI</label>
-<input name="rx-v-prakriti"   type="text" id="rx-v-prakriti" class="form-control" readonly /></div>
-          <div><label for="rx-v-weight">WEIGHT (KG)</label>
-<input name="rx-v-weight"   type="text" id="rx-v-weight" class="form-control" readonly /></div>
-          <div><label for="rx-v-bp">B.P. (mmHg)</label>
-<input name="rx-v-bp"   type="text" id="rx-v-bp" class="form-control" readonly /></div>
-          <div><label for="rx-v-pulse">PULSE (/MIN)</label>
-<input name="rx-v-pulse"   type="text" id="rx-v-pulse" class="form-control" readonly /></div>
+          <div><label for="rx-v-mobile">MOBILE NO</label><input name="rx-v-mobile" type="text" id="rx-v-mobile" class="form-control" readonly /></div>
+          <div><label for="rx-v-age">AGE</label><input name="rx-v-age" type="text" id="rx-v-age" class="form-control" readonly /></div>
+          <div><label for="rx-v-gender">GENDER</label><input name="rx-v-gender" type="text" id="rx-v-gender" class="form-control" readonly /></div>
+          <div><label for="rx-v-prakriti">PRAKRITI</label><input name="rx-v-prakriti" type="text" id="rx-v-prakriti" class="form-control" readonly /></div>
+          <div><label for="rx-v-weight">WEIGHT (KG)</label><input name="rx-v-weight" type="text" id="rx-v-weight" class="form-control" readonly /></div>
+          <div><label for="rx-v-bp">B.P. (mmHg)</label><input name="rx-v-bp" type="text" id="rx-v-bp" class="form-control" readonly /></div>
+          <div><label for="rx-v-pulse">PULSE (/MIN)</label><input name="rx-v-pulse" type="text" id="rx-v-pulse" class="form-control" readonly /></div>
         </div>
       </div>
       <div class="form-grid grid-2">
-        <div class="form-group"><label for="rx-diag">DIAGNOSIS / NIDAN *</label>
-<input name="rx-diag"   type="text" id="rx-diag" placeholder="e.g. Sandhivata, Agnimandya, Amavata" class="form-control" /></div>
-        <div class="form-group"><label for="rx-consult-fee">VAIDYA CONSULTATION FEE (₹) *</label>
-<input name="rx-consult-fee"   type="number" id="rx-consult-fee" value="300" class="form-control" onkeyup="renderRxItemsTable()" /></div>
+        <div class="form-group"><label for="rx-diag">DIAGNOSIS / NIDAN *</label><input name="rx-diag" type="text" id="rx-diag" placeholder="e.g. Sandhivata, Agnimandya, Amavata" class="form-control" /></div>
+        <div class="form-group"><label for="rx-consult-fee">VAIDYA CONSULTATION FEE (₹) *</label><input name="rx-consult-fee" type="number" id="rx-consult-fee" value="300" class="form-control" onkeyup="renderRxItemsTable()" /></div>
       </div>
       <div style="background:var(--bg-dark); border:1px solid var(--border-dark); padding:0.85rem; border-radius:8px; margin-bottom:0.75rem;">
         <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.5rem;">+ ADD PRESCRIBED MEDICINE, THERAPY, OR DIAGNOSTIC TEST</span>
         <div class="form-grid grid-5" style="align-items:end;">
           <div class="form-group">
             <label for="rx-type">CATEGORY</label>
-<select name="rx-type"   id="rx-type" class="form-control">
+            <select name="rx-type" id="rx-type" class="form-control">
               <option value="Medicine">Medicine 💊</option>
               <option value="Therapy">Therapy ✨</option>
               <option value="Diagnostic Test">Diagnostic Test 🧪</option>
             </select>
           </div>
-          <div class="form-group"><label for="rx-item">ITEM / THERAPY NAME *</label>
-<input name="rx-item"   type="text" id="rx-item" placeholder="e.g. Mahanarayana Thailam / Shirodhara" class="form-control" /></div>
-          <div class="form-group"><label for="rx-dose">DOSAGE / INSTRUCTIONS</label>
-<input name="rx-dose"   type="text" id="rx-dose" placeholder="e.g. 20ml BD after meals" class="form-control" /></div>
-          <div class="form-group"><label for="rx-price">UNIT PRICE (₹)</label>
-<input name="rx-price"   type="number" id="rx-price" value="150" class="form-control" /></div>
-          <div class="form-group"><label for="rx-qty">QTY / SESSIONS</label>
-<input name="rx-qty"   type="number" id="rx-qty" value="1" min="1" class="form-control" /></div>
+          <div class="form-group"><label for="rx-item">ITEM / THERAPY NAME *</label><input name="rx-item" type="text" id="rx-item" placeholder="e.g. Mahanarayana Thailam / Shirodhara" class="form-control" /></div>
+          <div class="form-group"><label for="rx-dose">DOSAGE / INSTRUCTIONS</label><input name="rx-dose" type="text" id="rx-dose" placeholder="e.g. 20ml BD after meals" class="form-control" /></div>
+          <div class="form-group"><label for="rx-price">UNIT PRICE (₹)</label><input name="rx-price" type="number" id="rx-price" value="150" class="form-control" /></div>
+          <div class="form-group"><label for="rx-qty">QTY / SESSIONS</label><input name="rx-qty" type="number" id="rx-qty" value="1" min="1" class="form-control" /></div>
         </div>
         <button type="button" class="btn btn-orange" onclick="addRxItem()" style="margin-top:0.4rem;">+ Add To Prescription</button>
         <table class="data-table" style="margin-top:0.75rem;">
@@ -1095,7 +1064,7 @@ function removeRecipeIngredient(index) {
       </div>
       <div class="form-group" style="margin-bottom:1rem;">
         <label for="rx-instructions">DIET & LIFESTYLE GUIDELINES (PATHYA & APATHYA)</label>
-<textarea name="rx-instructions"   id="rx-instructions" class="form-control" rows="2" placeholder="e.g. Take warm water, avoid cold/fermented food..."></textarea>
+        <textarea name="rx-instructions" id="rx-instructions" class="form-control" rows="2" placeholder="e.g. Take warm water, avoid cold/fermented food..."></textarea>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <button type="button" class="btn btn-secondary" onclick="printPrescription()">🖨️ Print Prescription</button>
@@ -1116,14 +1085,14 @@ function removeRecipeIngredient(index) {
       <div class="form-grid grid-2" style="margin-bottom:0.75rem;">
         <div class="form-group">
           <label for="pos-cust-type">CUSTOMER TYPE *</label>
-<select name="pos-cust-type"   id="pos-cust-type" class="form-control" onchange="togglePosCustType(this.value)">
+          <select name="pos-cust-type" id="pos-cust-type" class="form-control" onchange="togglePosCustType(this.value)">
             <option value="otc">Over The Counter Sale</option>
             <option value="registered">Registered Patient (EMR Directory)</option>
           </select>
         </div>
         <div class="form-group">
           <label for="pos-pay-mode">PAYMENT MODE *</label>
-<select name="pos-pay-mode"   id="pos-pay-mode" class="form-control">
+          <select name="pos-pay-mode" id="pos-pay-mode" class="form-control">
             <option>Cash</option>
             <option>UPI / QR</option>
             <option>Card</option>
@@ -1132,26 +1101,23 @@ function removeRecipeIngredient(index) {
         </div>
       </div>
       <div id="pos-otc-box" class="form-grid grid-2" style="margin-bottom:0.75rem;">
-        <div class="form-group"><label for="pos-cust-name">CUSTOMER NAME *</label>
-<input name="pos-cust-name"   type="text" id="pos-cust-name" class="form-control" value="Walk-in Customer" /></div>
-        <div class="form-group"><label for="pos-cust-mobile">MOBILE NO *</label>
-<input name="pos-cust-mobile"   type="text" id="pos-cust-mobile" class="form-control" placeholder="10-digit mobile" /></div>
+        <div class="form-group"><label for="pos-cust-name">CUSTOMER NAME *</label><input name="pos-cust-name" type="text" id="pos-cust-name" class="form-control" value="Walk-in Customer" /></div>
+        <div class="form-group"><label for="pos-cust-mobile">MOBILE NO *</label><input name="pos-cust-mobile" type="text" id="pos-cust-mobile" class="form-control" placeholder="10-digit mobile" /></div>
       </div>
       <div id="pos-reg-box" class="form-group" style="margin-bottom:0.75rem; display:none;">
         <label for="pos-p-search">SEARCH REGISTERED PATIENT (EMR DIRECTORY) *</label>
-<input name="pos-p-search"   type="text" id="pos-p-search" list="dl-pos-patients" class="form-control" oninput="onPosPatientSelect()" placeholder="Type Patient Name, Mobile No, or UHID..." />
+        <input name="pos-p-search" type="text" id="pos-p-search" list="dl-pos-patients" class="form-control" oninput="onPosPatientSelect()" placeholder="Type Patient Name, Mobile No, or UHID..." />
         <datalist id="dl-pos-patients"></datalist>
-        <input name="pos-patient-id"  type="hidden" id="pos-patient-id" />
+        <input name="pos-patient-id" type="hidden" id="pos-patient-id" />
       </div>
       <div style="background:var(--bg-dark); padding:0.85rem; border-radius:8px; border:1px solid var(--border-dark); margin-bottom:0.75rem;">
         <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.5rem;">SELECT MEDICINES / ITEMS</span>
         <div class="form-grid grid-4" style="align-items:end;">
           <div class="form-group" style="grid-column:span 2;">
             <label for="pos-med-select">MEDICINE STOCK ITEM *</label>
-<select name="pos-med-select"   id="pos-med-select" class="form-control"></select>
+            <select name="pos-med-select" id="pos-med-select" class="form-control"></select>
           </div>
-          <div class="form-group"><label for="pos-qty">QUANTITY *</label>
-<input name="pos-qty"   type="number" id="pos-qty" class="form-control" value="1" min="1" /></div>
+          <div class="form-group"><label for="pos-qty">QUANTITY *</label><input name="pos-qty" type="number" id="pos-qty" class="form-control" value="1" min="1" /></div>
           <button type="button" class="btn btn-orange" onclick="addPosCartItem()">+ Add to Bill</button>
         </div>
         <table class="data-table" style="margin-top:0.5rem;">
@@ -1165,22 +1131,22 @@ function removeRecipeIngredient(index) {
         <div class="form-grid grid-4">
           <div class="form-group">
             <label for="pos-disc-type">DISCOUNT MODE</label>
-<select name="pos-disc-type"   id="pos-disc-type" class="form-control" onchange="onPosDiscountModeChange()">
+            <select name="pos-disc-type" id="pos-disc-type" class="form-control" onchange="onPosDiscountModeChange()">
               <option value="percent">Percentage (%)</option>
               <option value="amount">Amount (₹)</option>
             </select>
           </div>
           <div class="form-group">
             <label for="pos-disc-val" id="pos-disc-label">DISCOUNT VALUE *</label>
-<input name="pos-disc-val"   type="number" step="0.01" id="pos-disc-val" class="form-control" value="0" onkeyup="calculatePosTotals()" onchange="calculatePosTotals()" />
+            <input name="pos-disc-val" type="number" step="0.01" id="pos-disc-val" class="form-control" value="0" onkeyup="calculatePosTotals()" onchange="calculatePosTotals()" />
           </div>
           <div class="form-group">
             <label for="pos-tax-percent">TAX / GST (%) *</label>
-<input name="pos-tax-percent"   type="number" step="0.01" id="pos-tax-percent" class="form-control" value="0" onkeyup="calculatePosTotals()" onchange="calculatePosTotals()" />
+            <input name="pos-tax-percent" type="number" step="0.01" id="pos-tax-percent" class="form-control" value="0" onkeyup="calculatePosTotals()" onchange="calculatePosTotals()" />
           </div>
           <div class="form-group">
             <label for="pos-paid-amt">AMOUNT PAYING NOW (₹) *</label>
-<input name="pos-paid-amt"   type="number" step="0.01" id="pos-paid-amt" class="form-control" style="font-weight:bold; color:var(--accent-green);" oninput="userEditedPaidAmt=true; calculatePosTotals();" />
+            <input name="pos-paid-amt" type="number" step="0.01" id="pos-paid-amt" class="form-control" style="font-weight:bold; color:var(--accent-green);" oninput="userEditedPaidAmt=true; calculatePosTotals();" />
           </div>
         </div>
         <div style="display:grid; grid-template-columns: repeat(6, 1fr); gap:0.5rem; margin-top:0.75rem; background:var(--bg-dark); padding:0.75rem; border-radius:6px; font-size:0.8rem;">
@@ -1193,7 +1159,6 @@ function removeRecipeIngredient(index) {
         </div>
       </div>
       <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
-        
         <button class="btn btn-green" style="font-size:0.95rem; padding:0.65rem 1.5rem;" onclick="checkoutPosSale()">💳 Complete Checkout & Print</button>
       </div>
     </div>
@@ -1203,32 +1168,26 @@ function removeRecipeIngredient(index) {
     <div class="modal-container" style="max-width: 580px;">
       <div class="modal-header"><h3>+ Add / Purchase Pharmacy Stock</h3><button class="modal-close" onclick="closeModal('md-pharmacy-stock')">✕</button></div>
       <form onsubmit="savePharmacyStock(event)">
-        <input name="ph-item-id"  type="hidden" id="ph-item-id" />
+        <input name="ph-item-id" type="hidden" id="ph-item-id" />
         <div class="form-group" style="margin-bottom:0.75rem;">
           <label for="ph-name">MEDICINE NAME *</label>
-<input name="ph-name"   type="text" id="ph-name" class="form-control" placeholder="e.g. Ashwagandha Churna (100g)" required />
+          <input name="ph-name" type="text" id="ph-name" class="form-control" placeholder="e.g. Ashwagandha Churna (100g)" required />
         </div>
         <div class="form-grid grid-2" style="margin-bottom:0.75rem;">
-          <div class="form-group"><label for="ph-barcode">BARCODE *</label>
-<input name="ph-barcode"   type="text" id="ph-barcode" class="form-control" required /></div>
-          <div class="form-group"><label for="ph-batch">BATCH CODE *</label>
-<input name="ph-batch"   type="text" id="ph-batch" class="form-control" required /></div>
+          <div class="form-group"><label for="ph-barcode">BARCODE *</label><input name="ph-barcode" type="text" id="ph-barcode" class="form-control" required /></div>
+          <div class="form-group"><label for="ph-batch">BATCH CODE *</label><input name="ph-batch" type="text" id="ph-batch" class="form-control" required /></div>
         </div>
         <div class="form-grid grid-2" style="margin-bottom:0.75rem;">
-          <div class="form-group"><label for="ph-expiry">EXPIRY (MM/YYYY) *</label>
-<input name="ph-expiry"   type="text" id="ph-expiry" class="form-control" placeholder="12/2028" required /></div>
+          <div class="form-group"><label for="ph-expiry">EXPIRY (MM/YYYY) *</label><input name="ph-expiry" type="text" id="ph-expiry" class="form-control" placeholder="12/2028" required /></div>
           <div class="form-group">
             <label for="ph-vendor-select">SUPPLIER / VENDOR *</label>
-<select name="ph-vendor-select"   id="ph-vendor-select" class="form-control" required></select>
+            <select name="ph-vendor-select" id="ph-vendor-select" class="form-control" required></select>
           </div>
         </div>
         <div class="form-grid grid-3" style="margin-bottom:1.25rem;">
-          <div class="form-group"><label for="ph-purchase-rate">PURCHASE RATE (₹) *</label>
-<input name="ph-purchase-rate"   type="number" step="0.01" id="ph-purchase-rate" class="form-control" placeholder="e.g. 180" required /></div>
-          <div class="form-group"><label for="ph-price">SELLING PRICE (₹) *</label>
-<input name="ph-price"   type="number" step="0.01" id="ph-price" class="form-control" placeholder="e.g. 350" required /></div>
-          <div class="form-group"><label for="ph-stock-qty">STOCK QUANTITY *</label>
-<input name="ph-stock-qty"   type="number" id="ph-stock-qty" class="form-control" placeholder="e.g. 50" required /></div>
+          <div class="form-group"><label for="ph-purchase-rate">PURCHASE RATE (₹) *</label><input name="ph-purchase-rate" type="number" step="0.01" id="ph-purchase-rate" class="form-control" placeholder="e.g. 180" required /></div>
+          <div class="form-group"><label for="ph-price">SELLING PRICE (₹) *</label><input name="ph-price" type="number" step="0.01" id="ph-price" class="form-control" placeholder="e.g. 350" required /></div>
+          <div class="form-group"><label for="ph-stock-qty">STOCK QUANTITY *</label><input name="ph-stock-qty" type="number" id="ph-stock-qty" class="form-control" placeholder="e.g. 50" required /></div>
         </div>
         <button type="submit" class="btn btn-orange" style="width:100%; justify-content:center; font-size:0.9rem;">Save Inventory Item</button>
       </form>
@@ -1242,35 +1201,30 @@ function removeRecipeIngredient(index) {
         <button class="modal-close" onclick="closeModal('md-emp')">✕</button>
       </div>
       <form id="form-emp" onsubmit="saveEmployee(event)">
-        <input name="e-db-id"  type="hidden" id="e-db-id" />
+        <input name="e-db-id" type="hidden" id="e-db-id" />
         <div style="background:var(--bg-dark); padding:1rem; border-radius:8px; border:1px solid var(--border-dark); margin-bottom:1rem;">
           <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.75rem;">1. Personal Information</span>
           <div class="form-grid grid-3">
-            <div class="form-group"><label for="e-fname">FIRST NAME *</label>
-<input name="e-fname"   type="text" id="e-fname" class="form-control" placeholder="e.g. Ramesh" required /></div>
-            <div class="form-group"><label for="e-mname">MIDDLE NAME</label>
-<input name="e-mname"   type="text" id="e-mname" class="form-control" placeholder="e.g. Kumar" /></div>
-            <div class="form-group"><label for="e-lname">LAST NAME *</label>
-<input name="e-lname"   type="text" id="e-lname" class="form-control" placeholder="e.g. Sharma" required /></div>
+            <div class="form-group"><label for="e-fname">FIRST NAME *</label><input name="e-fname" type="text" id="e-fname" class="form-control" placeholder="e.g. Ramesh" required /></div>
+            <div class="form-group"><label for="e-mname">MIDDLE NAME</label><input name="e-mname" type="text" id="e-mname" class="form-control" placeholder="e.g. Kumar" /></div>
+            <div class="form-group"><label for="e-lname">LAST NAME *</label><input name="e-lname" type="text" id="e-lname" class="form-control" placeholder="e.g. Sharma" required /></div>
           </div>
           <div class="form-grid grid-3">
-            <div class="form-group"><label for="e-dob">DATE OF BIRTH *</label>
-<input name="e-dob"   type="date" id="e-dob" class="form-control" required /></div>
+            <div class="form-group"><label for="e-dob">DATE OF BIRTH *</label><input name="e-dob" type="date" id="e-dob" class="form-control" required /></div>
             <div class="form-group">
               <label for="e-govtid-type">GOVERNMENT ID TYPE *</label>
-<select name="e-govtid-type"   id="e-govtid-type" class="form-control">
+              <select name="e-govtid-type" id="e-govtid-type" class="form-control">
                 <option>PAN & Aadhaar (India)</option>
                 <option>Passport</option>
                 <option>Voter ID</option>
               </select>
             </div>
-            <div class="form-group"><label for="e-pan">TAX ID / PAN NUMBER</label>
-<input name="e-pan"   type="text" id="e-pan" class="form-control" placeholder="e.g. ABCDE1234F" /></div>
+            <div class="form-group"><label for="e-pan">TAX ID / PAN NUMBER</label><input name="e-pan" type="text" id="e-pan" class="form-control" placeholder="e.g. ABCDE1234F" /></div>
           </div>
           <div class="form-grid grid-2">
             <div class="form-group">
               <label for="e-gender">GENDER *</label>
-<select name="e-gender"   id="e-gender" class="form-control">
+              <select name="e-gender" id="e-gender" class="form-control">
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
                 <option value="Other">Other</option>
@@ -1278,7 +1232,7 @@ function removeRecipeIngredient(index) {
             </div>
             <div class="form-group">
               <label for="e-marital">MARITAL STATUS *</label>
-<select name="e-marital"   id="e-marital" class="form-control">
+              <select name="e-marital" id="e-marital" class="form-control">
                 <option value="Single">Single</option>
                 <option value="Married">Married</option>
               </select>
@@ -1289,27 +1243,22 @@ function removeRecipeIngredient(index) {
         <div style="background:var(--bg-dark); padding:1rem; border-radius:8px; border:1px solid var(--border-dark); margin-bottom:1rem;">
           <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.75rem;">2. Contact Details</span>
           <div class="form-grid grid-2">
-            <div class="form-group"><label for="e-mobile">PERSONAL MOBILE NUMBER *</label>
-<input name="e-mobile"   type="text" id="e-mobile" maxlength="10" class="form-control" placeholder="10-digit mobile" required /></div>
-            <div class="form-group"><label for="e-pemail">PERSONAL EMAIL ADDRESS</label>
-<input name="e-pemail"   type="email" id="e-pemail" class="form-control" placeholder="personal@email.com" /></div>
+            <div class="form-group"><label for="e-mobile">PERSONAL MOBILE NUMBER *</label><input name="e-mobile" type="text" id="e-mobile" maxlength="10" class="form-control" placeholder="10-digit mobile" required /></div>
+            <div class="form-group"><label for="e-pemail">PERSONAL EMAIL ADDRESS</label><input name="e-pemail" type="email" id="e-pemail" class="form-control" placeholder="personal@email.com" /></div>
           </div>
           <div class="form-grid grid-2">
-            <div class="form-group"><label for="e-caddr">CURRENT RESIDENTIAL ADDRESS</label>
-<input name="e-caddr"   type="text" id="e-caddr" class="form-control" placeholder="Full residential street address..." /></div>
-            <div class="form-group"><label for="e-paddr">PERMANENT ADDRESS</label>
-<input name="e-paddr"   type="text" id="e-paddr" class="form-control" placeholder="Permanent address if different..." /></div>
+            <div class="form-group"><label for="e-caddr">CURRENT RESIDENTIAL ADDRESS</label><input name="e-caddr" type="text" id="e-caddr" class="form-control" placeholder="Full residential street address..." /></div>
+            <div class="form-group"><label for="e-paddr">PERMANENT ADDRESS</label><input name="e-paddr" type="text" id="e-paddr" class="form-control" placeholder="Permanent address if different..." /></div>
           </div>
         </div>
 
         <div style="background:var(--bg-dark); padding:1rem; border-radius:8px; border:1px solid var(--border-dark); margin-bottom:1rem;">
           <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.75rem;">3. Employment & Job Details</span>
           <div class="form-grid grid-3">
-            <div class="form-group"><label for="e-title">JOB TITLE *</label>
-<input name="e-title"   type="text" id="e-title" class="form-control" placeholder="e.g. Senior Panchakarma Vaidya" required /></div>
+            <div class="form-group"><label for="e-title">JOB TITLE *</label><input name="e-title" type="text" id="e-title" class="form-control" placeholder="e.g. Senior Panchakarma Vaidya" required /></div>
             <div class="form-group">
               <label for="e-dept">DEPARTMENT *</label>
-<select name="e-dept"   id="e-dept" class="form-control">
+              <select name="e-dept" id="e-dept" class="form-control">
                 <option>Consultation & Panchakarma</option>
                 <option>Pharmacy & Store</option>
                 <option>Therapist Team</option>
@@ -1317,15 +1266,13 @@ function removeRecipeIngredient(index) {
                 <option>Administration</option>
               </select>
             </div>
-            <div class="form-group"><label for="e-jdate">JOINING / HIRE DATE *</label>
-<input name="e-jdate"   type="date" id="e-jdate" class="form-control" required /></div>
+            <div class="form-group"><label for="e-jdate">JOINING / HIRE DATE *</label><input name="e-jdate" type="date" id="e-jdate" class="form-control" required /></div>
           </div>
           <div class="form-grid grid-3">
-            <div class="form-group"><label for="e-wemail">WORK EMAIL / EMPLOYEE ID</label>
-<input name="e-wemail"   type="text" id="e-wemail" class="form-control" placeholder="ramesh@ayurcare.com" /></div>
+            <div class="form-group"><label for="e-wemail">WORK EMAIL / EMPLOYEE ID</label><input name="e-wemail" type="text" id="e-wemail" class="form-control" placeholder="ramesh@ayurcare.com" /></div>
             <div class="form-group">
               <label for="e-role">SYSTEM ROLE ACCESS *</label>
-<select name="e-role"   id="e-role" class="form-control">
+              <select name="e-role" id="e-role" class="form-control">
                 <option value="Doctor (Vaidya)">Doctor (Vaidya)</option>
                 <option value="Therapist">Therapist</option>
                 <option value="Pharmacist">Pharmacist</option>
@@ -1335,7 +1282,7 @@ function removeRecipeIngredient(index) {
             </div>
             <div class="form-group">
               <label for="e-shift">SHIFT TIMING *</label>
-<select name="e-shift"   id="e-shift" class="form-control">
+              <select name="e-shift" id="e-shift" class="form-control">
                 <option>Morning (8:00 AM - 4:00 PM)</option>
                 <option>Evening (12:00 PM - 8:00 PM)</option>
                 <option>Full Day Shift</option>
@@ -1347,20 +1294,14 @@ function removeRecipeIngredient(index) {
         <div style="background:var(--bg-dark); padding:1rem; border-radius:8px; border:1px solid var(--border-dark); margin-bottom:1.25rem;">
           <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.75rem;">4. Payroll, Financial Info & Portal Credentials</span>
           <div class="form-grid grid-3">
-            <div class="form-group"><label for="e-bank">BANK NAME</label>
-<input name="e-bank"   type="text" id="e-bank" class="form-control" placeholder="e.g. State Bank of India" /></div>
-            <div class="form-group"><label for="e-accno">ACCOUNT NUMBER</label>
-<input name="e-accno"   type="text" id="e-accno" class="form-control" placeholder="Direct deposit account #" /></div>
-            <div class="form-group"><label for="e-ifsc">IFSC / ROUTING CODE</label>
-<input name="e-ifsc"   type="text" id="e-ifsc" class="form-control" placeholder="e.g. SBIN0001020" /></div>
+            <div class="form-group"><label for="e-bank">BANK NAME</label><input name="e-bank" type="text" id="e-bank" class="form-control" placeholder="e.g. State Bank of India" /></div>
+            <div class="form-group"><label for="e-accno">ACCOUNT NUMBER</label><input name="e-accno" type="text" id="e-accno" class="form-control" placeholder="Direct deposit account #" /></div>
+            <div class="form-group"><label for="e-ifsc">IFSC / ROUTING CODE</label><input name="e-ifsc" type="text" id="e-ifsc" class="form-control" placeholder="e.g. SBIN0001020" /></div>
           </div>
           <div class="form-grid grid-3">
-            <div class="form-group"><label for="e-upi">UPI ID</label>
-<input name="e-upi"   type="text" id="e-upi" class="form-control" placeholder="e.g. user@upi" /></div>
-            <div class="form-group"><label for="e-salary">MONTHLY BASE SALARY (₹) *</label>
-<input name="e-salary"   type="number" id="e-salary" class="form-control" placeholder="50000" required /></div>
-            <div class="form-group"><label for="e-password">PORTAL ACCOUNT PASSWORD</label>
-<input name="e-password"   type="password" id="e-password" class="form-control" placeholder="Initial system password" /></div>
+            <div class="form-group"><label for="e-upi">UPI ID</label><input name="e-upi" type="text" id="e-upi" class="form-control" placeholder="e.g. user@upi" /></div>
+            <div class="form-group"><label for="e-salary">MONTHLY BASE SALARY (₹) *</label><input name="e-salary" type="number" id="e-salary" class="form-control" placeholder="50000" required /></div>
+            <div class="form-group"><label for="e-password">PORTAL ACCOUNT PASSWORD</label><input name="e-password" type="password" id="e-password" class="form-control" placeholder="Initial system password" /></div>
           </div>
         </div>
         <button type="submit" class="btn btn-orange" style="width:100%; justify-content:center; font-size:0.95rem;">Save Complete Employee Record</button>
@@ -1375,22 +1316,17 @@ function removeRecipeIngredient(index) {
         <button class="modal-close" onclick="closeModal('md-pay')">✕</button>
       </div>
       <form onsubmit="savePayment(event)">
-        <input name="pay-bill-id"  type="hidden" id="pay-bill-id" />
-        <div class="form-group" style="margin-bottom:0.5rem;"><label for="pay-bill-no">BILL NO</label>
-<input name="pay-bill-no"   type="text" id="pay-bill-no" class="form-control" readonly /></div>
-        <div class="form-group" style="margin-bottom:0.5rem;"><label for="pay-patient-name">PATIENT NAME</label>
-<input name="pay-patient-name"   type="text" id="pay-patient-name" class="form-control" readonly /></div>
+        <input name="pay-bill-id" type="hidden" id="pay-bill-id" />
+        <div class="form-group" style="margin-bottom:0.5rem;"><label for="pay-bill-no">BILL NO</label><input name="pay-bill-no" type="text" id="pay-bill-no" class="form-control" readonly /></div>
+        <div class="form-group" style="margin-bottom:0.5rem;"><label for="pay-patient-name">PATIENT NAME</label><input name="pay-patient-name" type="text" id="pay-patient-name" class="form-control" readonly /></div>
         <div class="form-grid grid-2" style="margin-bottom:0.5rem;">
-          <div><label for="pay-total-amt">TOTAL AMOUNT (₹)</label>
-<input name="pay-total-amt"   type="text" id="pay-total-amt" class="form-control" readonly /></div>
-          <div><label for="pay-already-paid">ALREADY PAID (₹)</label>
-<input name="pay-already-paid"   type="text" id="pay-already-paid" class="form-control" readonly /></div>
+          <div><label for="pay-total-amt">TOTAL AMOUNT (₹)</label><input name="pay-total-amt" type="text" id="pay-total-amt" class="form-control" readonly /></div>
+          <div><label for="pay-already-paid">ALREADY PAID (₹)</label><input name="pay-already-paid" type="text" id="pay-already-paid" class="form-control" readonly /></div>
         </div>
-        <div class="form-group" style="margin-bottom:0.5rem;"><label for="pay-due-amt">BALANCE DUE (₹)</label>
-<input name="pay-due-amt"   type="text" id="pay-due-amt" class="form-control" style="color:var(--accent-orange); font-weight:bold;" readonly /></div>
+        <div class="form-group" style="margin-bottom:0.5rem;"><label for="pay-due-amt">BALANCE DUE (₹)</label><input name="pay-due-amt" type="text" id="pay-due-amt" class="form-control" style="color:var(--accent-orange); font-weight:bold;" readonly /></div>
         <div class="form-group" style="margin-bottom:1rem;">
           <label for="pay-collect-amt">ENTER PAYMENT AMOUNT TO COLLECT (₹) *</label>
-<input name="pay-collect-amt"   type="number" step="0.01" id="pay-collect-amt" class="form-control" style="font-size:1.1rem; font-weight:bold; color:var(--accent-green);" required />
+          <input name="pay-collect-amt" type="number" step="0.01" id="pay-collect-amt" class="form-control" style="font-size:1.1rem; font-weight:bold; color:var(--accent-green);" required />
         </div>
         <button type="submit" class="btn btn-green" style="width:100%; justify-content:center; font-size:1rem;">Confirm & Update Ledger</button>
       </form>
@@ -1404,15 +1340,15 @@ function removeRecipeIngredient(index) {
         <button class="modal-close" onclick="closeModal('md-payroll-edit')">✕</button>
       </div>
       <form onsubmit="savePayrollEdit(event)">
-        <input name="pr-edit-id"  type="hidden" id="pr-edit-id" />
+        <input name="pr-edit-id" type="hidden" id="pr-edit-id" />
         <div class="form-grid grid-2" style="margin-bottom:1.25rem;">
           <div class="form-group">
             <label for="pr-days-worked">DAYS WORKED (OUT OF 30) *</label>
-<input name="pr-days-worked"   type="number" id="pr-days-worked" class="form-control" min="0" max="30" value="30" required />
+            <input name="pr-days-worked" type="number" id="pr-days-worked" class="form-control" min="0" max="30" value="30" required />
           </div>
           <div class="form-group">
             <label for="pr-commission">COMMISSION EARNED (₹) *</label>
-<input name="pr-commission"   type="number" step="0.01" id="pr-commission" class="form-control" value="0" required />
+            <input name="pr-commission" type="number" step="0.01" id="pr-commission" class="form-control" value="0" required />
           </div>
         </div>
         <button type="submit" class="btn btn-orange" style="width:100%; justify-content:center; font-size:0.9rem;">Calculate & Save</button>
@@ -1422,23 +1358,23 @@ function removeRecipeIngredient(index) {
 
   <div id="md-raw-mat" class="modal-overlay">
     <div class="modal-container" style="max-width: 500px;">
-      
-        <div style="background:var(--bg-dark); border:1px solid var(--border-dark); padding:0.85rem; border-radius:8px; margin-bottom:1.25rem;">
-          <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.5rem;">🌿 ADD RAW INGREDIENTS (MULTIPLE)</span>
-          <div class="form-grid grid-3" style="align-items:end;">
-            <div class="form-group"><label for="recipe-rm-select">RAW MATERIAL *</label>
-<select name="recipe-rm-select"   id="recipe-rm-select" id="recipe-rm-select" id="rc-add-raw-id" class="form-control"></select></div>
-            <div class="form-group"><label for="recipe-qty-input">QTY PER UNIT *</label>
-<input name="recipe-qty-input"   id="recipe-qty-input" id="recipe-qty-input" type="number" step="0.001" id="rc-add-qty" class="form-control" placeholder="e.g. 0.25" /></div>
-            <button type="button" onclick="addIngredientToRecipe()"  type="button" onclick="addIngredientToRecipe(event)"  type="button" onclick="addIngredientToRecipe(event)"  type="button"  type="button"  type="button"  type="button" class="btn btn-orange" onclick="addRecipeIngredientRow()" onclick="addIngredientToRecipeTable()" onclick="handleAddIngredient()" onclick="addIngredientToRecipe()">+ Add Ingredient</button>
+      <div style="background:var(--bg-dark); border:1px solid var(--border-dark); padding:0.85rem; border-radius:8px; margin-bottom:1.25rem;">
+        <span style="font-size:0.75rem; font-weight:bold; color:var(--accent-orange); display:block; margin-bottom:0.5rem;">🌿 ADD RAW INGREDIENTS (MULTIPLE)</span>
+        <div class="form-grid grid-3" style="align-items:end;">
+          <div class="form-group"><label for="recipe-rm-select">RAW MATERIAL *</label>
+            <select name="recipe-rm-select" id="recipe-rm-select" class="form-control"></select>
           </div>
-          <table class="data-table" style="margin-top:0.75rem;">
-            <thead><tr><th>Raw Material</th><th>Qty Required (per unit)</th><th>Action</th></tr></thead>
-            <tbody id="recipe-ingredients-tbody" id="recipe-ingredients-tbody" id="tbl-rc-ingredients"></tbody>
-          </table>
+          <div class="form-group"><label for="recipe-qty-input">QTY PER UNIT *</label>
+            <input name="recipe-qty-input" id="recipe-qty-input" type="number" step="0.001" class="form-control" placeholder="e.g. 0.25" />
+          </div>
+          <button type="button" class="btn btn-orange" onclick="addIngredientToRecipeTable()">+ Add Ingredient</button>
         </div>
-        <button type="button" onclick="saveMasterRecipe()"  type="button" onclick="saveMasterRecipe(event)"  type="button" onclick="saveMasterRecipe(event)"  type="button"  type="submit" class="btn btn-orange" style="width:100%; justify-content:center; font-size:0.9rem;" onclick="saveMasterRecipe()">Save Master Recipe</button>
-      </form>
+        <table class="data-table" style="margin-top:0.75rem;">
+          <thead><tr><th>Raw Material</th><th>Qty Required (per unit)</th><th>Action</th></tr></thead>
+          <tbody id="recipe-ingredients-tbody"></tbody>
+        </table>
+      </div>
+      <button type="button" class="btn btn-orange" style="width:100%; justify-content:center; font-size:0.9rem;" onclick="saveMasterRecipe()">Save Master Recipe</button>
     </div>
   </div>
 
@@ -1446,21 +1382,15 @@ function removeRecipeIngredient(index) {
     <div class="modal-container" style="max-width: 550px;">
       <div class="modal-header"><h3>⚙️ Execute Batch Production Routine</h3><button class="modal-close" onclick="closeModal('md-batch-prod')">✕</button></div>
       <form onsubmit="runProductionEngine(event)">
-        <div class="form-group" style="margin-bottom:0.75rem;"><label for="bp-recipe-id">MASTER RECIPE *</label>
-<select name="bp-recipe-id"   id="bp-recipe-id" class="form-control" required></select></div>
+        <div class="form-group" style="margin-bottom:0.75rem;"><label for="bp-recipe-id">MASTER RECIPE *</label><select name="bp-recipe-id" id="bp-recipe-id" class="form-control" required></select></div>
         <div class="form-grid grid-2">
-          <div class="form-group"><label for="bp-units">UNITS TO PRODUCE *</label>
-<input name="bp-units"   type="number" id="bp-units" class="form-control" value="20" min="1" required /></div>
-          <div class="form-group"><label for="bp-batch-code">BATCH CODE *</label>
-<input name="bp-batch-code"   type="text" id="bp-batch-code" class="form-control" value="BATCH-2026-01" required /></div>
+          <div class="form-group"><label for="bp-units">UNITS TO PRODUCE *</label><input name="bp-units" type="number" id="bp-units" class="form-control" value="20" min="1" required /></div>
+          <div class="form-group"><label for="bp-batch-code">BATCH CODE *</label><input name="bp-batch-code" type="text" id="bp-batch-code" class="form-control" value="BATCH-2026-01" required /></div>
         </div>
         <div class="form-grid grid-3" style="margin-top:0.5rem; margin-bottom:1.25rem;">
-          <div class="form-group"><label for="bp-expiry">EXPIRY (MM/YYYY) *</label>
-<input name="bp-expiry"   type="text" id="bp-expiry" class="form-control" value="12/2028" required /></div>
-          <div class="form-group"><label for="bp-cost-price">PRODUCTION COST (₹/UNIT) *</label>
-<input name="bp-cost-price"   type="number" step="0.01" id="bp-cost-price" class="form-control" placeholder="e.g. 250" value="250" required /></div>
-          <div class="form-group"><label for="bp-price">SELLING PRICE (₹/UNIT) *</label>
-<input name="bp-price"   type="number" step="0.01" id="bp-price" class="form-control" placeholder="e.g. 650" value="650" required /></div>
+          <div class="form-group"><label for="bp-expiry">EXPIRY (MM/YYYY) *</label><input name="bp-expiry" type="text" id="bp-expiry" class="form-control" value="12/2028" required /></div>
+          <div class="form-group"><label for="bp-cost-price">PRODUCTION COST (₹/UNIT) *</label><input name="bp-cost-price" type="number" step="0.01" id="bp-cost-price" class="form-control" placeholder="e.g. 250" value="250" required /></div>
+          <div class="form-group"><label for="bp-price">SELLING PRICE (₹/UNIT) *</label><input name="bp-price" type="number" step="0.01" id="bp-price" class="form-control" placeholder="e.g. 650" value="650" required /></div>
         </div>
         <button type="submit" class="btn btn-blue" style="width:100%; justify-content:center; font-size:0.9rem;">Run Production & Transfer Stock to Pharmacy</button>
       </form>
@@ -1471,22 +1401,16 @@ function removeRecipeIngredient(index) {
     <div class="modal-container" style="max-width: 600px;">
       <div class="modal-header"><h3>Register Patient Record</h3><button class="modal-close" onclick="closeModal('md-patient')">✕</button></div>
       <form onsubmit="savePatient(event)">
-        <input name="p-id"  type="hidden" id="p-id" />
+        <input name="p-id" type="hidden" id="p-id" />
         <div class="form-grid grid-3">
-          <div class="form-group"><label for="p-name">FULL NAME *</label>
-<input name="p-name"   type="text" id="p-name" class="form-control" required /></div>
-          <div class="form-group"><label for="p-mobile">MOBILE NO *</label>
-<input name="p-mobile"   type="text" id="p-mobile" maxlength="10" class="form-control" required /></div>
-          <div class="form-group"><label for="p-age">AGE *</label>
-<input name="p-age"   type="number" id="p-age" class="form-control" required /></div>
+          <div class="form-group"><label for="p-name">FULL NAME *</label><input name="p-name" type="text" id="p-name" class="form-control" required /></div>
+          <div class="form-group"><label for="p-mobile">MOBILE NO *</label><input name="p-mobile" type="text" id="p-mobile" maxlength="10" class="form-control" required /></div>
+          <div class="form-group"><label for="p-age">AGE *</label><input name="p-age" type="number" id="p-age" class="form-control" required /></div>
         </div>
         <div class="form-grid grid-3">
-          <div class="form-group"><label for="p-gender">GENDER</label>
-<select name="p-gender"   id="p-gender" class="form-control"><option>Male</option><option>Female</option></select></div>
-          <div class="form-group"><label for="p-prakriti">PRAKRITI</label>
-<select name="p-prakriti"   id="p-prakriti" class="form-control"><option>Vata</option><option>Pitta</option><option>Kapha</option></select></div>
-          <div class="form-group"><label for="p-weight">WEIGHT (KG)</label>
-<input name="p-weight"   type="number" id="p-weight" class="form-control" /></div>
+          <div class="form-group"><label for="p-gender">GENDER</label><select name="p-gender" id="p-gender" class="form-control"><option>Male</option><option>Female</option></select></div>
+          <div class="form-group"><label for="p-prakriti">PRAKRITI</label><select name="p-prakriti" id="p-prakriti" class="form-control"><option>Vata</option><option>Pitta</option><option>Kapha</option></select></div>
+          <div class="form-group"><label for="p-weight">WEIGHT (KG)</label><input name="p-weight" type="number" id="p-weight" class="form-control" /></div>
         </div>
         <button type="submit" class="btn btn-orange" style="width:100%; margin-top:1rem;">Save Patient</button>
       </form>
@@ -1497,13 +1421,10 @@ function removeRecipeIngredient(index) {
     <div class="modal-container" style="max-width: 450px;">
       <div class="modal-header"><h3>Add Therapy Master</h3><button class="modal-close" onclick="closeModal('md-therapy-add')">✕</button></div>
       <form onsubmit="saveTherapy(event)">
-        <div class="form-group"><label for="th-name">THERAPY NAME</label>
-<input name="th-name"   type="text" id="th-name" class="form-control" required /></div>
+        <div class="form-group"><label for="th-name">THERAPY NAME</label><input name="th-name" type="text" id="th-name" class="form-control" required /></div>
         <div class="form-grid grid-2">
-          <div class="form-group"><label for="th-dur">DURATION (MINS)</label>
-<input name="th-dur"   type="number" id="th-dur" class="form-control" value="45" required /></div>
-          <div class="form-group"><label for="th-price">PRICE (₹)</label>
-<input name="th-price"   type="number" id="th-price" class="form-control" required /></div>
+          <div class="form-group"><label for="th-dur">DURATION (MINS)</label><input name="th-dur" type="number" id="th-dur" class="form-control" value="45" required /></div>
+          <div class="form-group"><label for="th-price">PRICE (₹)</label><input name="th-price" type="number" id="th-price" class="form-control" required /></div>
         </div>
         <button type="submit" class="btn btn-orange" style="width:100%; margin-top:1rem;">Save Therapy</button>
       </form>
@@ -1514,12 +1435,9 @@ function removeRecipeIngredient(index) {
     <div class="modal-container" style="max-width: 450px;">
       <div class="modal-header"><h3>Record Accounts / Vendor Entry</h3><button class="modal-close" onclick="closeModal('md-acc-add')">✕</button></div>
       <form onsubmit="saveAccounts(event)">
-        <div class="form-group"><label for="acc-type">TYPE</label>
-<select name="acc-type"   id="acc-type" class="form-control"><option>Expense</option><option>Vendor</option></select></div>
-        <div class="form-group"><label for="acc-title">TITLE / NAME</label>
-<input name="acc-title"   type="text" id="acc-title" class="form-control" required /></div>
-        <div class="form-group"><label for="acc-amt">AMOUNT (₹)</label>
-<input name="acc-amt"   type="number" id="acc-amt" class="form-control" required /></div>
+        <div class="form-group"><label for="acc-type">TYPE</label><select name="acc-type" id="acc-type" class="form-control"><option>Expense</option><option>Vendor</option></select></div>
+        <div class="form-group"><label for="acc-title">TITLE / NAME</label><input name="acc-title" type="text" id="acc-title" class="form-control" required /></div>
+        <div class="form-group"><label for="acc-amt">AMOUNT (₹)</label><input name="acc-amt" type="number" id="acc-amt" class="form-control" required /></div>
         <button type="submit" class="btn btn-orange" style="width:100%; margin-top:1rem;">Save Entry</button>
       </form>
     </div>
@@ -1529,12 +1447,9 @@ function removeRecipeIngredient(index) {
     <div class="modal-container" style="max-width: 450px;">
       <div class="modal-header"><h3>Allocate IPD Bed</h3><button class="modal-close" onclick="closeModal('md-ipd-add')">✕</button></div>
       <form onsubmit="saveIPDBed(event)">
-        <div class="form-group"><label for="ipd-bed">BED NO</label>
-<input name="ipd-bed"   type="text" id="ipd-bed" class="form-control" placeholder="BED-101" required /></div>
-        <div class="form-group"><label for="ipd-pname">PATIENT NAME</label>
-<input name="ipd-pname"   type="text" id="ipd-pname" class="form-control" required /></div>
-        <div class="form-group"><label for="ipd-rate">DAILY CHARGE (₹)</label>
-<input name="ipd-rate"   type="number" id="ipd-rate" class="form-control" value="1500" required /></div>
+        <div class="form-group"><label for="ipd-bed">BED NO</label><input name="ipd-bed" type="text" id="ipd-bed" class="form-control" placeholder="BED-101" required /></div>
+        <div class="form-group"><label for="ipd-pname">PATIENT NAME</label><input name="ipd-pname" type="text" id="ipd-pname" class="form-control" required /></div>
+        <div class="form-group"><label for="ipd-rate">DAILY CHARGE (₹)</label><input name="ipd-rate" type="number" id="ipd-rate" class="form-control" value="1500" required /></div>
         <button type="submit" class="btn btn-orange" style="width:100%; margin-top:1rem;">Allocate Bed</button>
       </form>
     </div>
@@ -1612,7 +1527,7 @@ function removeRecipeIngredient(index) {
   <!-- UNIFIED COMPLETE JAVASCRIPT ENGINE -->
   <script>
     var SUPABASE_URL = window.SUPABASE_URL || "https://apmegpiztygfmltrsgkb.supabase.co";
-	var SUPABASE_KEY = window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwbWVncGl6dHlnZm1sdHJzZ2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTA5OTksImV4cCI6MjEwNDY4Njk5OX0.kutc4qsOtMgN-7ggRS6ObclwmZWhgihf5snkxbIzlmA";
+    var SUPABASE_KEY = window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwbWVncGl6dHlnZm1sdHJzZ2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTA5OTksImV4cCI6MjEwNDY4Njk5OX0.kutc4qsOtMgN-7ggRS6ObclwmZWhgihf5snkxbIzlmA";
     let sbClient = null;
 
     if (window.supabase) {
@@ -1681,8 +1596,6 @@ function removeRecipeIngredient(index) {
     }
 
     /* PATIENT DIRECTORY & EMR */
-    
-    /* --- MODULE 3: PATIENT EDIT CRUD --- */
     function editPatient(id) {
       const p = db.patients.find(x => x.id === id); if (!p) return;
       document.getElementById('p-id').value = p.id;
@@ -1695,7 +1608,7 @@ function removeRecipeIngredient(index) {
       openModal('md-patient');
     }
 
-    /* --- MODULE 4: THERAPY RESERVATIONS CRUD --- */
+    /* THERAPY RESERVATIONS CRUD */
     function openReservationModal(slot, dateStr) {
       document.getElementById('res-slot').value = slot;
       document.getElementById('res-date').value = dateStr;
@@ -1718,7 +1631,7 @@ function removeRecipeIngredient(index) {
       renderScheduleGrid();
     }
 
-    /* --- MODULE 8: THERAPY MASTER EDIT CRUD --- */
+    /* THERAPY MASTER EDIT CRUD */
     function editTherapy(id) {
       const t = db.therapies.find(x => x.id === id); if (!t) return;
       document.getElementById('th-id').value = t.id;
@@ -1728,7 +1641,7 @@ function removeRecipeIngredient(index) {
       openModal('md-therapy-add');
     }
 
-    /* --- MODULE 11: ACCOUNTS & VENDORS EDIT/DELETE CRUD --- */
+    /* ACCOUNTS & VENDORS EDIT/DELETE CRUD */
     function editAccount(id) {
       const a = db.accounts.find(x => x.id === id); if (!a) return;
       document.getElementById('acc-id').value = a.id;
@@ -1745,7 +1658,7 @@ function removeRecipeIngredient(index) {
       renderAccounts();
     }
 
-    /* --- MODULE 12: CLINIC DOCUMENTS CRUD --- */
+    /* CLINIC DOCUMENTS CRUD */
     function renderDocuments() {
       const tbl = document.getElementById('tbl-documents'); if (!tbl) return;
       tbl.innerHTML = (db.documents || []).map(d => `
@@ -1781,7 +1694,7 @@ function removeRecipeIngredient(index) {
       renderDocuments();
     }
 
-    /* --- MODULE 13: STAFF & ACCESS CONTROL CRUD --- */
+    /* STAFF & ACCESS CONTROL CRUD */
     function renderStaffUsers() {
       const tbl = document.getElementById('tbl-staff-users'); if (!tbl) return;
       tbl.innerHTML = (db.staffUsers || [
@@ -1820,14 +1733,13 @@ function removeRecipeIngredient(index) {
       renderStaffUsers();
     }
 
-    /* --- MODULE 14: IPD DISCHARGE CRUD --- */
+    /* IPD DISCHARGE CRUD */
     async function dischargeIPD(id) {
       if (!confirm('Discharge patient and release IPD bed?')) return;
       if (sbClient) try { await sbClient.from('ipd_beds').delete().eq('id', id); } catch(err){}
       db.ipd = db.ipd.filter(i => i.id !== id);
       renderIPD();
     }
-
 
     function renderPatients() {
       const tbl = document.getElementById('tbl-patients');
@@ -1878,7 +1790,7 @@ function removeRecipeIngredient(index) {
       init();
     }
 
-        function populateRxPatientDatalist() {
+    function populateRxPatientDatalist() {
       const dl = document.getElementById('dl-patients');
       if (!dl) return;
       dl.innerHTML = (db.patients || []).map(p => 
@@ -1934,7 +1846,7 @@ function removeRecipeIngredient(index) {
       }
     }
 
-        /* --- COMPLETE E-PRESCRIPTION DESK JS ENGINE --- */
+    /* COMPLETE E-PRESCRIPTION DESK JS ENGINE */
     let rxItems = [];
 
     function openNewRxModal() {
@@ -2037,7 +1949,6 @@ function removeRecipeIngredient(index) {
     }
 
     async function savePrescription() {
-      // Auto-add pending item typed in form if user didn't click "+ Add"
       const pendingItem = document.getElementById('rx-item').value.trim();
       if (pendingItem) {
         addRxItem();
@@ -2050,7 +1961,6 @@ function removeRecipeIngredient(index) {
 
       if (!patientName) return alert('Please select or enter patient name');
 
-      // Extract name if format is "Name (Mobile)"
       if (patientName.includes('(')) {
         patientName = patientName.split('(')[0].trim();
       }
@@ -2203,7 +2113,6 @@ function removeRecipeIngredient(index) {
     }
 
     function printPrescription() {
-      // Print from current open modal
       const pendingItem = document.getElementById('rx-item').value.trim();
       if (pendingItem) addRxItem();
 
@@ -2268,31 +2177,18 @@ function removeRecipeIngredient(index) {
         ...rxItems
       ];
 
-      let msg = `🌿 *AASU AROGYAM AYURVEDIC HOSPITAL* 🌿
-`;
-      msg += `*Digital E-Prescription Desk*
-
-`;
-      msg += `*Patient:* ${patientName}
-`;
-      msg += `*Doctor:* ${doctor}
-`;
-      msg += `*Diagnosis:* ${diagnosis}
-
-`;
-      msg += `*Prescribed Items & Therapies:*
-`;
+      let msg = `🌿 *AASU AROGYAM AYURVEDIC HOSPITAL* 🌿\n`;
+      msg += `*Digital E-Prescription Desk*\n\n`;
+      msg += `*Patient:* ${patientName}\n`;
+      msg += `*Doctor:* ${doctor}\n`;
+      msg += `*Diagnosis:* ${diagnosis}\n\n`;
+      msg += `*Prescribed Items & Therapies:*\n`;
 
       allItems.forEach((i, idx) => {
-        msg += `${idx + 1}. [${i.type}] *${i.item}* - ${i.dose} (Qty: ${i.qty})
-`;
+        msg += `${idx + 1}. [${i.type}] *${i.item}* - ${i.dose} (Qty: ${i.qty})\n`;
       });
 
-      msg += `
-*Dietary & Lifestyle Instructions (Pathya & Apathya):*
-${instructions}
-
-`;
+      msg += `\n*Dietary & Lifestyle Instructions (Pathya & Apathya):*\n${instructions}\n\n`;
       msg += `_Please present this digital prescription at the billing counter._`;
 
       const encodedUrl = `https://api.whatsapp.com/send?phone=91${mobileNo}&text=${encodeURIComponent(msg)}`;
@@ -2312,45 +2208,30 @@ ${instructions}
       try { if (typeof rawItems === 'string') rawItems = JSON.parse(rawItems); } catch(e){}
       rawItems = rawItems || [];
 
-      let msg = `🌿 *AASU AROGYAM AYURVEDIC HOSPITAL* 🌿
-`;
-      msg += `*Prescription No:* ${r.rx_no}
-`;
-      msg += `*Date:* ${r.rx_date || new Date().toLocaleDateString()}
-
-`;
-      msg += `*Patient:* ${r.patient_name}
-`;
-      msg += `*Doctor:* ${r.attending_doctor || 'Chief Vaidya'}
-`;
-      msg += `*Diagnosis:* ${r.diagnosis || 'General'}
-
-`;
-      msg += `*Prescribed Items & Therapies:*
-`;
+      let msg = `🌿 *AASU AROGYAM AYURVEDIC HOSPITAL* 🌿\n`;
+      msg += `*Prescription No:* ${r.rx_no}\n`;
+      msg += `*Date:* ${r.rx_date || new Date().toLocaleDateString()}\n\n`;
+      msg += `*Patient:* ${r.patient_name}\n`;
+      msg += `*Doctor:* ${r.attending_doctor || 'Chief Vaidya'}\n`;
+      msg += `*Diagnosis:* ${r.diagnosis || 'General'}\n\n`;
+      msg += `*Prescribed Items & Therapies:*\n`;
 
       rawItems.forEach((i, idx) => {
-        msg += `${idx + 1}. [${i.type}] *${i.item}* - ${i.dose} (Qty: ${i.qty})
-`;
+        msg += `${idx + 1}. [${i.type}] *${i.item}* - ${i.dose} (Qty: ${i.qty})\n`;
       });
 
       if (r.instructions) {
-        msg += `
-*Diet & Instructions:* ${r.instructions}
-`;
+        msg += `\n*Diet & Instructions:* ${r.instructions}\n`;
       }
 
-      msg += `
-*Total Amount:* ₹${Number(r.grand_total || 0).toFixed(2)}
-`;
+      msg += `\n*Total Amount:* ₹${Number(r.grand_total || 0).toFixed(2)}\n`;
       msg += `_Thank you for choosing Aasu Arogyam Hospital._`;
 
       const encodedUrl = `https://api.whatsapp.com/send?phone=91${mobileNo}&text=${encodeURIComponent(msg)}`;
       window.open(encodedUrl, '_blank');
     }
 
-    /* THERAPY SCHEDULER */
-        /* --- UPGRADED SCHEDULE MODULE JS ENGINE --- */
+    /* THERAPY SCHEDULER ENGINE */
     let currentWeekOffset = 0;
     let selectedScheduleRoomFilter = 'All';
 
@@ -2401,9 +2282,9 @@ ${instructions}
 
       const checkContainer = document.getElementById('sch-room-checkboxes');
       if (checkContainer) {
-        let html = `<label for="res-pname" style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;"><input name="erp-field-id-10004" id="erp-field-id-10004"  type="checkbox" checked onchange="filterScheduleRoom('All', null)" /> All Rooms</label>`;
+        let html = `<label for="res-pname" style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;"><input name="erp-field-id-10004" id="erp-field-id-10004" type="checkbox" checked onchange="filterScheduleRoom('All', null)" /> All Rooms</label>`;
         rooms.forEach(r => {
-          html += `<label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;"><input name="erp-field-id-10005" id="erp-field-id-10005"  type="checkbox" ${selectedScheduleRoomFilter === 'All' || selectedScheduleRoomFilter === r.room_name ? 'checked' : ''} onchange="filterScheduleRoom('${r.room_name}', null)" /> ${r.room_name}</label>`;
+          html += `<label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;"><input name="erp-field-id-10005" id="erp-field-id-10005" type="checkbox" ${selectedScheduleRoomFilter === 'All' || selectedScheduleRoomFilter === r.room_name ? 'checked' : ''} onchange="filterScheduleRoom('${r.room_name}', null)" /> ${r.room_name}</label>`;
         });
         checkContainer.innerHTML = html;
       }
@@ -2724,7 +2605,7 @@ ${instructions}
     function openRecipeModal() { document.getElementById('rc-id').value = ''; document.getElementById('rc-name').value = ''; generateAutoBarcode(); currentRecipeIngredients = []; const sel = document.getElementById('rc-add-raw-id'); if (sel) sel.innerHTML = db.rawMaterials.map(r => `<option value="${r.id}">${r.id} - ${r.name}</option>`).join(''); renderRecipeIngredientsTable(); openModal('md-recipe'); }
     function addRecipeIngredientRow() { const rawId = document.getElementById('rc-add-raw-id').value; const qty = Number(document.getElementById('rc-add-qty').value) || 0; const raw = db.rawMaterials.find(r => r.id === rawId); if (!raw || qty <= 0) return alert('Select material and valid quantity'); currentRecipeIngredients.push({ raw_id: raw.id, raw_name: raw.name, unit: raw.unit, qty_per_unit: qty }); renderRecipeIngredientsTable(); }
     function renderRecipeIngredientsTable() { const tbl = document.getElementById('tbl-rc-ingredients'); if (!tbl) return; tbl.innerHTML = currentRecipeIngredients.map((i, idx) => `<tr><td><b>${i.raw_id} - ${i.raw_name}</b></td><td><b>${i.qty_per_unit} ${i.unit}</b></td><td><button type="button" onclick="currentRecipeIngredients.splice(${idx},1);renderRecipeIngredientsTable();" style="color:red;border:none;background:none;cursor:pointer;">✕</button></td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;">No ingredients added.</td></tr>'; }
-    async function saveMasterRecipe(e) { e.preventDefault(); if (!currentRecipeIngredients.length) return alert('Add at least 1 ingredient'); const id = document.getElementById('rc-id').value; const payload = { name: document.getElementById('rc-name').value, barcode: document.getElementById('rc-barcode').value, ingredients: JSON.stringify(currentRecipeIngredients) }; if (!id) payload.id = 'REC-0' + (db.recipes.length + 1); if (sbClient) { if (id) await sbClient.from('master_recipes').update(payload).eq('id', id); else await sbClient.from('master_recipes').insert([payload]); } else { if (id) { const idx = db.recipes.findIndex(r => r.id === id); if (idx !== -1) db.recipes[idx] = { id, ...payload }; } else db.recipes.push(payload); } closeModal('md-recipe'); init(); }
+    async function saveMasterRecipe(e) { if (e && e.preventDefault) e.preventDefault(); if (!currentRecipeIngredients.length) return alert('Add at least 1 ingredient'); const id = document.getElementById('rc-id').value; const payload = { name: document.getElementById('rc-name').value, barcode: document.getElementById('rc-barcode').value, ingredients: JSON.stringify(currentRecipeIngredients) }; if (!id) payload.id = 'REC-0' + (db.recipes.length + 1); if (sbClient) { if (id) await sbClient.from('master_recipes').update(payload).eq('id', id); else await sbClient.from('master_recipes').insert([payload]); } else { if (id) { const idx = db.recipes.findIndex(r => r.id === id); if (idx !== -1) db.recipes[idx] = { id, ...payload }; } else db.recipes.push(payload); } closeModal('md-recipe'); init(); }
     async function delMasterRecipe(id) { if (!confirm('Delete recipe?')) return; if (sbClient) await sbClient.from('master_recipes').delete().eq('id', id); else db.recipes = db.recipes.filter(r => r.id !== id); init(); }
 
     async function runProductionEngine(e) {
@@ -2930,9 +2811,7 @@ ${instructions}
       const billPayload = { bill_no: billNo, rx_no: 'POS', patient_id: document.getElementById('pos-patient-id')?.value||null, patient_name: document.getElementById('pos-cust-name')?.value||'Walk-in Customer', mobile_no: document.getElementById('pos-cust-mobile')?.value||'N/A', bill_type: 'POS Retail', subtotal: calc.subtotal, discount_percent: calc.discPct, discount_amount: calc.discAmt, tax_percent: calc.taxPercent, tax_amount: calc.taxAmt, total_amount: calc.grandTotal, paid_amount: calc.paidAmt, balance_due: calc.balanceDue, payment_status: status, items: posCart };
       if (sbClient) try { await sbClient.from('billing').insert([billPayload]); } catch(e){}
       db.billing.unshift({ ...billPayload, id: 'b-' + Date.now(), created_at: new Date().toISOString() });
-      if (confirm(`✅ POS Sale Completed! Bill: ${billNo}
-Total: ₹${calc.grandTotal.toFixed(2)}
-Print receipt now?`)) printPosInvoice(billNo);
+      if (confirm(`✅ POS Sale Completed! Bill: ${billNo}\nTotal: ₹${calc.grandTotal.toFixed(2)}\nPrint receipt now?`)) printPosInvoice(billNo);
       posCart = []; userEditedPaidAmt = false; closeModal('md-pos'); init();
     }
 
@@ -3184,351 +3063,9 @@ Print receipt now?`)) printPosInvoice(billNo);
     }
 
     window.onload = init;
-  
+  </script>
 
-// Module 5: Integrated Production & Raw Material Deduction Engine
-async function executeProductionBatch(recipeId, targetQty, batchNo) {
-  try {
-    if (!supabaseClient) throw new Error("Supabase client not initialized.");
-    
-    // 1. Fetch Recipe details and ingredients (BOM)
-    const { data: recipe, error: recipeErr } = await supabaseClient
-      .from('master_recipes')
-      .select('*, recipe_ingredients(*)')
-      .eq('id', recipeId)
-      .single();
-      
-    if (recipeErr || !recipe) throw new Error("Recipe not found or failed to load ingredients.");
-
-    const yieldMultiplier = targetQty / (recipe.standard_yield || 1);
-
-    // 2. Fetch current Raw Materials stock levels
-    const ingredientIds = recipe.recipe_ingredients.map(i => i.raw_material_id);
-    const { data: rawMaterials, error: rmErr } = await supabaseClient
-      .from('raw_materials')
-      .select('id, name, current_stock, unit')
-      .in('id', ingredientIds);
-
-    if (rmErr) throw new Error("Failed to fetch raw material stock levels.");
-
-    // 3. Stock Sufficiency Check
-    const deductions = [];
-    for (const item of recipe.recipe_ingredients) {
-      const stockItem = rawMaterials.find(rm => rm.id === item.raw_material_id);
-      const requiredQty = item.qty_required * yieldMultiplier;
-      
-      if (!stockItem || stockItem.current_stock < requiredQty) {
-        alert(`Insufficient stock for ${stockItem ? stockItem.name : 'Ingredient'}. Required: ${requiredQty}, Available: ${stockItem ? stockItem.current_stock : 0}`);
-        return false;
-      }
-      deductions.push({
-        id: item.raw_material_id,
-        new_stock: stockItem.current_stock - requiredQty,
-        used_qty: requiredQty
-      });
-    }
-
-    // 4. Execute Raw Material Stock Deductions in Supabase
-    for (const d of deductions) {
-      const { error: updateErr } = await supabaseClient
-        .from('raw_materials')
-        .update({ current_stock: d.new_stock })
-        .eq('id', d.id);
-
-      if (updateErr) throw new Error(`Failed to deduct raw material stock for ID: ${d.id}`);
-    }
-
-    // 5. Log Production Batch Entry
-    const { data: batch, error: batchErr } = await supabaseClient
-      .from('production_batches')
-      .insert([{
-        batch_number: batchNo || 'BATCH-' + Date.now(),
-        recipe_id: recipeId,
-        output_qty: targetQty,
-        status: 'Completed',
-        created_at: new Date().toISOString()
-      }]);
-
-    if (batchErr) throw new Error("Failed to record production batch.");
-
-    // 6. Automatically credit finished goods to Herbal Pharmacy Stock
-    const { error: pharmacyErr } = await supabaseClient.rpc('increment_pharmacy_stock', {
-      medicine_name: recipe.medicine_name,
-      add_qty: targetQty
-    });
-
-    alert("Production batch executed successfully! Raw materials deducted and finished stock updated.");
-    if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
-    return true;
-
-  } catch (err) {
-    console.error("Production Engine Error:", err);
-    alert("Production failed: " + err.message);
-    return false;
-  }
-}
-
-
-
-// Calculate total production cost and suggested selling price live in recipe builder
-function calculateRecipeCost() {
-  const rows = document.querySelectorAll('#recipe-ingredients-table tbody tr');
-  let totalBatchCost = 0;
-
-  rows.forEach(row => {
-    const qtyInput = row.querySelector('.ing-qty');
-    const rateInput = row.querySelector('.ing-rate');
-    const costCell = row.querySelector('.ing-total-cost');
-    
-    const qty = parseFloat(qtyInput ? qtyInput.value : 0) || 0;
-    const rate = parseFloat(rateInput ? rateInput.value : 0) || 0;
-    const itemCost = qty * rate;
-    
-    totalBatchCost += itemCost;
-    if (costCell) costCell.textContent = '₹' + itemCost.toFixed(2);
-  });
-
-  const yieldInput = document.getElementById('recipe-standard-yield');
-  const yieldQty = parseFloat(yieldInput ? yieldInput.value : 1) || 1;
-  const unitCost = totalBatchCost / yieldQty;
-
-  // Update summary fields
-  const elTotalCost = document.getElementById('calc-total-batch-cost');
-  const elUnitCost = document.getElementById('calc-unit-cost');
-  const elSuggestedMRP = document.getElementById('calc-suggested-mrp');
-
-  if (elTotalCost) elTotalCost.textContent = '₹' + totalBatchCost.toFixed(2);
-  if (elUnitCost) elUnitCost.textContent = '₹' + unitCost.toFixed(2);
-  
-  // Default 40% margin calculation for suggested MRP
-  if (elSuggestedMRP) elSuggestedMRP.value = (unitCost * 1.40).toFixed(2);
-}
-
-
-
-// Global ESC key listener to close open modals across all modules
-document.addEventListener('keydown', function(event) {
-  if (event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27) {
-    // 1. Find all visible modal overlays or dialog containers
-    const modals = document.querySelectorAll('.modal, .modal-overlay, [id*="modal"], [id*="Modal"]');
-    
-    modals.forEach(modal => {
-      const computedDisplay = window.getComputedStyle(modal).display;
-      if (computedDisplay !== 'none') {
-        modal.style.display = 'none';
-        modal.classList.remove('active', 'show');
-      }
-    });
-
-    // 2. Trigger active close button clicks if modal uses custom teardown logic
-    const visibleCloseBtns = document.querySelectorAll('.modal-close, .close, [onclick*="close"]');
-    visibleCloseBtns.forEach(btn => {
-      if (btn.offsetParent !== null) {
-        btn.click();
-      }
-    });
-  }
-});
-
-
-
-// --- MODULE 5: RAW MATERIALS & MASTER RECIPES SYNC ENGINE ---
-
-// 1. Fetch live raw materials from Supabase and sync into recipe dropdowns
-async function syncRawMaterialsToRecipeBuilder() {
-  if (!supabaseClient) return;
-  const { data: materials, error } = await supabaseClient
-    .from('raw_materials')
-    .select('*')
-    .order('name');
-  
-  if (error) {
-    console.error("Error fetching raw materials:", error);
-    return;
-  }
-  
-  window.availableRawMaterials = materials || [];
-  updateAllRecipeDropdowns();
-}
-
-// 2. Refresh dropdown options across all recipe ingredient rows
-function updateAllRecipeDropdowns() {
-  const dropdowns = document.querySelectorAll('.ing-material-select');
-  dropdowns.forEach(select => {
-    const currentVal = select.value;
-    select.innerHTML = '<option value="">-- Select Raw Material --</option>';
-    (window.availableRawMaterials || []).forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m.id;
-      opt.textContent = `${m.name} (${m.unit || 'unit'}) - ₹${m.purchase_rate || 0}/unit`;
-      opt.dataset.rate = m.purchase_rate || 0;
-      if (m.id === currentVal) opt.selected = true;
-      select.appendChild(opt);
-    });
-  });
-}
-
-// 3. Add dynamic ingredient row with auto-populated purchase rate & event triggers
-function addRecipeIngredientRow(selectedId = '', qty = 0) {
-  const tbody = document.querySelector('#recipe-ingredients-table tbody');
-  if (!tbody) return;
-
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td style="padding:0.4rem;">
-      <select name="erp-field-id-10006" id="erp-field-id-10006"  class="ing-material-select" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" onchange="onIngredientSelectChange(this)">
-        <option value="">-- Select Raw Material --</option>
-      </select>
-    </td>
-    <td style="padding:0.4rem;">
-      <input name="erp-field-id-10007" id="erp-field-id-10007"  type="number" step="0.01" class="ing-qty" value="${qty}" placeholder="0" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" oninput="calculateRecipeCost()">
-    </td>
-    <td style="padding:0.4rem;">
-      <input name="erp-field-id-10008" id="erp-field-id-10008"  type="number" step="0.01" class="ing-rate" value="0.00" placeholder="0.00" style="width:100%; padding:0.4rem; background:var(--bg-dark); color:white; border:1px solid var(--border-dark); border-radius:4px;" oninput="calculateRecipeCost()">
-    </td>
-    <td class="ing-total-cost" style="padding:0.4rem; font-weight:bold; color:var(--accent-green);">₹0.00</td>
-    <td style="padding:0.4rem; text-align:center;">
-      <button type="button" onclick="this.closest('tr').remove(); calculateRecipeCost();" style="background:#dc2626; color:white; border:none; padding:0.3rem 0.6rem; border-radius:4px; cursor:pointer;">✕</button>
-    </td>
-  `;
-
-  tbody.appendChild(tr);
-  updateAllRecipeDropdowns();
-  
-  if (selectedId) {
-    const select = tr.querySelector('.ing-material-select');
-    select.value = selectedId;
-    onIngredientSelectChange(select);
-  }
-}
-
-// 4. Auto-fill purchase rate when an ingredient is selected
-function onIngredientSelectChange(selectElem) {
-  const selectedOpt = selectElem.options[selectElem.selectedIndex];
-  const rateInput = selectElem.closest('tr').querySelector('.ing-rate');
-  if (selectedOpt && selectedOpt.dataset.rate && rateInput) {
-    rateInput.value = parseFloat(selectedOpt.dataset.rate).toFixed(2);
-  }
-  calculateRecipeCost();
-}
-
-// 5. Live COGS investment & selling price calculator
-function calculateRecipeCost() {
-  const rows = document.querySelectorAll('#recipe-ingredients-table tbody tr');
-  let totalBatchCost = 0;
-
-  rows.forEach(row => {
-    const qty = parseFloat(row.querySelector('.ing-qty')?.value) || 0;
-    const rate = parseFloat(row.querySelector('.ing-rate')?.value) || 0;
-    const itemCost = qty * rate;
-    totalBatchCost += itemCost;
-    
-    const costCell = row.querySelector('.ing-total-cost');
-    if (costCell) costCell.textContent = '₹' + itemCost.toFixed(2);
-  });
-
-  const yieldInput = document.getElementById('recipe-standard-yield');
-  const yieldQty = parseFloat(yieldInput?.value) || 1;
-  const unitCost = totalBatchCost / (yieldQty || 1);
-
-  const elTotalCost = document.getElementById('calc-total-batch-cost');
-  const elUnitCost = document.getElementById('calc-unit-cost');
-  const elSuggestedMRP = document.getElementById('calc-suggested-mrp');
-
-  if (elTotalCost) elTotalCost.textContent = '₹' + totalBatchCost.toFixed(2);
-  if (elUnitCost) elUnitCost.textContent = '₹' + unitCost.toFixed(2);
-  if (elSuggestedMRP && !elSuggestedMRP.dataset.userEdited) {
-    elSuggestedMRP.value = (unitCost * 1.40).toFixed(2);
-  }
-}
-
-// Automatically sync dropdowns when Module 5 tab opens
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(syncRawMaterialsToRecipeBuilder, 1000);
-});
-
-
-
-window.currentRecipeIngredients = window.currentRecipeIngredients || [];
-
-function addIngredientToRecipeTable() {
-  // Target raw material selector and quantity input inside the recipe modal
-  const modal = document.querySelector('#modal-master-recipe, div[class*="modal"]');
-  const sel = document.getElementById('recipe-rm-select') || document.querySelector('.modal select') || document.querySelector('select');
-  const qtyEl = document.getElementById('recipe-rm-qty') || document.querySelector('.modal input[type="number"]') || document.querySelector('input[type="number"]');
-
-  if (!sel || !sel.value) {
-    alert("Please select a raw material from the dropdown.");
-    return;
-  }
-
-  const qty = parseFloat(qtyEl ? qtyEl.value : 0);
-  if (!qty || qty <= 0) {
-    alert("Please enter a valid quantity per unit.");
-    return;
-  }
-
-  const selectedOpt = sel.options[sel.selectedIndex];
-  const matName = selectedOpt.textContent.trim();
-  const matId = sel.value;
-  const rate = parseFloat(selectedOpt.dataset.rate || 0);
-
-  // Check if material already exists in list; if so, aggregate quantity
-  const existingIdx = window.currentRecipeIngredients.findIndex(item => item.id === matId);
-  if (existingIdx !== -1) {
-    window.currentRecipeIngredients[existingIdx].qty += qty;
-  } else {
-    window.currentRecipeIngredients.push({
-      id: matId,
-      name: matName,
-      qty: qty,
-      rate: rate
-    });
-  }
-
-  renderRecipeIngredientsTable();
-
-  // Reset quantity input field
-  if (qtyEl) qtyEl.value = '';
-}
-
-function renderRecipeIngredientsTable() {
-  // Find tbody inside recipe modal
-  const modal = document.querySelector('#modal-master-recipe') || document;
-  const tbody = modal.querySelector('tbody') || document.querySelector('#recipe-ingredients-table tbody');
-  
-  if (!tbody) return;
-
-  if (!window.currentRecipeIngredients || window.currentRecipeIngredients.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:1rem;">No ingredients added.</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = '';
-  window.currentRecipeIngredients.forEach((item, index) => {
-    const tr = document.createElement('tr');
-    tr.style.borderBottom = '1px solid var(--border-dark)';
-    tr.innerHTML = `
-      <td style="padding: 0.6rem; color: white;">${item.name}</td>
-      <td style="padding: 0.6rem; color: white;">${item.qty}</td>
-      <td style="padding: 0.6rem; text-align: center;">
-        <button type="button" onclick="removeRecipeIngredient(${index})" style="background:#dc2626; color:white; border:none; padding:0.25rem 0.5rem; border-radius:4px; cursor:pointer;">Delete</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  if (typeof calculateRecipeCost === 'function') calculateRecipeCost();
-}
-
-function removeRecipeIngredient(index) {
-  window.currentRecipeIngredients.splice(index, 1);
-  renderRecipeIngredientsTable();
-}
-
-</script>
-
-    <!-- MODAL: NEW / MODIFY RESERVATION -->
+  <!-- MODAL: NEW / MODIFY RESERVATION -->
   <div id="md-reservation" class="modal-overlay">
     <div class="modal-container" style="max-width: 520px; background:#ffffff; color:#0f172a;">
       <div class="modal-header" style="border-bottom:1px solid #e2e8f0;">
@@ -3536,36 +3073,35 @@ function removeRecipeIngredient(index) {
         <button class="modal-close" style="color:#64748b;" onclick="closeModal('md-reservation')">✕</button>
       </div>
       <form onsubmit="saveReservation(event)">
-        <input name="res-id"  type="hidden" id="res-id" />
-        <input name="res-date"  type="hidden" id="res-date" />
-        <input name="res-slot"  type="hidden" id="res-slot" />
+        <input name="res-id" type="hidden" id="res-id" />
+        <input name="res-date" type="hidden" id="res-date" />
+        <input name="res-slot" type="hidden" id="res-slot" />
 
         <div style="margin-bottom:0.85rem;">
           <label for="res-time-start" style="font-size:0.65rem; font-weight:bold; color:#64748b; display:block; margin-bottom:0.3rem;">TIME RANGE (45 MIN THERAPY + 15 MIN REST)</label>
           <div style="display:flex; gap:0.5rem; align-items:center;">
-            <input name="res-time-start"   type="text" id="res-time-start" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" required />
+            <input name="res-time-start" type="text" id="res-time-start" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" required />
             <span style="font-size:0.75rem; color:#64748b;">to</span>
-            <input name="res-time-end"  type="text" id="res-time-end" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" required />
+            <input name="res-time-end" type="text" id="res-time-end" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" required />
           </div>
         </div>
 
         <div style="margin-bottom:0.85rem;">
           <label for="res-pname" style="font-size:0.65rem; font-weight:bold; color:#64748b; display:block; margin-bottom:0.3rem;">👤 PATIENT NAME</label>
-<input name="res-pname"    type="text" id="res-pname" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" placeholder="Enter patient name..." required />
+          <input name="res-pname" type="text" id="res-pname" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" placeholder="Enter patient name..." required />
         </div>
 
         <div style="margin-bottom:0.85rem;">
           <label for="res-pmobile" style="font-size:0.65rem; font-weight:bold; color:#64748b; display:block; margin-bottom:0.3rem;">📱 MOBILE NUMBER</label>
-<input name="res-pmobile"   type="text" id="res-pmobile" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" placeholder="10-digit mobile" />
+          <input name="res-pmobile" type="text" id="res-pmobile" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" placeholder="10-digit mobile" />
         </div>
 
         <div style="margin-bottom:1.25rem;">
           <label for="res-room-select" style="font-size:0.65rem; font-weight:bold; color:#64748b; display:block; margin-bottom:0.3rem;">THERAPY / ROOM</label>
-<select name="res-room-select"   id="res-room-select" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" required></select>
+          <select name="res-room-select" id="res-room-select" class="form-control" style="background:#f8fafc; color:#0f172a; border:1px solid #cbd5e1;" required></select>
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:0.75rem;">
-          
           <button type="submit" class="btn btn-orange">Create reservation</button>
         </div>
       </form>
@@ -3577,12 +3113,9 @@ function removeRecipeIngredient(index) {
     <div class="modal-container" style="max-width: 450px;">
       <div class="modal-header"><h3>Add Document Entry</h3><button class="modal-close" onclick="closeModal('md-doc-add')">✕</button></div>
       <form onsubmit="saveDocument(event)">
-        <div class="form-group" style="margin-bottom:0.75rem;"><label for="doc-title">DOCUMENT TITLE *</label>
-<input name="doc-title"   type="text" id="doc-title" class="form-control" required /></div>
-        <div class="form-group" style="margin-bottom:0.75rem;"><label for="doc-cat">CATEGORY</label>
-<select name="doc-cat"   id="doc-cat" class="form-control"><option>Clinical Consent</option><option>Staff Policy</option><option>Certificate</option></select></div>
-        <div class="form-group" style="margin-bottom:1rem;"><label for="doc-url">FILE LINK / URL</label>
-<input name="doc-url"   type="text" id="doc-url" class="form-control" placeholder="https://..." /></div>
+        <div class="form-group" style="margin-bottom:0.75rem;"><label for="doc-title">DOCUMENT TITLE *</label><input name="doc-title" type="text" id="doc-title" class="form-control" required /></div>
+        <div class="form-group" style="margin-bottom:0.75rem;"><label for="doc-cat">CATEGORY</label><select name="doc-cat" id="doc-cat" class="form-control"><option>Clinical Consent</option><option>Staff Policy</option><option>Certificate</option></select></div>
+        <div class="form-group" style="margin-bottom:1rem;"><label for="doc-url">FILE LINK / URL</label><input name="doc-url" type="text" id="doc-url" class="form-control" placeholder="https://..." /></div>
         <button type="submit" class="btn btn-orange" style="width:100%;">Save Document</button>
       </form>
     </div>
@@ -3593,64 +3126,16 @@ function removeRecipeIngredient(index) {
     <div class="modal-container" style="max-width: 450px;">
       <div class="modal-header"><h3>Grant Staff Role Access</h3><button class="modal-close" onclick="closeModal('md-stf-add')">✕</button></div>
       <form onsubmit="saveStaffUser(event)">
-        <div class="form-group" style="margin-bottom:0.75rem;"><label for="stf-uname">USERNAME *</label>
-<input name="stf-uname"   type="text" id="stf-uname" class="form-control" required /></div>
-        <div class="form-group" style="margin-bottom:0.75rem;"><label for="stf-role">SYSTEM ROLE *</label>
-<select name="stf-role"   id="stf-role" class="form-control"><option>Doctor / Vaidya</option><option>Pharmacist</option><option>Receptionist</option><option>Admin</option></select></div>
-        <div class="form-group" style="margin-bottom:1rem;"><label for="stf-perm">PERMISSIONS</label>
-<input name="stf-perm"   type="text" id="stf-perm" class="form-control" placeholder="e.g. Full Read/Write Access" required /></div>
+        <div class="form-group" style="margin-bottom:0.75rem;"><label for="stf-uname">USERNAME *</label><input name="stf-uname" type="text" id="stf-uname" class="form-control" required /></div>
+        <div class="form-group" style="margin-bottom:0.75rem;"><label for="stf-role">SYSTEM ROLE *</label><select name="stf-role" id="stf-role" class="form-control"><option>Doctor / Vaidya</option><option>Pharmacist</option><option>Receptionist</option><option>Admin</option></select></div>
+        <div class="form-group" style="margin-bottom:1rem;"><label for="stf-perm">PERMISSIONS</label><input name="stf-perm" type="text" id="stf-perm" class="form-control" placeholder="e.g. Full Read/Write Access" required /></div>
         <button type="submit" class="btn btn-orange" style="width:100%;">Save User Access</button>
       </form>
     </div>
   </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<script src="aushadhi_nirman.js?v=1789372630"></script>
-<script src="accounts_vendor.js"></script>
-<script src="ipd_ward.js"></script>
+  <script src="aushadhi_nirman.js?v=1789372630"></script>
+  <script src="accounts_vendor.js?v=1789372254"></script>
+  <script src="ipd_ward.js"></script>
 </body>
 </html>
