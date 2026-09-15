@@ -1,9 +1,20 @@
 /**
- * MODULE 14: IPD WARD MANAGEMENT ENGINE (FULL SCHEMA SYNC & BILLING INTEGRATION)
+ * MODULE 14: IPD WARD MANAGEMENT ENGINE (UUID COMPATIBLE & FULL INTEGRATION)
  */
 
 const SUPABASE_URL = "https://apmegpiztygfmltrsgkb.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwbWVncGl6dHlnZm1sdHJzZ2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTA5OTksImV4cCI6MjEwNDY4Njk5OX0.kutc4qsOtMgN-7ggRS6ObclwmZWhgihf5snkxbIzlmA";
+
+// Standard RFC4122 UUID generator for Postgres compatibility
+function generateUUID() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
 function getIpdDb() {
   if (window.supabaseClient && window.supabaseClient.from) return window.supabaseClient;
@@ -18,7 +29,7 @@ function getIpdDb() {
   return null;
 }
 
-// 1. Fetch Registered Patients for Autocomplete
+// 1. Fetch Registered Patients into Datalist
 window.populateIpdPatientDatalist = async function() {
   const db = getIpdDb();
   const datalist = document.getElementById('dl-ipd-patients');
@@ -41,7 +52,7 @@ window.populateIpdPatientDatalist = async function() {
   ).join('');
 };
 
-// 2. Render Form Modal
+// 2. Build Clean Modal Structure
 window.ensureCleanModal = function() {
   let modal = document.getElementById('modal-allocate-ipd');
   if (!modal) {
@@ -109,6 +120,7 @@ window.closeAllocateModal = function() {
   if (modal) modal.style.display = 'none';
 };
 
+// 3. Load Beds and Admissions
 window.loadIpdData = async function() {
   const db = getIpdDb();
   if (!db) return;
@@ -160,7 +172,7 @@ window.renderIpdTable = function(beds, admissions) {
         <td style="padding: 0.75rem; color: #9ca3af;">
           ${adm ? new Date(adm.admission_date).toLocaleDateString() : new Date(bed.created_at || Date.now()).toLocaleDateString()}
         </td>
-        <td style="padding: 0.75rem;">₹${parseFloat(bed.daily_rate || bed.daily_charge || 0).toFixed(2)}</td>
+        <td style="padding: 0.75rem;">₹${parseFloat(bed.daily_rate || 0).toFixed(2)}</td>
         <td style="padding: 0.75rem;">
           <span style="background: rgba(255,255,255,0.05); color: ${statusColor}; border: 1px solid ${statusColor}; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
             ${isOccupied ? 'Occupied' : 'Available'}
@@ -171,6 +183,7 @@ window.renderIpdTable = function(beds, admissions) {
   }).join('');
 };
 
+// 4. Submit Bed Allocation with Valid UUIDs
 window.submitIpdAllocation = async function() {
   const db = getIpdDb();
   if (!db) return alert("Database client initialization failed. Please refresh the page.");
@@ -183,33 +196,34 @@ window.submitIpdAllocation = async function() {
 
   if (!bedNo) return alert("Please enter a bed number.");
 
-  const bedId = 'BED-' + Date.now();
+  // Generate valid UUID for Postgres PK compatibility
+  const bedId = generateUUID();
   const isOccupied = patient.length > 0;
 
-  const payload = {
+  const bedPayload = {
     id: bedId,
     bed_no: bedNo,
-    room_no: bedNo,
     ward_type: ward,
     daily_rate: rate,
-    daily_charge: rate,
     status: isOccupied ? 'Occupied' : 'Available'
   };
 
-  const { error: bedErr } = await db.from('ipd_beds').insert([payload]);
-
+  const { error: bedErr } = await db.from('ipd_beds').insert([bedPayload]);
   if (bedErr) return alert("Error saving bed: " + bedErr.message);
 
   if (isOccupied) {
-    await db.from('ipd_admissions').insert([{
-      id: 'ADM-' + Date.now(),
+    // Insert admission record referencing bedId UUID
+    const admPayload = {
+      id: generateUUID(),
       patient_name: patient,
       doctor_name: doctor,
       bed_id: bedId,
       status: 'Admitted',
       admission_date: new Date().toISOString()
-    }]);
+    };
+    await db.from('ipd_admissions').insert([admPayload]);
 
+    // Post billing invoice record
     const billNo = 'BILL-IPD-' + Math.floor(100000 + Math.random() * 900000);
     const billPayload = {
       bill_no: billNo,
@@ -226,7 +240,7 @@ window.submitIpdAllocation = async function() {
 
     try {
       await db.from('billing').insert([billPayload]);
-      if (window.db && window.db.billing) window.db.billing.unshift({ ...billPayload, id: 'b-' + Date.now() });
+      if (window.db && window.db.billing) window.db.billing.unshift({ ...billPayload, id: generateUUID() });
     } catch (bErr) {
       console.error("Billing integration error:", bErr);
     }
