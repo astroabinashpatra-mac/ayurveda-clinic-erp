@@ -1,5 +1,6 @@
 /**
  * MODULE 14: IPD WARD MANAGEMENT ENGINE (UUID COMPATIBLE & FULL INTEGRATION)
+ * Includes: Bed Allocation, Daily Vitals, Running Charges & Discharge Engine
  */
 
 const SUPABASE_URL = "https://apmegpiztygfmltrsgkb.supabase.co";
@@ -52,7 +53,7 @@ window.populateIpdPatientDatalist = async function() {
   ).join('');
 };
 
-// 2. Build Clean Modal Structure
+// 2. Build Allocation Modal Structure
 window.ensureCleanModal = function() {
   let modal = document.getElementById('modal-allocate-ipd');
   if (!modal) {
@@ -174,9 +175,16 @@ window.renderIpdTable = function(beds, admissions) {
         </td>
         <td style="padding: 0.75rem;">₹${parseFloat(bed.daily_rate || 0).toFixed(2)}</td>
         <td style="padding: 0.75rem;">
-          <span style="background: rgba(255,255,255,0.05); color: ${statusColor}; border: 1px solid ${statusColor}; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
-            ${isOccupied ? 'Occupied' : 'Available'}
-          </span>
+          <div style="display:flex; gap:0.5rem; align-items:center;">
+            <span style="background: rgba(255,255,255,0.05); color: ${statusColor}; border: 1px solid ${statusColor}; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
+              ${isOccupied ? 'Occupied' : 'Available'}
+            </span>
+            ${isOccupied && adm ? `
+              <button type="button" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;" onclick="window.manageIpdPatient('${adm.id}', '${bed.id}', '${bed.bed_no || bed.room_no}', '${adm.patient_name.replace(/'/g, "\\'")}')">
+                🏥 Manage & Discharge
+              </button>
+            ` : ''}
+          </div>
         </td>
       </tr>
     `;
@@ -196,7 +204,6 @@ window.submitIpdAllocation = async function() {
 
   if (!bedNo) return alert("Please enter a bed number.");
 
-  // Generate valid UUID for Postgres PK compatibility
   const bedId = generateUUID();
   const isOccupied = patient.length > 0;
 
@@ -212,7 +219,6 @@ window.submitIpdAllocation = async function() {
   if (bedErr) return alert("Error saving bed: " + bedErr.message);
 
   if (isOccupied) {
-    // Insert admission record referencing bedId UUID
     const admPayload = {
       id: generateUUID(),
       patient_name: patient,
@@ -223,7 +229,6 @@ window.submitIpdAllocation = async function() {
     };
     await db.from('ipd_admissions').insert([admPayload]);
 
-    // Post billing invoice record
     const billNo = 'BILL-IPD-' + Math.floor(100000 + Math.random() * 900000);
     const billPayload = {
       bill_no: billNo,
@@ -259,6 +264,241 @@ window.submitIpdAllocation = async function() {
 
 window.submitIpdForm = window.submitIpdAllocation;
 
+/**
+ * ==============================================================
+ * IPD PROGRESS, BILLING & DISCHARGE ENGINE (PHASE 1, 2, 3)
+ * ==============================================================
+ */
+
+// 5. Dynamic Modal for Managing Admitted Patients
+window.ensureIpdManageModal = function() {
+  let modal = document.getElementById('modal-manage-ipd');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'modal-manage-ipd';
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999; padding: 1rem;';
+    
+    modal.innerHTML = `
+      <div style="background: #1e293b; width: 850px; max-width: 95vw; max-height: 90vh; overflow-y: auto; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; position: relative; color: white; box-sizing: border-box;">
+        <button type="button" onclick="document.getElementById('modal-manage-ipd').style.display='none'" style="position: absolute; right: 1.5rem; top: 1.5rem; background: none; border: none; color: #9ca3af; font-size: 1.2rem; cursor: pointer;">✕</button>
+        
+        <h3 style="color: #ea580c; margin-top: 0; margin-bottom: 0.2rem;">🏥 Manage IPD Patient</h3>
+        <div style="font-size: 0.85rem; color: #9ca3af; margin-bottom: 1.5rem;" id="ipd-manage-subtitle">Loading patient info...</div>
+        
+        <input type="hidden" id="ipd-manage-adm-id">
+        <input type="hidden" id="ipd-manage-bed-id">
+        <input type="hidden" id="ipd-manage-bed-no">
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          
+          <!-- LEFT COLUMN: DAILY NOTES & VITALS -->
+          <div style="background: #0f172a; padding: 1rem; border-radius: 6px; border: 1px solid #334155;">
+            <h4 style="color: #38bdf8; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; font-size:0.9rem;">+ Add Daily Vitals & Notes</h4>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <div>
+                <label style="font-size:0.7rem; color:#9ca3af; display:block; margin-bottom:0.2rem;">BP (mmHg)</label>
+                <input type="text" id="ipd-note-bp" placeholder="120/80" style="width:100%; padding:0.4rem; background:#1e293b; color:white; border:1px solid #334155; border-radius:4px; font-size:0.8rem;">
+              </div>
+              <div>
+                <label style="font-size:0.7rem; color:#9ca3af; display:block; margin-bottom:0.2rem;">PULSE</label>
+                <input type="text" id="ipd-note-pulse" placeholder="72" style="width:100%; padding:0.4rem; background:#1e293b; color:white; border:1px solid #334155; border-radius:4px; font-size:0.8rem;">
+              </div>
+              <div>
+                <label style="font-size:0.7rem; color:#9ca3af; display:block; margin-bottom:0.2rem;">TEMP (°F)</label>
+                <input type="text" id="ipd-note-temp" placeholder="98.6" style="width:100%; padding:0.4rem; background:#1e293b; color:white; border:1px solid #334155; border-radius:4px; font-size:0.8rem;">
+              </div>
+            </div>
+            
+            <div style="margin-bottom: 0.75rem;">
+              <label style="font-size:0.7rem; color:#9ca3af; display:block; margin-bottom:0.2rem;">DOCTOR'S OBSERVATIONS & INSTRUCTIONS</label>
+              <textarea id="ipd-note-doc" rows="2" placeholder="Patient condition..." style="width:100%; padding:0.4rem; background:#1e293b; color:white; border:1px solid #334155; border-radius:4px; font-size:0.8rem; box-sizing:border-box;"></textarea>
+            </div>
+            
+            <button type="button" style="width: 100%; padding: 0.5rem; background: #2563eb; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.8rem;" onclick="window.saveIpdDailyNote()">Save Daily Note</button>
+
+            <h4 style="color: #9ca3af; margin-top: 1.25rem; font-size: 0.75rem; text-transform: uppercase;">Clinical Progress History</h4>
+            <div id="ipd-notes-history" style="max-height: 180px; overflow-y: auto; font-size: 0.8rem; margin-top: 0.5rem;"></div>
+          </div>
+
+          <!-- RIGHT COLUMN: RUNNING BILL & DISCHARGE -->
+          <div style="background: #0f172a; padding: 1rem; border-radius: 6px; border: 1px solid #334155;">
+            <h4 style="color: #10b981; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; font-size:0.9rem;">+ Add Charge to Running Bill</h4>
+            
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <div>
+                <label style="font-size:0.7rem; color:#9ca3af; display:block; margin-bottom:0.2rem;">ITEM / THERAPY</label>
+                <input type="text" id="ipd-charge-item" placeholder="e.g. Shirodhara" style="width:100%; padding:0.4rem; background:#1e293b; color:white; border:1px solid #334155; border-radius:4px; font-size:0.8rem;">
+              </div>
+              <div>
+                <label style="font-size:0.7rem; color:#9ca3af; display:block; margin-bottom:0.2rem;">PRICE (₹)</label>
+                <input type="number" id="ipd-charge-price" value="0" style="width:100%; padding:0.4rem; background:#1e293b; color:white; border:1px solid #334155; border-radius:4px; font-size:0.8rem;">
+              </div>
+              <div>
+                <label style="font-size:0.7rem; color:#9ca3af; display:block; margin-bottom:0.2rem;">QTY</label>
+                <input type="number" id="ipd-charge-qty" value="1" style="width:100%; padding:0.4rem; background:#1e293b; color:white; border:1px solid #334155; border-radius:4px; font-size:0.8rem;">
+              </div>
+            </div>
+            
+            <button type="button" style="width: 100%; padding: 0.5rem; background: #059669; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.8rem;" onclick="window.addIpdCharge()">Add Charge to Master Bill</button>
+
+            <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(234, 88, 12, 0.1); border: 1px solid #ea580c; border-radius: 6px; text-align: center;">
+              <h3 style="color: #ea580c; margin: 0 0 0.5rem 0; font-size: 1.2rem;" id="ipd-running-total">Running Total: ₹0.00</h3>
+              <p style="font-size: 0.725rem; color: #cbd5e1; margin-bottom: 1rem;">Discharging releases the bed and finalizes the invoice in Central Billing.</p>
+              <button type="button" style="width: 100%; padding: 0.75rem; background: #dc2626; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.9rem;" onclick="window.processIpdDischarge()">🏁 Discharge Patient & Finalize</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+};
+
+// 6. Open Dashboard for Specific Patient
+window.manageIpdPatient = async function(admId, bedId, bedNo, patientName) {
+  window.ensureIpdManageModal();
+  const db = getIpdDb();
+  if (!db) return alert("Database offline.");
+
+  document.getElementById('ipd-manage-subtitle').innerText = `Patient: ${patientName} | Bed: ${bedNo}`;
+  document.getElementById('ipd-manage-adm-id').value = admId;
+  document.getElementById('ipd-manage-bed-id').value = bedId;
+  document.getElementById('ipd-manage-bed-no').value = bedNo;
+
+  document.getElementById('modal-manage-ipd').style.display = 'flex';
+  
+  await window.loadIpdNotes(admId);
+  await window.loadIpdRunningBill(bedNo);
+};
+
+// 7. Save Daily Vitals & Clinical Note
+window.saveIpdDailyNote = async function() {
+  const db = getIpdDb();
+  if (!db) return alert("Database offline.");
+
+  const admId = document.getElementById('ipd-manage-adm-id').value;
+  
+  const payload = {
+    admission_id: admId,
+    vitals: {
+      bp: document.getElementById('ipd-note-bp').value,
+      pulse: document.getElementById('ipd-note-pulse').value,
+      temp: document.getElementById('ipd-note-temp').value
+    },
+    doctor_notes: document.getElementById('ipd-note-doc').value
+  };
+
+  const { error } = await db.from('ipd_daily_notes').insert([payload]);
+  if (error) return alert("Error saving note: " + error.message);
+
+  document.getElementById('ipd-note-bp').value = '';
+  document.getElementById('ipd-note-pulse').value = '';
+  document.getElementById('ipd-note-temp').value = '';
+  document.getElementById('ipd-note-doc').value = '';
+  
+  window.loadIpdNotes(admId);
+};
+
+// 8. Fetch & Render Clinical Notes
+window.loadIpdNotes = async function(admId) {
+  const db = getIpdDb();
+  if (!db) return;
+
+  const { data } = await db.from('ipd_daily_notes').select('*').eq('admission_id', admId).order('created_at', { ascending: false });
+  
+  const container = document.getElementById('ipd-notes-history');
+  if (!data || data.length === 0) {
+    container.innerHTML = "<p style='color:#64748b; text-align:center;'>No clinical notes found for this admission.</p>";
+    return;
+  }
+
+  container.innerHTML = data.map(n => `
+    <div style="border-bottom: 1px solid #334155; padding-bottom: 0.5rem; margin-bottom: 0.5rem;">
+      <div style="font-size:0.7rem; color:#ea580c; font-weight:bold;">${new Date(n.created_at).toLocaleString()}</div>
+      <div style="color:#cbd5e1; margin: 0.2rem 0;"><b>Vitals:</b> BP: ${n.vitals?.bp||'--'} | Pulse: ${n.vitals?.pulse||'--'} | Temp: ${n.vitals?.temp||'--'}</div>
+      <div style="color:#f8fafc;">${n.doctor_notes || 'No doctor note.'}</div>
+    </div>
+  `).join('');
+};
+
+// 9. Append Charge to Master Billing Record
+window.addIpdCharge = async function() {
+  const db = getIpdDb();
+  if (!db) return alert("Database offline.");
+
+  const bedNo = document.getElementById('ipd-manage-bed-no').value;
+  const item = document.getElementById('ipd-charge-item').value.trim();
+  const price = parseFloat(document.getElementById('ipd-charge-price').value) || 0;
+  const qty = parseInt(document.getElementById('ipd-charge-qty').value) || 1;
+  const total = price * qty;
+
+  if (!item || total <= 0) return alert("Enter a valid item and price.");
+
+  const { data: billRes } = await db.from('billing').select('*').eq('rx_no', bedNo).eq('payment_status', 'Unpaid').single();
+  if (!billRes) return alert("Could not find open running bill for this bed.");
+
+  let items = typeof billRes.items === 'string' ? JSON.parse(billRes.items) : (billRes.items || []);
+  items.push({ type: 'IPD Running Charge', item: item, price: price, qty: qty, total: total });
+
+  const newTotal = items.reduce((sum, i) => sum + (parseFloat(i.total) || 0), 0);
+
+  const { error } = await db.from('billing').update({
+    items: items,
+    subtotal: newTotal,
+    total_amount: newTotal,
+    balance_due: newTotal - (parseFloat(billRes.paid_amount) || 0)
+  }).eq('id', billRes.id);
+
+  if (error) return alert("Error appending charge: " + error.message);
+
+  document.getElementById('ipd-charge-item').value = '';
+  document.getElementById('ipd-charge-price').value = '0';
+  document.getElementById('ipd-charge-qty').value = '1';
+  
+  alert("Charge appended to master bill!");
+  window.loadIpdRunningBill(bedNo);
+};
+
+// 10. Fetch Running Bill Total
+window.loadIpdRunningBill = async function(bedNo) {
+  const db = getIpdDb();
+  if (!db) return;
+
+  const { data } = await db.from('billing').select('total_amount').eq('rx_no', bedNo).eq('payment_status', 'Unpaid').single();
+  
+  if (data) {
+    document.getElementById('ipd-running-total').innerText = `Running Total: ₹${parseFloat(data.total_amount).toFixed(2)}`;
+  }
+};
+
+// 11. Execute Discharge & Release Bed
+window.processIpdDischarge = async function() {
+  if (!confirm("Are you sure you want to process discharge? This will free the bed and finalize the invoice.")) return;
+
+  const db = getIpdDb();
+  if (!db) return alert("Database offline.");
+
+  const admId = document.getElementById('ipd-manage-adm-id').value;
+  const bedId = document.getElementById('ipd-manage-bed-id').value;
+
+  await db.from('ipd_admissions').update({ status: 'Discharged', discharge_date: new Date().toISOString() }).eq('id', admId);
+  await db.from('ipd_beds').update({ status: 'Available' }).eq('id', bedId);
+
+  document.getElementById('modal-manage-ipd').style.display = 'none';
+  alert("Patient Discharged! Bed is now available.");
+  
+  window.loadIpdData();
+  
+  if (typeof window.switchTab === 'function') {
+    const navItems = document.querySelectorAll('.nav-item');
+    if (navItems.length > 6) window.switchTab('billing', navItems[6]);
+  }
+};
+
+// 12. Global Event Binding
 document.addEventListener('click', function(e) {
   const target = e.target.closest('button');
   if (target && target.innerText.includes('Allocate IPD Bed')) {
@@ -269,5 +509,6 @@ document.addEventListener('click', function(e) {
 
 document.addEventListener('DOMContentLoaded', () => {
   window.ensureCleanModal();
+  window.ensureIpdManageModal();
   setTimeout(window.loadIpdData, 500);
 });
