@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AASU AROGYAM ERP - Hospital Management System</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
 
 // Module 5: Integrated Production & Raw Material Deduction Engine
 async function executeProductionBatch(recipeId, targetQty, batchNo) {
@@ -1002,7 +1003,41 @@ function removeRecipeIngredient(index) {
       </table>
     </div>
 
+    
     <!-- MODULE 14: IPD WARD MANAGEMENT -->
+    <div id="mod-ipd" class="module-section">
+      <div class="section-header">
+        <div>
+          <h2>🏥 IPD Ward Management & Bed Allocation</h2>
+          <span style="font-size:0.75rem; color:var(--text-muted)">Live bed status, patient admissions, and ward occupancy overview.</span>
+        </div>
+        <button class="btn btn-orange" onclick="window.openAddBedModal()">+ Add New Bed</button>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="form-grid grid-4" style="margin-bottom: 1.5rem;">
+        <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
+          <span style="font-size: 0.7rem; color: var(--text-muted);">TOTAL BEDS</span>
+          <h3 id="kpi-ipd-total" style="margin-top:0.3rem; font-size:1.5rem;">0</h3>
+        </div>
+        <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
+          <span style="font-size: 0.7rem; color: var(--text-muted);">OCCUPIED BEDS</span>
+          <h3 id="kpi-ipd-occupied" style="margin-top:0.3rem; font-size:1.5rem; color: #ef4444;">0</h3>
+        </div>
+        <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
+          <span style="font-size: 0.7rem; color: var(--text-muted);">AVAILABLE BEDS</span>
+          <h3 id="kpi-ipd-available" style="margin-top:0.3rem; font-size:1.5rem; color: #10b981;">0</h3>
+        </div>
+        <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
+          <span style="font-size: 0.7rem; color: var(--text-muted);">OCCUPANCY RATE</span>
+          <h3 id="kpi-ipd-rate" style="margin-top:0.3rem; font-size:1.5rem; color: var(--accent-orange);">0.0%</h3>
+        </div>
+      </div>
+
+      <!-- Live Bed Layout Grid -->
+      <div id="ipd-beds-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;"></div>
+    </div>
+
     
 <script>
 window.switchTab = function(tabId, el) {
@@ -1027,7 +1062,7 @@ window.switchTab = function(tabId, el) {
     }
 
     // 3. Update sidebar active state
-    const navItems = document.querySelectorAll('.sidebar li, .sidebar .item, nav li');
+    const navItems = document.querySelectorAll('#sidebar .nav-item, .nav-item');
     navItems.forEach(item => item.classList.remove('active'));
     if (el) el.classList.add('active');
 
