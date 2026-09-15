@@ -431,7 +431,7 @@ window.loadIpdNotes = async function(admId) {
   `).join('');
 };
 
-// 9. Append Charge to Master Billing Record
+// 9. Append Charge to Master Billing Record (with Auto-Create Fallback)
 window.addIpdCharge = async function() {
   const db = getIpdDb();
   if (!db) return alert("Database offline.");
@@ -444,22 +444,49 @@ window.addIpdCharge = async function() {
 
   if (!item || total <= 0) return alert("Enter a valid item and price.");
 
-  const { data: billRes } = await db.from('billing').select('*').eq('rx_no', bedNo).eq('payment_status', 'Unpaid').single();
-  if (!billRes) return alert("Could not find open running bill for this bed.");
+  // Use maybeSingle to prevent 406 errors when no bill exists yet
+  let { data: billRes } = await db.from('billing')
+    .select('*')
+    .eq('rx_no', bedNo)
+    .eq('payment_status', 'Unpaid')
+    .maybeSingle();
 
-  let items = typeof billRes.items === 'string' ? JSON.parse(billRes.items) : (billRes.items || []);
-  items.push({ type: 'IPD Running Charge', item: item, price: price, qty: qty, total: total });
+  // If no bill exists yet (e.g. manual SQL bed entry), create one on the fly
+  if (!billRes) {
+    const billNo = 'BILL-IPD-' + Math.floor(100000 + Math.random() * 900000);
+    const rawSubtitle = document.getElementById('ipd-manage-subtitle')?.innerText || '';
+    const patientName = rawSubtitle.split('|')[0].replace('Patient:', '').trim() || 'Admitted Patient';
+    
+    const newBill = {
+      bill_no: billNo,
+      rx_no: bedNo,
+      patient_name: patientName,
+      bill_type: 'IPD Admission',
+      subtotal: total,
+      total_amount: total,
+      paid_amount: 0,
+      balance_due: total,
+      payment_status: 'Unpaid',
+      items: [{ type: 'IPD Running Charge', item: item, price: price, qty: qty, total: total }]
+    };
 
-  const newTotal = items.reduce((sum, i) => sum + (parseFloat(i.total) || 0), 0);
+    const { error: createErr } = await db.from('billing').insert([newBill]);
+    if (createErr) return alert("Error creating initial bill: " + createErr.message);
+  } else {
+    let items = typeof billRes.items === 'string' ? JSON.parse(billRes.items) : (billRes.items || []);
+    items.push({ type: 'IPD Running Charge', item: item, price: price, qty: qty, total: total });
 
-  const { error } = await db.from('billing').update({
-    items: items,
-    subtotal: newTotal,
-    total_amount: newTotal,
-    balance_due: newTotal - (parseFloat(billRes.paid_amount) || 0)
-  }).eq('id', billRes.id);
+    const newTotal = items.reduce((sum, i) => sum + (parseFloat(i.total) || 0), 0);
 
-  if (error) return alert("Error appending charge: " + error.message);
+    const { error } = await db.from('billing').update({
+      items: items,
+      subtotal: newTotal,
+      total_amount: newTotal,
+      balance_due: newTotal - (parseFloat(billRes.paid_amount) || 0)
+    }).eq('id', billRes.id);
+
+    if (error) return alert("Error appending charge: " + error.message);
+  }
 
   document.getElementById('ipd-charge-item').value = '';
   document.getElementById('ipd-charge-price').value = '0';
@@ -469,15 +496,24 @@ window.addIpdCharge = async function() {
   window.loadIpdRunningBill(bedNo);
 };
 
-// 10. Fetch Running Bill Total
+// 10. Fetch Running Bill Total (Safe Call)
 window.loadIpdRunningBill = async function(bedNo) {
   const db = getIpdDb();
   if (!db) return;
 
-  const { data } = await db.from('billing').select('total_amount').eq('rx_no', bedNo).eq('payment_status', 'Unpaid').single();
+  const { data } = await db.from('billing')
+    .select('total_amount')
+    .eq('rx_no', bedNo)
+    .eq('payment_status', 'Unpaid')
+    .maybeSingle();
   
-  if (data) {
-    document.getElementById('ipd-running-total').innerText = `Running Total: ₹${parseFloat(data.total_amount).toFixed(2)}`;
+  const runningEl = document.getElementById('ipd-running-total');
+  if (runningEl) {
+    if (data && data.total_amount !== undefined) {
+      runningEl.innerText = `Running Total: ₹${parseFloat(data.total_amount).toFixed(2)}`;
+    } else {
+      runningEl.innerText = `Running Total: ₹0.00`;
+    }
   }
 };
 
