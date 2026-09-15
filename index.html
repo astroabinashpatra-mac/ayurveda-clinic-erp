@@ -135,16 +135,6 @@
       <li class="nav-item" onclick="switchTab('admin', this)">🔐 13. Staff Access Control</li>
       <li class="nav-item" onclick="switchTab('ipd', this)">🏥 14. IPD Ward Management</li>
     </ul>
-	
-	
-	<!-- DEVELOPER CREDIT FOOTER -->
-    <div style="padding: 1rem; border-top: 1px solid var(--border-dark); font-size: 0.7rem; color: var(--text-muted); text-align: center; background: rgba(0,0,0,0.15);">
-      Designed &amp; Developed by <br>
-      <strong style="color: var(--text-main); font-size: 0.75rem;">U3S Web Developer</strong>
-    </div>
-  </div>
-	
-
   </div>
 
   <div id="main-content">
@@ -217,9 +207,9 @@
           <h2>📜 Digital Ayurvedic E-Prescription Desk</h2>
           <span style="font-size:0.75rem; color:var(--text-muted)">Create, view, print, and WhatsApp complete Ayurvedic prescriptions.</span>
         </div>
-        <button class="btn btn-orange" onclick="alert('Module active.')">+ Write E-Prescription</button>
+        <button class="btn btn-orange" onclick="openNewRxModal()">+ Write E-Prescription</button>
       </div>
-      <input type="text" id="rx-search-input" class="form-control" placeholder="🔍 Search prescription by Patient Name, Mobile No, RX No..." style="margin-bottom:1rem;" />
+      <input type="text" id="rx-search-input" class="form-control" placeholder="🔍 Search prescription by Patient Name, Mobile No, RX No..." onkeyup="renderRx()" style="margin-bottom:1rem;" />
       <table class="data-table">
         <thead>
           <tr><th>RX NO</th><th>DATE</th><th>PATIENT NAME</th><th>MOBILE</th><th>ATTENDING DOCTOR</th><th>DIAGNOSIS</th><th>TOTAL (₹)</th><th>ACTIONS</th></tr>
@@ -245,7 +235,7 @@
     <div id="mod-schedule" class="module-section">
       <div class="section-header">
         <h2>📅 Schedule & Visit Management</h2>
-        <button class="btn btn-orange" onclick="alert('Booking engine ready.')">+ Book Therapy Slot</button>
+        <button class="btn btn-orange" onclick="openReservationModal('10:00 - 10:45', new Date().toISOString().split('T')[0])">+ Book Therapy Slot</button>
       </div>
       <div class="sch-grid" id="sch-week-grid"></div>
     </div>
@@ -254,7 +244,7 @@
     <div id="mod-aushadhi" class="module-section">
       <div class="section-header">
         <h2>🌿 Raw Materials & Master Recipes</h2>
-        <button class="btn btn-orange" onclick="alert('Raw material engine ready.')">+ Add Raw Material</button>
+        <button class="btn btn-orange" onclick="openRawMaterialModal()">+ Add Raw Material</button>
       </div>
       <table class="data-table">
         <thead><tr><th>Item ID</th><th>Material Name</th><th>Category</th><th>Available Stock</th><th>Reorder Limit</th><th>Actions</th></tr></thead>
@@ -267,8 +257,8 @@
       <div class="section-header">
         <h2>💊 Herbal Pharmacy & Sales Counter</h2>
         <div>
-          <button class="btn btn-orange" onclick="alert('POS Counter opening...')">🛒 POS Retail Counter</button>
-          <button class="btn btn-blue" onclick="alert('Stock engine ready.')">+ Add Stock</button>
+          <button class="btn btn-orange" onclick="openModal('md-pos')">🛒 POS Retail Counter</button>
+          <button class="btn btn-blue" onclick="openPharmacyStockModal()">+ Add Stock</button>
         </div>
       </div>
       <table class="data-table">
@@ -294,7 +284,7 @@
     <div id="mod-therapy" class="module-section">
       <div class="section-header">
         <h2>✨ Therapy Master Directory</h2>
-        <button class="btn btn-orange" onclick="alert('Therapy entry ready.')">+ Add New Therapy</button>
+        <button class="btn btn-orange" onclick="openModal('md-therapy-add')">+ Add New Therapy</button>
       </div>
       <table class="data-table">
         <thead><tr><th>ID</th><th>THERAPY NAME</th><th>DURATION</th><th>PRICE (₹)</th><th>RECOMMENDED ROOM</th><th>ACTIONS</th></tr></thead>
@@ -306,7 +296,7 @@
     <div id="mod-hrms" class="module-section">
       <div class="section-header">
         <h2>👥 Employee HRMS Directory</h2>
-        <button class="btn btn-orange" onclick="alert('Onboarding engine ready.')">+ Onboard Employee</button>
+        <button class="btn btn-orange" onclick="openEmployeeModal()">+ Onboard Employee</button>
       </div>
       <table class="data-table">
         <thead><tr><th>Emp ID</th><th>Full Name</th><th>Role & Dept</th><th>Contact</th><th>Base Salary</th><th>Status</th><th>Actions</th></tr></thead>
@@ -318,7 +308,7 @@
     <div id="mod-payroll" class="module-section">
       <div class="section-header">
         <h2>💵 Payroll & Salary Disbursal</h2>
-        <button class="btn btn-orange" onclick="alert('Payroll sync ready.')">🔄 Sync Employees to Payroll</button>
+        <button class="btn btn-orange" onclick="syncEmployeesToPayroll()">🔄 Sync Employees to Payroll</button>
       </div>
       <table class="data-table">
         <thead><tr><th>SLIP ID</th><th>EMPLOYEE</th><th>BASE SALARY</th><th>ATTENDANCE</th><th>NET PAYABLE (₹)</th><th>STATUS</th><th>ACTION</th></tr></thead>
@@ -330,7 +320,7 @@
     <div id="mod-accounts" class="module-section">
       <div class="section-header">
         <h2>🏛️ Accounts & Vendor Ledger</h2>
-        <button class="btn btn-orange" onclick="alert('Accounts engine ready.')">+ Record Expense / Vendor Entry</button>
+        <button class="btn btn-orange" onclick="openModal('md-acc-add')">+ Record Expense / Vendor Entry</button>
       </div>
       <table class="data-table">
         <thead><tr><th>TYPE</th><th>TITLE / VENDOR</th><th>CATEGORY</th><th>AMOUNT (₹)</th><th>ACTIONS</th></tr></thead>
@@ -342,7 +332,7 @@
     <div id="mod-documents" class="module-section">
       <div class="section-header">
         <h2>📂 Clinic Documents & Forms</h2>
-        <button class="btn btn-orange" onclick="alert('Document upload ready.')">+ Add Document</button>
+        <button class="btn btn-orange" onclick="openModal('md-doc-add')">+ Add Document</button>
       </div>
       <table class="data-table">
         <thead><tr><th>DOCUMENT TITLE</th><th>CATEGORY</th><th>DATE ADDED</th><th>ACTIONS</th></tr></thead>
@@ -354,7 +344,7 @@
     <div id="mod-admin" class="module-section">
       <div class="section-header">
         <h2>🔐 Staff Access Control</h2>
-        <button class="btn btn-orange" onclick="alert('Staff role engine ready.')">+ Grant Staff Role</button>
+        <button class="btn btn-orange" onclick="openModal('md-stf-add')">+ Grant Staff Role</button>
       </div>
       <table class="data-table">
         <thead><tr><th>USERNAME</th><th>ROLE</th><th>PERMISSIONS</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
@@ -366,10 +356,10 @@
     <div id="mod-ipd" class="module-section">
       <div class="section-header">
         <h2>🏥 IPD Ward & Bed Allocation Engine</h2>
-        <button class="btn btn-orange" onclick="window.openAllocateModal()">+ Allocate IPD Bed</button>
+        <button class="btn btn-orange" onclick="openAllocateModal()">+ Allocate IPD Bed</button>
       </div>
       <table class="data-table">
-        <thead><tr><th>BED NO</th><th>WARD TYPE</th><th>PATIENT NAME</th><th>ADMISSION DATE</th><th>DAILY RATE (₹)</th><th>STATUS / ACTIONS</th></tr></thead>
+        <thead><tr><th>BED NO</th><th>WARD TYPE</th><th>PATIENT NAME</th><th>ADMISSION DATE</th><th>DAILY RATE (₹)</th><th>STATUS</th></tr></thead>
         <tbody id="tbl-ipd"></tbody>
       </table>
     </div>
@@ -392,22 +382,46 @@
     </div>
   </div>
 
-  <!-- IPD EXTERNAL ENGINE -->
-  <script src="ipd_ward.js"></script>
+  <div id="modal-allocate-ipd" class="modal-overlay">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header"><h3>Allocate IPD Bed</h3><button class="modal-close" onclick="closeAllocateModal()">✕</button></div>
+      <div class="form-group" style="margin-bottom:0.8rem;">
+        <label>BED NO *</label>
+        <input type="text" id="ipd-field-bed-no" value="BED-101" class="form-control" />
+      </div>
+      <div class="form-group" style="margin-bottom:0.8rem;">
+        <label>WARD TYPE *</label>
+        <select id="ipd-field-ward" class="form-control">
+          <option value="General Ward">General Ward</option>
+          <option value="Panchakarma Special">Panchakarma Special</option>
+          <option value="Deluxe Suite">Deluxe Suite</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0.8rem;">
+        <label>PATIENT NAME (AUTOPULL REGISTERED PATIENT)</label>
+        <input type="text" id="ipd-field-patient" list="dl-ipd-patients" placeholder="Type to search patient..." class="form-control" />
+        <datalist id="dl-ipd-patients"></datalist>
+      </div>
+      <div class="form-group" style="margin-bottom:0.8rem;">
+        <label>ATTENDING VAIDYA / DOCTOR</label>
+        <input type="text" id="ipd-field-doctor" placeholder="Dr. / Vaidya Name" class="form-control" />
+      </div>
+      <div class="form-group" style="margin-bottom:1.2rem;">
+        <label>DAILY CHARGE (₹)</label>
+        <input type="number" id="ipd-field-rate" value="1500" class="form-control" />
+      </div>
+      <button type="button" onclick="submitIpdAllocation()" class="btn btn-orange" style="width:100%; justify-content:center;">Allocate Bed & Post Invoice</button>
+    </div>
+  </div>
 
-  <!-- MASTER APPLICATION ENGINE -->
+  <!-- SINGLE MASTER APPLICATION ENGINE -->
   <script>
-	// ✅ NEW (Safe global fallback)
-	var SUPABASE_URL = window.SUPABASE_URL || "https://apmegpiztygfmltrsgkb.supabase.co";
-	var SUPABASE_KEY = window.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwbWVncGl6dHlnZm1sdHJzZ2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTA5OTksImV4cCI6MjEwNDY4Njk5OX0.kutc4qsOtMgN-7ggRS6ObclwmZWhgihf5snkxbIzlmA";
+    const SUPABASE_URL = "https://apmegpiztygfmltrsgkb.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwbWVncGl6dHlnZm1sdHJzZ2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTA5OTksImV4cCI6MjEwNDY4Njk5OX0.kutc4qsOtMgN-7ggRS6ObclwmZWhgihf5snkxbIzlmA";
     let sbClient = null;
 
     if (window.supabase && window.supabase.createClient) {
-      try { 
-        sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        window.sbClient = sbClient;
-        window.supabaseClient = sbClient;
-      } catch(e) {}
+      try { sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) {}
     }
 
     function generateUUID() {
@@ -419,7 +433,6 @@
     }
 
     let db = { patients: [], rx: [], emp: [], billing: [], rawMaterials: [], recipes: [], pharmacy: [], therapies: [], payroll: [], accounts: [], ipd: [], reservations: [], documents: [], staffUsers: [] };
-    window.db = db;
 
     function switchTab(id, el) {
       document.querySelectorAll('.module-section').forEach(e => e.classList.remove('active'));
@@ -429,15 +442,10 @@
       if (el) el.classList.add('active');
     }
 
-    function openModal(id) { 
-      const el = document.getElementById(id); 
-      if (el) {
-        el.style.display = 'flex'; 
-      } else {
-        console.warn("Target modal ID not present in DOM: " + id);
-      }
-    }
+    function openModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; }
     function closeModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+    function openAllocateModal() { populateIpdPatientDatalist(); openModal('modal-allocate-ipd'); }
+    function closeAllocateModal() { closeModal('modal-allocate-ipd'); }
 
     function toggleLightDarkMode() {
       const html = document.documentElement;
@@ -447,6 +455,14 @@
     }
 
     function changeTheme(v) { document.documentElement.setAttribute('data-theme', v); }
+
+    function populateIpdPatientDatalist() {
+      const datalist = document.getElementById('dl-ipd-patients');
+      if (!datalist) return;
+      datalist.innerHTML = (db.patients || []).map(p => 
+        `<option value="${p.full_name}">${p.uhid || 'AA-P'} | Mobile: ${p.mobile_no || 'N/A'}</option>`
+      ).join('');
+    }
 
     function renderPatients() {
       const tbl = document.getElementById('tbl-patients');
@@ -463,7 +479,7 @@
       db.patients.unshift(payload);
       closeModal('md-patient');
       renderPatients();
-      if (typeof window.populateIpdPatientDatalist === 'function') window.populateIpdPatientDatalist();
+      populateIpdPatientDatalist();
     }
 
     async function delPatient(id) {
@@ -473,20 +489,58 @@
       renderPatients();
     }
 
+    function renderIPD() {
+      const tbl = document.getElementById('tbl-ipd');
+      if (!tbl) return;
+      tbl.innerHTML = (db.ipd || []).map(b => `
+        <tr><td><b>${b.bed_no || b.room_no}</b></td><td>${b.ward_type || 'General Ward'}</td><td><b>${b.patient_name || '—'}</b></td><td>${new Date(b.created_at || Date.now()).toLocaleDateString()}</td><td>₹${parseFloat(b.daily_rate || 1500).toFixed(2)}</td><td><span style="color:${b.status === 'Occupied' ? '#ef4444' : '#10b981'}; font-weight:bold;">${b.status || 'Available'}</span></td></tr>
+      `).join('') || '<tr><td colspan="6" style="text-align:center;">No IPD beds allocated.</td></tr>';
+    }
+
+    async function submitIpdAllocation() {
+      if (!sbClient) return alert("Database client offline.");
+      const bedNo = document.getElementById('ipd-field-bed-no').value.trim();
+      const ward = document.getElementById('ipd-field-ward').value;
+      const patient = document.getElementById('ipd-field-patient').value.trim();
+      const doctor = document.getElementById('ipd-field-doctor').value.trim();
+      const rate = parseFloat(document.getElementById('ipd-field-rate').value || 1500);
+
+      const bedId = generateUUID();
+      const isOccupied = patient.length > 0;
+
+      const bedPayload = { id: bedId, bed_no: bedNo, room_no: bedNo, ward_type: ward, daily_rate: rate, status: isOccupied ? 'Occupied' : 'Available' };
+      const { error: bedErr } = await sbClient.from('ipd_beds').insert([bedPayload]);
+      if (bedErr) return alert("Error allocating bed: " + bedErr.message);
+
+      if (isOccupied) {
+        await sbClient.from('ipd_admissions').insert([{ id: generateUUID(), patient_name: patient, doctor_name: doctor, bed_id: bedId, status: 'Admitted' }]);
+        
+        const billNo = 'BILL-IPD-' + Math.floor(100000 + Math.random() * 900000);
+        await sbClient.from('billing').insert([{ id: generateUUID(), bill_no: billNo, rx_no: bedNo, patient_name: patient, bill_type: 'IPD Admission', subtotal: rate, total_amount: rate, paid_amount: 0, balance_due: rate, payment_status: 'Unpaid' }]);
+      }
+
+      closeAllocateModal();
+      alert("IPD Bed Allocated & Posted to Central Billing!");
+      init();
+    }
+
     async function init() {
       if (sbClient) {
         try {
-          const [pRes] = await Promise.all([
-            sbClient.from('patients').select('*')
+          const [pRes, ipdRes] = await Promise.all([
+            sbClient.from('patients').select('*'),
+            sbClient.from('ipd_beds').select('*').order('created_at', { ascending: false })
           ]);
           db.patients = pRes.data || [];
+          db.ipd = ipdRes.data || [];
         } catch(err) { console.error("Data Boot Error:", err); }
       }
       renderPatients();
-      if (typeof window.loadIpdData === 'function') window.loadIpdData();
+      renderIPD();
+      populateIpdPatientDatalist();
     }
 
     window.onload = init;
-  </script>
+  <script src="ipd_ward.js"></script>
 </body>
 </html>
