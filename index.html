@@ -8,6 +8,16 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 
+function getDb() {
+  try {
+    if (window.supabaseClient && window.supabaseClient.from) return window.supabaseClient;
+    if (window.sbClient && window.sbClient.from) return window.sbClient;
+    if (typeof supabaseClient !== 'undefined' && supabaseClient && supabaseClient.from) return supabaseClient;
+  } catch (e) {}
+  return null;
+}
+
+
 // Module 5: Integrated Production & Raw Material Deduction Engine
 async function executeProductionBatch(recipeId, targetQty, batchNo) {
   try {
@@ -158,8 +168,9 @@ document.addEventListener('keydown', function(event) {
 
 // 1. Fetch live raw materials from Supabase and sync into recipe dropdowns
 async function syncRawMaterialsToRecipeBuilder() {
-  if (!supabaseClient) return;
-  const { data: materials, error } = await supabaseClient
+  const db = getDb();
+  if (!db) return;
+  const { data: materials, error } = await db
     .from('raw_materials')
     .select('*')
     .order('name');
