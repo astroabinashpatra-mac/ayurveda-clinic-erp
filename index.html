@@ -1527,18 +1527,46 @@ function removeRecipeIngredient(index) {
 
   <div id="md-ipd-add" class="modal-overlay">
     <div class="modal-container" style="max-width: 450px;">
-      <div class="modal-header"><h3>Allocate IPD Bed</h3><button class="modal-close" onclick="closeModal('md-ipd-add')">✕</button></div>
-      <form onsubmit="saveIPDBed(event)">
-        <div class="form-group"><label for="ipd-bed">BED NO</label>
-<input name="ipd-bed"   type="text" id="ipd-bed" class="form-control" placeholder="BED-101" required /></div>
-        <div class="form-group"><label for="ipd-pname">PATIENT NAME</label>
-<input name="ipd-pname"   type="text" id="ipd-pname" class="form-control" required /></div>
-        <div class="form-group"><label for="ipd-rate">DAILY CHARGE (₹)</label>
-<input name="ipd-rate"   type="number" id="ipd-rate" class="form-control" value="1500" required /></div>
-        <button type="submit" class="btn btn-orange" style="width:100%; margin-top:1rem;">Allocate Bed</button>
-      </form>
+      
+    <!-- IPD ALLOCATE BED MODAL -->
+    <div id="modal-allocate-ipd" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999; padding: 1rem;">
+      <div style="background: #1e293b; width: 480px; max-width: 95vw; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; position: relative;">
+        <button type="button" onclick="document.getElementById('modal-allocate-ipd').style.display='none'" style="position: absolute; right: 1rem; top: 1rem; background: none; border: none; color: #9ca3af; font-size: 1.2rem; cursor: pointer;">✕</button>
+        <h3 style="color: white; margin-top: 0; margin-bottom: 1rem;">Allocate IPD Bed</h3>
+        
+        <div style="margin-bottom: 0.8rem;">
+          <label style="color: #9ca3af; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.3rem;">BED NO *</label>
+          <input type="text" id="ipd-field-bed-no" value="BED-101" placeholder="e.g. BED-101" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 0.8rem;">
+          <label style="color: #9ca3af; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.3rem;">WARD TYPE *</label>
+          <select id="ipd-field-ward" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <option value="General Ward">General Ward</option>
+            <option value="Panchakarma Special">Panchakarma Special</option>
+            <option value="Deluxe Suite">Deluxe Suite</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 0.8rem;">
+          <label style="color: #9ca3af; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.3rem;">PATIENT NAME</label>
+          <input type="text" id="ipd-field-patient" placeholder="Full Patient Name" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 0.8rem;">
+          <label style="color: #9ca3af; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.3rem;">ATTENDING VAIDYA / DOCTOR</label>
+          <input type="text" id="ipd-field-doctor" placeholder="Vaidya Name" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 1.2rem;">
+          <label style="color: #9ca3af; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.3rem;">DAILY CHARGE (₹)</label>
+          <input type="number" id="ipd-field-rate" value="1500" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+        </div>
+
+        <button type="button" onclick="window.submitIpdAllocation()" style="width: 100%; padding: 0.75rem; background: #ea580c; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">Allocate Bed</button>
+      </div>
     </div>
-  </div>
+
 
   <!-- PRINTABLE RECEIPTS -->
   <div id="print-pos-sheet" style="display:none;">
@@ -3651,5 +3679,45 @@ function removeRecipeIngredient(index) {
 
 <script src="aushadhi_nirman.js?v=1789372630"></script>
 <script src="accounts_vendor.js"></script>
+
+    <!-- IPD BED ALLOCATION MODAL -->
+    <div id="modal-allocate-ipd" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999; padding: 1rem;">
+      <div style="background: #1e293b; width: 480px; max-width: 95vw; padding: 1.5rem; border-radius: 8px; border: 1px solid #334155; position: relative;">
+        <button type="button" onclick="document.getElementById('modal-allocate-ipd').style.display='none'" style="position: absolute; right: 1rem; top: 1rem; background: none; border: none; color: #9ca3af; font-size: 1.2rem; cursor: pointer;">✕</button>
+        <h3 style="color: white; margin-top: 0; margin-bottom: 1rem;">Allocate IPD Bed</h3>
+        
+        <div style="margin-bottom: 0.8rem;">
+          <label style="color: #9ca3af; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.3rem;">BED NO *</label>
+          <input type="text" id="ipd-field-bed-no" value="BED-101" placeholder="e.g. BED-101" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 0.8rem;">
+          <label style="color: #9ca3af; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.3rem;">WARD TYPE *</label>
+          <select id="ipd-field-ward" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+            <option value="General Ward">General Ward</option>
+            <option value="Panchakarma Special">Panchakarma Special</option>
+            <option value="Deluxe Suite">Deluxe Suite</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 0.8rem;">
+          <label style="color: #9ca3af; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.3rem;">PATIENT NAME</label>
+          <input type="text" id="ipd-field-patient" placeholder="Leave blank if registering an empty bed" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 0.8rem;">
+          <label style="color: #9ca3af; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.3rem;">ATTENDING VAIDYA / DOCTOR</label>
+          <input type="text" id="ipd-field-doctor" placeholder="Dr. / Vaidya Name" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 1.2rem;">
+          <label style="color: #9ca3af; font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 0.3rem;">DAILY CHARGE (₹)</label>
+          <input type="number" id="ipd-field-rate" value="1500" style="width: 100%; padding: 0.6rem; background: #0f172a; color: white; border: 1px solid #334155; border-radius: 4px; box-sizing: border-box;">
+        </div>
+
+        <button type="button" onclick="window.submitIpdForm()" style="width: 100%; padding: 0.75rem; background: #ea580c; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">Allocate Bed</button>
+      </div>
+    </div>
+
 </body>
 </html>
