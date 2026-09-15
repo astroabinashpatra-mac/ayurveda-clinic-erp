@@ -1003,17 +1003,87 @@ function removeRecipeIngredient(index) {
     </div>
 
     <!-- MODULE 14: IPD WARD MANAGEMENT -->
-    <div id="mod-ipd" class="module-section">
-      <div class="section-header">
-        <h2>🏥 IPD Ward & Bed Allocation Engine</h2>
-        <button class="btn btn-orange" onclick="openModal('md-ipd-add')">+ Allocate IPD Bed</button>
-      </div>
-      <table class="data-table">
-        <thead><tr><th>BED NO</th><th>WARD</th><th>PATIENT NAME</th><th>ADMISSION DATE</th><th>DAILY RATE (₹)</th><th>STATUS</th></tr></thead>
-        <tbody id="tbl-ipd"></tbody>
-      </table>
+    <-- 1. Remove NOT NULL constraint and set auto-generated default
+ALTER TABLE public.patients 
+  ALTER COLUMN patient_code DROP NOT NULL,
+  ALTER COLUMN patient_code SET DEFAULT 'PAT-' || floor(random() * 899999 + 100000)::text;
+
+-- 2. Backfill missing patient_codes if any exist
+UPDATE public.patients 
+SET patient_code = 'PAT-' || floor(random() * 899999 + 100000)::text 
+WHERE patient_code IS NULL;
+
+-- 3. Refresh PostgREST API schema cache
+NOTIFY pgrst, 'reload MODULE 14: IPD WARD MANAGEMENT -->
+<div id="mod-ipd" class="module-section">
+
+  <-- 1. Remove NOT NULL constraint and set auto-generated default
+ALTER TABLE public.patients 
+  ALTER COLUMN patient_code DROP NOT NULL,
+  ALTER COLUMN patient_code SET DEFAULT 'PAT-' || floor(random() * 899999 + 100000)::text;
+
+-- 2. Backfill missing patient_codes if any exist
+UPDATE public.patients 
+SET patient_code = 'PAT-' || floor(random() * 899999 + 100000)::text 
+WHERE patient_code IS NULL;
+
+-- 3. Refresh PostgREST API schema cache
+NOTIFY pgrst, 'reload KPI Overview -->
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+    <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; border: 1px solid #334155;">
+      <span style="color: #9ca3af; font-size: 0.85rem; font-weight: bold;">TOTAL BEDS</span>
+      <h2 id="kpi-ipd-total" style="color: white; margin: 0.3rem 0 0 0;">0</h2>
+    </div>
+    <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; border: 1px solid #334155;">
+      <span style="color: #9ca3af; font-size: 0.85rem; font-weight: bold;">OCCUPIED</span>
+      <h2 id="kpi-ipd-occupied" style="color: #ef4444; margin: 0.3rem 0 0 0;">0</h2>
+    </div>
+    <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; border: 1px solid #334155;">
+      <span style="color: #9ca3af; font-size: 0.85rem; font-weight: bold;">AVAILABLE</span>
+      <h2 id="kpi-ipd-available" style="color: #10b981; margin: 0.3rem 0 0 0;">0</h2>
+    </div>
+    <div style="background: #1e293b; padding: 1.25rem; border-radius: 8px; border: 1px solid #334155;">
+      <span style="color: #9ca3af; font-size: 0.85rem; font-weight: bold;">OCCUPANCY RATE</span>
+      <h2 id="kpi-ipd-rate" style="color: #f59e0b; margin: 0.3rem 0 0 0;">0.0%</h2>
     </div>
   </div>
+
+  <-- 1. Remove NOT NULL constraint and set auto-generated default
+ALTER TABLE public.patients 
+  ALTER COLUMN patient_code DROP NOT NULL,
+  ALTER COLUMN patient_code SET DEFAULT 'PAT-' || floor(random() * 899999 + 100000)::text;
+
+-- 2. Backfill missing patient_codes if any exist
+UPDATE public.patients 
+SET patient_code = 'PAT-' || floor(random() * 899999 + 100000)::text 
+WHERE patient_code IS NULL;
+
+-- 3. Refresh PostgREST API schema cache
+NOTIFY pgrst, 'reload Actions Bar -->
+  <div style="background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+    <h3 style="color: #ea580c; margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+      🏥 IPD WARD & BED DIRECTORY
+    </h3>
+    <button type="button" onclick="window.openAddBedModal()" style="background: #ea580c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: bold;">
+      + Add New Bed
+    </button>
+  </div>
+
+  <-- 1. Remove NOT NULL constraint and set auto-generated default
+ALTER TABLE public.patients 
+  ALTER COLUMN patient_code DROP NOT NULL,
+  ALTER COLUMN patient_code SET DEFAULT 'PAT-' || floor(random() * 899999 + 100000)::text;
+
+-- 2. Backfill missing patient_codes if any exist
+UPDATE public.patients 
+SET patient_code = 'PAT-' || floor(random() * 899999 + 100000)::text 
+WHERE patient_code IS NULL;
+
+-- 3. Refresh PostgREST API schema cache
+NOTIFY pgrst, 'reload Bed Layout Grid -->
+  <div id="ipd-beds-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;"></div>
+
+</div>
 
   <!-- ALL MODAL DIALOGS -->
   <div id="md-rx" class="modal-overlay">
@@ -3651,5 +3721,6 @@ function removeRecipeIngredient(index) {
 
 <script src="aushadhi_nirman.js?v=1789372630"></script>
 <script src="accounts_vendor.js"></script>
+<script src="ipd_ward.js"></script>
 </body>
 </html>
