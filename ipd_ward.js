@@ -1,20 +1,18 @@
 /**
- * MODULE 14 - IPD WARD MANAGEMENT ENGINE
- * Features: Bed Management, Patient Admission/Discharge, Occupancy KPIs
+ * MODULE 14: IPD WARD MANAGEMENT ENGINE (ISOLATED)
  */
 
-function getDb() {
-  return window.supabaseClient || window.sbClient || window.supabase || (typeof supabase !== 'undefined' ? supabase : null);
+function getIpdDb() {
+  if (window.supabaseClient && window.supabaseClient.from) return window.supabaseClient;
+  if (window.sbClient && window.sbClient.from) return window.sbClient;
+  if (typeof supabaseClient !== 'undefined' && supabaseClient && supabaseClient.from) return supabaseClient;
+  return null;
 }
 
-window.ipdState = {
-  beds: [],
-  admissions: []
-};
+window.ipdState = { beds: [], admissions: [] };
 
-// Data Loading Engine
 window.loadIpdData = async function() {
-  const db = getDb();
+  const db = getIpdDb();
   if (!db) return;
 
   try {
@@ -25,14 +23,12 @@ window.loadIpdData = async function() {
 
     window.ipdState.beds = bedsRes.data || [];
     window.ipdState.admissions = admRes.data || [];
-
     window.renderIpdDashboard();
   } catch (err) {
     console.error("IPD Load Error:", err);
   }
 };
 
-// Dynamic Dashboard & Bed Cards Renderer
 window.renderIpdDashboard = function() {
   const beds = window.ipdState.beds || [];
   const admissions = window.ipdState.admissions || [];
@@ -58,11 +54,7 @@ window.renderIpdDashboard = function() {
   grid.innerHTML = beds.map(bed => {
     const admission = admissions.find(a => a.bed_id === bed.id);
     const isOccupied = bed.status === 'Occupied';
-    const isMaintenance = bed.status === 'Maintenance';
-
-    let statusColor = '#10b981';
-    if (isOccupied) statusColor = '#ef4444';
-    if (isMaintenance) statusColor = '#f59e0b';
+    let statusColor = isOccupied ? '#ef4444' : '#10b981';
 
     return `
       <div style="background: #1e293b; border: 1px solid #334155; border-top: 4px solid ${statusColor}; border-radius: 8px; padding: 1rem;">
@@ -84,7 +76,7 @@ window.renderIpdDashboard = function() {
         ${isOccupied && admission ? `
           <div style="background: #0f172a; padding: 0.65rem; border-radius: 6px; margin-bottom: 0.8rem; font-size: 0.8rem; color: white;">
             <div style="color: #ea580c; font-weight: bold; margin-bottom: 0.2rem;">👤 ${admission.patient_name}</div>
-            <div style="color: #9ca3af;">Doctor: ${admission.doctor_name || 'Vaidya Unassigned'}</div>
+            <div style="color: #9ca3af;">Doctor: ${admission.doctor_name || 'Unassigned'}</div>
             <div style="color: #9ca3af;">Admitted: ${new Date(admission.admission_date).toLocaleDateString()}</div>
           </div>
         ` : ''}
@@ -101,15 +93,11 @@ window.renderIpdDashboard = function() {
   }).join('');
 };
 
-// Inject IPD Modals into DOM
 function ensureIpdModals() {
-  let container = document.getElementById('ipd-modals-container');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'ipd-modals-container';
-    document.body.appendChild(container);
-  }
+  if (document.getElementById('ipd-modals-container')) return;
 
+  const container = document.createElement('div');
+  container.id = 'ipd-modals-container';
   container.innerHTML = `
     <!-- Add Bed Modal -->
     <div id="modal-add-bed" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; z-index: 999999; padding: 1rem;">
@@ -166,9 +154,9 @@ function ensureIpdModals() {
       </div>
     </div>
   `;
+  document.body.appendChild(container);
 }
 
-// Modal Triggers
 window.openAddBedModal = function() {
   ensureIpdModals();
   document.getElementById('modal-add-bed').style.display = 'flex';
@@ -180,10 +168,9 @@ window.openAdmitModal = function(bedId) {
   document.getElementById('modal-admit-patient').style.display = 'flex';
 };
 
-// Database Actions
 window.saveBed = async function() {
-  const db = getDb();
-  if (!db) return;
+  const db = getIpdDb();
+  if (!db) return alert("Supabase database client not available.");
 
   const room = document.getElementById('bed-room').value.trim();
   const bedNo = document.getElementById('bed-no').value.trim();
@@ -208,8 +195,8 @@ window.saveBed = async function() {
 };
 
 window.saveAdmission = async function() {
-  const db = getDb();
-  if (!db) return;
+  const db = getIpdDb();
+  if (!db) return alert("Supabase database client not available.");
 
   const bedId = document.getElementById('adm-target-bed-id').value;
   const pName = document.getElementById('adm-patient-name').value.trim();
@@ -218,7 +205,6 @@ window.saveAdmission = async function() {
 
   if (!pName) return alert("Please enter patient name.");
 
-  // Insert admission
   const { error: admErr } = await db.from('ipd_admissions').insert([{
     id: 'ADM-' + Date.now(),
     patient_name: pName,
@@ -231,7 +217,6 @@ window.saveAdmission = async function() {
 
   if (admErr) return alert("Admission Error: " + admErr.message);
 
-  // Update bed status to Occupied
   await db.from('ipd_beds').update({ status: 'Occupied' }).eq('id', bedId);
 
   document.getElementById('modal-admit-patient').style.display = 'none';
@@ -240,8 +225,7 @@ window.saveAdmission = async function() {
 
 window.dischargePatient = async function(admissionId, bedId) {
   if (!confirm("Are you sure you want to discharge this patient?")) return;
-
-  const db = getDb();
+  const db = getIpdDb();
   if (!db) return;
 
   if (admissionId) {
@@ -259,5 +243,5 @@ window.dischargePatient = async function(admissionId, bedId) {
 
 document.addEventListener('DOMContentLoaded', () => {
   ensureIpdModals();
-  setTimeout(window.loadIpdData, 500);
+  setTimeout(window.loadIpdData, 1000);
 });
