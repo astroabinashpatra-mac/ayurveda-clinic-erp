@@ -162,25 +162,32 @@ window.renderIpdTable = function(beds, admissions) {
     const adm = admissions.find(a => a.bed_id === bed.id);
     const isOccupied = bed.status === 'Occupied' || !!adm;
     const statusColor = isOccupied ? '#ef4444' : '#10b981';
+    
+    // Resolve Patient Name, Dates, and IDs with Fallbacks
+    const rawPatientName = adm ? adm.patient_name : (bed.patient_name || '');
+    const patientName = rawPatientName.trim() !== '' ? rawPatientName : (isOccupied ? 'Admitted Patient' : '—');
+    const admId = adm ? adm.id : bed.id;
+    const bedNo = bed.bed_no || bed.room_no || 'BED';
+    const admDate = adm ? new Date(adm.admission_date).toLocaleDateString() : (bed.admission_date ? new Date(bed.admission_date).toLocaleDateString() : new Date(bed.created_at || Date.now()).toLocaleDateString());
 
     return `
       <tr style="border-bottom: 1px solid #334155; font-size: 0.85rem; color: #f8fafc;">
-        <td style="padding: 0.75rem; font-weight: bold; color: #ea580c;">${bed.bed_no || bed.room_no || 'BED'}</td>
-        <td style="padding: 0.75rem; color: #cbd5e1;">${bed.ward_type || 'General Ward'}</td>
+        <td style="padding: 0.75rem; font-weight: bold; color: #ea580c;">${bedNo}</td>
+        <td style="padding: 0.75rem; color: #cbd5e1;">${bed.ward_type || bed.ward_name || 'General Ward'}</td>
         <td style="padding: 0.75rem; color: ${isOccupied ? '#ffffff' : '#9ca3af'}; font-weight: ${isOccupied ? 'bold' : 'normal'};">
-          ${adm ? adm.patient_name : (bed.patient_name || '—')}
+          ${patientName}
         </td>
         <td style="padding: 0.75rem; color: #9ca3af;">
-          ${adm ? new Date(adm.admission_date).toLocaleDateString() : new Date(bed.created_at || Date.now()).toLocaleDateString()}
+          ${admDate}
         </td>
-        <td style="padding: 0.75rem;">₹${parseFloat(bed.daily_rate || 0).toFixed(2)}</td>
+        <td style="padding: 0.75rem;">₹${parseFloat(bed.daily_rate || bed.daily_charge || 0).toFixed(2)}</td>
         <td style="padding: 0.75rem;">
           <div style="display:flex; gap:0.5rem; align-items:center;">
             <span style="background: rgba(255,255,255,0.05); color: ${statusColor}; border: 1px solid ${statusColor}; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
               ${isOccupied ? 'Occupied' : 'Available'}
             </span>
-            ${isOccupied && adm ? `
-              <button type="button" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;" onclick="window.manageIpdPatient('${adm.id}', '${bed.id}', '${bed.bed_no || bed.room_no}', '${adm.patient_name.replace(/'/g, "\\'")}')">
+            ${isOccupied ? `
+              <button type="button" style="padding: 0.25rem 0.6rem; font-size: 0.75rem; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;" onclick="window.manageIpdPatient('${admId}', '${bed.id}', '${bedNo}', '${patientName.replace(/'/g, "\\'")}')">
                 🏥 Manage & Discharge
               </button>
             ` : ''}
