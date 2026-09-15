@@ -1,5 +1,5 @@
 /**
- * MODULE 14: IPD WARD MANAGEMENT ENGINE (AUTOFETCH PATIENTS & CENTRAL BILLING SYNC)
+ * MODULE 14: IPD WARD MANAGEMENT ENGINE (FULL SCHEMA SYNC & BILLING INTEGRATION)
  */
 
 const SUPABASE_URL = "https://apmegpiztygfmltrsgkb.supabase.co";
@@ -18,7 +18,7 @@ function getIpdDb() {
   return null;
 }
 
-// 1. Fetch Registered Patients and Populate Datalist
+// 1. Fetch Registered Patients for Autocomplete
 window.populateIpdPatientDatalist = async function() {
   const db = getIpdDb();
   const datalist = document.getElementById('dl-ipd-patients');
@@ -37,11 +37,11 @@ window.populateIpdPatientDatalist = async function() {
   }
 
   datalist.innerHTML = patients.map(p => 
-    `<option value="${p.full_name}">${p.uhid || 'AA-P'} | Mobile: ${p.mobile_no || 'N/A'} | Prakriti: ${p.prakriti || 'N/A'}</option>`
+    `<option value="${p.full_name}">${p.uhid || 'AA-P'} | Mobile: ${p.mobile_no || 'N/A'}</option>`
   ).join('');
 };
 
-// 2. Ensure Modal Form with Autocomplete Dropdown
+// 2. Render Form Modal
 window.ensureCleanModal = function() {
   let modal = document.getElementById('modal-allocate-ipd');
   if (!modal) {
@@ -91,7 +91,6 @@ window.ensureCleanModal = function() {
   `;
 };
 
-// 3. Modal Handlers
 window.openAllocateModal = function() {
   window.ensureCleanModal();
   window.populateIpdPatientDatalist();
@@ -110,7 +109,6 @@ window.closeAllocateModal = function() {
   if (modal) modal.style.display = 'none';
 };
 
-// 4. Load & Render Beds
 window.loadIpdData = async function() {
   const db = getIpdDb();
   if (!db) return;
@@ -154,7 +152,7 @@ window.renderIpdTable = function(beds, admissions) {
 
     return `
       <tr style="border-bottom: 1px solid #334155; font-size: 0.85rem; color: #f8fafc;">
-        <td style="padding: 0.75rem; font-weight: bold; color: #ea580c;">${bed.bed_no || bed.room_no}</td>
+        <td style="padding: 0.75rem; font-weight: bold; color: #ea580c;">${bed.bed_no || bed.room_no || 'BED'}</td>
         <td style="padding: 0.75rem; color: #cbd5e1;">${bed.ward_type || 'General Ward'}</td>
         <td style="padding: 0.75rem; color: ${isOccupied ? '#ffffff' : '#9ca3af'}; font-weight: ${isOccupied ? 'bold' : 'normal'};">
           ${adm ? adm.patient_name : (bed.patient_name || '—')}
@@ -173,7 +171,6 @@ window.renderIpdTable = function(beds, admissions) {
   }).join('');
 };
 
-// 5. Submit Allocation & Post IPD Bill to Central Billing
 window.submitIpdAllocation = async function() {
   const db = getIpdDb();
   if (!db) return alert("Database client initialization failed. Please refresh the page.");
@@ -189,20 +186,21 @@ window.submitIpdAllocation = async function() {
   const bedId = 'BED-' + Date.now();
   const isOccupied = patient.length > 0;
 
-  // Insert IPD Bed Entry
-  const { error: bedErr } = await db.from('ipd_beds').insert([{
+  const payload = {
     id: bedId,
-    room_no: bedNo,
     bed_no: bedNo,
+    room_no: bedNo,
     ward_type: ward,
     daily_rate: rate,
+    daily_charge: rate,
     status: isOccupied ? 'Occupied' : 'Available'
-  }]);
+  };
+
+  const { error: bedErr } = await db.from('ipd_beds').insert([payload]);
 
   if (bedErr) return alert("Error saving bed: " + bedErr.message);
 
   if (isOccupied) {
-    // Save Admission Entry
     await db.from('ipd_admissions').insert([{
       id: 'ADM-' + Date.now(),
       patient_name: patient,
@@ -212,7 +210,6 @@ window.submitIpdAllocation = async function() {
       admission_date: new Date().toISOString()
     }]);
 
-    // Central Billing Integration (Module 7)
     const billNo = 'BILL-IPD-' + Math.floor(100000 + Math.random() * 900000);
     const billPayload = {
       bill_no: billNo,
@@ -248,7 +245,6 @@ window.submitIpdAllocation = async function() {
 
 window.submitIpdForm = window.submitIpdAllocation;
 
-// 6. Global Event Delegation
 document.addEventListener('click', function(e) {
   const target = e.target.closest('button');
   if (target && target.innerText.includes('Allocate IPD Bed')) {
