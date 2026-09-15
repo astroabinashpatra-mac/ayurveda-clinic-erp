@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AASU AROGYAM ERP - Hospital Management System</title>
 
+  <!-- External Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  
+
   <style>
     :root {
       --bg-dark: #0f172a;
@@ -88,7 +89,7 @@
     .grid-5 { grid-template-columns: repeat(5, 1fr); }
     .grid-7 { grid-template-columns: repeat(7, 1fr); }
     .form-group { display: flex; flex-direction: column; gap: 0.2rem; }
-    .form-group label { font-size: 0.65rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; min-height: 26px; display: flex; align-items: flex-end; margin-bottom: 0.3rem; }
+    .form-group label { font-size: 0.65rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.3rem; }
     .form-control { padding: 0.55rem; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-main); border-radius: 6px; font-size: 0.825rem; width: 100%; }
 
     .sch-grid { display: grid; grid-template-columns: 110px repeat(7, 1fr); border: 1px solid var(--border-dark); border-radius: 8px; overflow: hidden; background: var(--panel-dark); }
@@ -100,66 +101,18 @@
     @media print {
       @page { size: A4 portrait; margin: 10mm; }
       body * { visibility: hidden !important; }
-      #print-rx-sheet, #print-rx-sheet *, 
-      #print-pos-sheet, #print-pos-sheet *, 
-      #print-payroll-sheet, #print-payroll-sheet * { 
-        visibility: visible !important; 
-      }
-      #print-pos-sheet, #print-rx-sheet, #print-payroll-sheet { 
-        display: block !important; 
-        position: absolute !important; 
-        left: 0 !important; 
-        top: 0 !important; 
-        width: 100% !important; 
-        color: #000 !important; 
-        background: #fff !important; 
-        font-family: Arial, sans-serif !important;
-        padding: 10mm !important;
-        z-index: 999999 !important;
-      }
+      #print-rx-sheet, #print-rx-sheet *, #print-pos-sheet, #print-pos-sheet *, #print-payroll-sheet, #print-payroll-sheet * { visibility: visible !important; }
+      #print-pos-sheet, #print-rx-sheet, #print-payroll-sheet { display: block !important; position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; color: #000 !important; background: #fff !important; font-family: Arial, sans-serif !important; padding: 10mm !important; z-index: 999999 !important; }
       #sidebar, #main-content, .modal-overlay { display: none !important; }
     }
   </style>
-
-  <script>
-  // Universal Supabase Client & ERP Auto-Sync Bridge
-  (function() {
-    function getClient() {
-      try { if (typeof supabaseClient !== 'undefined' && supabaseClient && supabaseClient.from) return supabaseClient; } catch(e){}
-      try { if (typeof sbClient !== 'undefined' && sbClient && sbClient.from) return sbClient; } catch(e){}
-      if (window.supabaseClient && window.supabaseClient.from) return window.supabaseClient;
-      if (window.sbClient && window.sbClient.from) return window.sbClient;
-      return null;
-    }
-
-    let attempts = 0;
-    const bootTimer = setInterval(function() {
-      const client = getClient();
-      if (client) {
-        window.supabaseClient = client;
-        window.sbClient = client;
-        clearInterval(bootTimer);
-        
-        if (typeof loadDashboardStats === 'function') loadDashboardStats();
-        if (typeof loadPatients === 'function') loadPatients();
-        if (typeof renderPatientTable === 'function') renderPatientTable();
-        if (typeof loadAushadhiNirmanData === 'function') loadAushadhiNirmanData();
-        if (typeof loadPharmacyStock === 'function') loadPharmacyStock();
-        if (typeof loadAccounts === 'function') loadAccounts();
-        if (typeof loadIpdData === 'function') loadIpdData();
-      }
-      attempts++;
-      if (attempts > 40) clearInterval(bootTimer);
-    }, 200);
-  })();
-  </script>
-  <script src="accounts_vendor.js?v=1789372254"></script>
 </head>
 <body>
 
   <div id="sidebar">
     <div class="brand-header">
       <div style="display:flex; align-items:center; gap:0.6rem;">
+        <div class="brand-logo">AA</div>
         <div>
           <div style="font-size:0.95rem; font-weight:bold;">AASU AROGYAM</div>
           <div style="font-size: 0.625rem; color: var(--text-muted);">AYURVEDIC ERP</div>
@@ -187,10 +140,11 @@
   <div id="main-content">
     <div class="theme-bar">
       <span style="font-size:0.75rem; font-weight:bold; color:var(--text-muted);">🎨 SYSTEM THEME & ENGINE:</span>
-      <select name="theme-selector" id="theme-selector" onchange="changeTheme(this.value)">
-        <option value="1">1. Default Orange Slate</option>
-        <option value="2">2. Dark Slate</option>
-        <option value="3">3. Light Mode</option>
+      <select id="theme-selector" onchange="changeTheme(this.value)">
+        <option value="default-orange">1. Default Orange Slate</option>
+        <option value="emerald">2. Emerald Green</option>
+        <option value="royal-blue">3. Royal Blue</option>
+        <option value="crimson-red">4. Crimson Red</option>
       </select>
       <button id="mode-toggle-btn" onclick="toggleLightDarkMode()">☀️ Light Mode</button>
     </div>
@@ -217,7 +171,31 @@
         </div>
         <div style="background: var(--panel-dark); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border-dark);">
           <span style="font-size: 0.7rem; color: var(--text-muted);">PENDING BILL DUES</span>
-          <h3 id="st-dues" style="margin-top:0.3rem; font-size:1.5rem; color: var(--accent-orange);">₹0</h3>
+          <h3 id="st-dues" style="margin-top:0.3rem; font-size:1.5rem; color: var(--accent-orange);">₹0.00</h3>
+        </div>
+      </div>
+
+      <h3 style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem; text-transform:uppercase;">⚡ Quick Module Shortcuts</h3>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+        <div onclick="switchTab('prescription', document.querySelectorAll('.nav-item')[1])" style="background: var(--panel-dark); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-dark); cursor: pointer;">
+          <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">📜</div>
+          <h4 style="font-size: 0.9rem; margin-bottom: 0.2rem;">E-Prescription Desk</h4>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">Write & print digital prescriptions</span>
+        </div>
+        <div onclick="switchTab('patients', document.querySelectorAll('.nav-item')[2])" style="background: var(--panel-dark); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-dark); cursor: pointer;">
+          <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">🧑‍⚕️</div>
+          <h4 style="font-size: 0.9rem; margin-bottom: 0.2rem;">Patient Directory</h4>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">Register & manage EMR records</span>
+        </div>
+        <div onclick="switchTab('pharmacy', document.querySelectorAll('.nav-item')[5])" style="background: var(--panel-dark); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-dark); cursor: pointer;">
+          <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">🛒</div>
+          <h4 style="font-size: 0.9rem; margin-bottom: 0.2rem;">POS Retail Counter</h4>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">Herbal pharmacy sales & billing</span>
+        </div>
+        <div onclick="switchTab('ipd', document.querySelectorAll('.nav-item')[13])" style="background: var(--panel-dark); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-dark); cursor: pointer;">
+          <div style="font-size: 1.2rem; margin-bottom: 0.3rem;">🏥</div>
+          <h4 style="font-size: 0.9rem; margin-bottom: 0.2rem;">IPD Ward Engine</h4>
+          <span style="font-size: 0.7rem; color: var(--text-muted);">Allocate beds & sync central bills</span>
         </div>
       </div>
     </div>
@@ -227,13 +205,11 @@
       <div class="section-header">
         <div>
           <h2>📜 Digital Ayurvedic E-Prescription Desk</h2>
-          <span style="font-size:0.75rem; color:var(--text-muted)">Create, search, view, edit, print, and WhatsApp complete Ayurvedic prescriptions.</span>
+          <span style="font-size:0.75rem; color:var(--text-muted)">Create, view, print, and WhatsApp complete Ayurvedic prescriptions.</span>
         </div>
         <button class="btn btn-orange" onclick="openNewRxModal()">+ Write E-Prescription</button>
       </div>
-      <div style="margin-bottom:1rem;">
-        <input name="rx-search-input" type="text" id="rx-search-input" class="form-control" placeholder="🔍 Search prescription..." onkeyup="renderRx()" />
-      </div>
+      <input type="text" id="rx-search-input" class="form-control" placeholder="🔍 Search prescription by Patient Name, Mobile No, RX No..." onkeyup="renderRx()" style="margin-bottom:1rem;" />
       <table class="data-table">
         <thead>
           <tr><th>RX NO</th><th>DATE</th><th>PATIENT NAME</th><th>MOBILE</th><th>ATTENDING DOCTOR</th><th>DIAGNOSIS</th><th>TOTAL (₹)</th><th>ACTIONS</th></tr>
@@ -248,7 +224,7 @@
         <h2>🧑‍⚕️ Patient Directory & EMR Ledger</h2>
         <button class="btn btn-orange" onclick="openModal('md-patient')">+ Register New Patient</button>
       </div>
-      <input name="p-search" type="text" id="p-search" class="form-control" placeholder="Search patient..." style="margin-bottom: 1rem;" onkeyup="renderPatients()" />
+      <input type="text" id="p-search" class="form-control" placeholder="Search patient by Name, Mobile No, or UHID..." style="margin-bottom: 1rem;" onkeyup="renderPatients()" />
       <table class="data-table">
         <thead><tr><th>UHID</th><th>FULL NAME</th><th>MOBILE NO</th><th>AGE / GENDER</th><th>PRAKRITI</th><th>WEIGHT / BP</th><th>ACTIONS</th></tr></thead>
         <tbody id="tbl-patients"></tbody>
@@ -258,114 +234,218 @@
     <!-- MODULE 4: SCHEDULE -->
     <div id="mod-schedule" class="module-section">
       <div class="section-header">
-        <h2>SCHEDULE FOR THERAPY</h2>
+        <h2>📅 Schedule & Visit Management</h2>
+        <button class="btn btn-orange" onclick="openReservationModal('10:00 - 10:45', new Date().toISOString().split('T')[0])">+ Book Therapy Slot</button>
       </div>
+      <div class="sch-grid" id="sch-week-grid"></div>
     </div>
 
     <!-- MODULE 5: AUSHADHI NIRMAN -->
     <div id="mod-aushadhi" class="module-section">
       <div class="section-header">
-        <h2>🌿 Aushadhi Nirman</h2>
+        <h2>🌿 Raw Materials & Master Recipes</h2>
+        <button class="btn btn-orange" onclick="openRawMaterialModal()">+ Add Raw Material</button>
       </div>
+      <table class="data-table">
+        <thead><tr><th>Item ID</th><th>Material Name</th><th>Category</th><th>Available Stock</th><th>Reorder Limit</th><th>Actions</th></tr></thead>
+        <tbody id="tbl-raw-mat"></tbody>
+      </table>
     </div>
 
-    <!-- MODULE 6: HERBAL PHARMACY -->
+    <!-- MODULE 6: PHARMACY -->
     <div id="mod-pharmacy" class="module-section">
       <div class="section-header">
-        <h2>💊 Herbal Pharmacy</h2>
+        <h2>💊 Herbal Pharmacy & Sales Counter</h2>
+        <div>
+          <button class="btn btn-orange" onclick="openModal('md-pos')">🛒 POS Retail Counter</button>
+          <button class="btn btn-blue" onclick="openPharmacyStockModal()">+ Add Stock</button>
+        </div>
       </div>
+      <table class="data-table">
+        <thead><tr><th>BARCODE</th><th>MEDICINE NAME</th><th>BATCH CODE</th><th>EXPIRY</th><th>PURCHASE RATE</th><th>SELLING PRICE</th><th>STOCK</th><th>ACTIONS</th></tr></thead>
+        <tbody id="tbl-pharmacy"></tbody>
+      </table>
     </div>
 
     <!-- MODULE 7: BILLING -->
     <div id="mod-billing" class="module-section">
       <div class="section-header">
-        <h2>💰 Billing & Invoices</h2>
+        <h2>💰 Central Billing & Payment Ledger</h2>
       </div>
+      <table class="data-table">
+        <thead>
+          <tr><th>BILL NO</th><th>DATE</th><th>PATIENT NAME</th><th>MOBILE</th><th>GRAND TOTAL</th><th>PAID AMOUNT</th><th>OUTSTANDING DUE</th><th>STATUS</th><th>ACTIONS</th></tr>
+        </thead>
+        <tbody id="tbl-billing"></tbody>
+      </table>
     </div>
 
     <!-- MODULE 8: THERAPY MASTER -->
     <div id="mod-therapy" class="module-section">
       <div class="section-header">
-        <h2>✨ Therapy Master</h2>
+        <h2>✨ Therapy Master Directory</h2>
+        <button class="btn btn-orange" onclick="openModal('md-therapy-add')">+ Add New Therapy</button>
       </div>
+      <table class="data-table">
+        <thead><tr><th>ID</th><th>THERAPY NAME</th><th>DURATION</th><th>PRICE (₹)</th><th>RECOMMENDED ROOM</th><th>ACTIONS</th></tr></thead>
+        <tbody id="tbl-therapies"></tbody>
+      </table>
     </div>
 
     <!-- MODULE 9: HRMS -->
     <div id="mod-hrms" class="module-section">
       <div class="section-header">
-        <h2>👥 Employee HRMS</h2>
+        <h2>👥 Employee HRMS Directory</h2>
+        <button class="btn btn-orange" onclick="openEmployeeModal()">+ Onboard Employee</button>
       </div>
+      <table class="data-table">
+        <thead><tr><th>Emp ID</th><th>Full Name</th><th>Role & Dept</th><th>Contact</th><th>Base Salary</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="tbl-emp"></tbody>
+      </table>
     </div>
 
     <!-- MODULE 10: PAYROLL -->
     <div id="mod-payroll" class="module-section">
       <div class="section-header">
-        <h2>💵 Payroll & Salaries</h2>
+        <h2>💵 Payroll & Salary Disbursal</h2>
+        <button class="btn btn-orange" onclick="syncEmployeesToPayroll()">🔄 Sync Employees to Payroll</button>
       </div>
-    </div>
-
-    <!-- MODULE 11: ACCOUNTS -->
-    <div id="mod-accounts" class="module-section">
-      <div class="section-header">
-        <h2>🏛️ Accounts & Vendors</h2>
-      </div>
-    </div>
-
-    <!-- MODULE 12: CLINIC DOCUMENTS -->
-    <div id="mod-documents" class="module-section">
-      <div class="section-header">
-        <h2>📂 Clinic Documents</h2>
-      </div>
-    </div>
-
-    <!-- MODULE 13: STAFF ROLE & ACCESS CONTROL -->
-    <div id="mod-admin" class="module-section">
-      <div class="section-header">
-        <h2>🔐 Staff Access Control</h2>
-      </div>
-    </div>
-
-    <!-- MODULE 14: IPD WARD MANAGEMENT ENGINE -->
-    <div id="mod-ipd" class="module-section">
-      <div class="section-header">
-        <div>
-          <h2>🏥 IPD Ward & Bed Allocation Engine</h2>
-          <span style="font-size:0.75rem; color:var(--text-muted)">Manage ward occupancy, bed allocations, and patient admissions live.</span>
-        </div>
-        <button type="button" class="btn btn-orange" onclick="window.openAllocateModal()">+ Allocate IPD Bed</button>
-      </div>
-
       <table class="data-table">
-        <thead>
-          <tr>
-            <th>BED NO</th>
-            <th>WARD TYPE</th>
-            <th>PATIENT NAME</th>
-            <th>ADMISSION DATE</th>
-            <th>DAILY CHARGE (₹)</th>
-            <th>STATUS</th>
-          </tr>
-        </thead>
-        <tbody id="tbl-ipd">
-          <tr>
-            <td colspan="6" style="text-align: center; color: #9ca3af; padding: 2rem;">
-              Loading IPD Ward records...
-            </td>
-          </tr>
-        </tbody>
+        <thead><tr><th>SLIP ID</th><th>EMPLOYEE</th><th>BASE SALARY</th><th>ATTENDANCE</th><th>NET PAYABLE (₹)</th><th>STATUS</th><th>ACTION</th></tr></thead>
+        <tbody id="tbl-payroll"></tbody>
       </table>
     </div>
 
+    <!-- MODULE 11: ACCOUNTS & VENDORS -->
+    <div id="mod-accounts" class="module-section">
+      <div class="section-header">
+        <h2>🏛️ Accounts & Vendor Ledger</h2>
+        <button class="btn btn-orange" onclick="openModal('md-acc-add')">+ Record Expense / Vendor Entry</button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>TYPE</th><th>TITLE / VENDOR</th><th>CATEGORY</th><th>AMOUNT (₹)</th><th>ACTIONS</th></tr></thead>
+        <tbody id="tbl-accounts"></tbody>
+      </table>
+    </div>
+
+    <!-- MODULE 12: DOCUMENTS -->
+    <div id="mod-documents" class="module-section">
+      <div class="section-header">
+        <h2>📂 Clinic Documents & Forms</h2>
+        <button class="btn btn-orange" onclick="openModal('md-doc-add')">+ Add Document</button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>DOCUMENT TITLE</th><th>CATEGORY</th><th>DATE ADDED</th><th>ACTIONS</th></tr></thead>
+        <tbody id="tbl-documents"></tbody>
+      </table>
+    </div>
+
+    <!-- MODULE 13: STAFF ACCESS -->
+    <div id="mod-admin" class="module-section">
+      <div class="section-header">
+        <h2>🔐 Staff Access Control</h2>
+        <button class="btn btn-orange" onclick="openModal('md-stf-add')">+ Grant Staff Role</button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>USERNAME</th><th>ROLE</th><th>PERMISSIONS</th><th>STATUS</th><th>ACTIONS</th></tr></thead>
+        <tbody id="tbl-staff-users"></tbody>
+      </table>
+    </div>
+
+    <!-- MODULE 14: IPD WARD -->
+    <div id="mod-ipd" class="module-section">
+      <div class="section-header">
+        <h2>🏥 IPD Ward & Bed Allocation Engine</h2>
+        <button class="btn btn-orange" onclick="openAllocateModal()">+ Allocate IPD Bed</button>
+      </div>
+      <table class="data-table">
+        <thead><tr><th>BED NO</th><th>WARD TYPE</th><th>PATIENT NAME</th><th>ADMISSION DATE</th><th>DAILY RATE (₹)</th><th>STATUS</th></tr></thead>
+        <tbody id="tbl-ipd"></tbody>
+      </table>
+    </div>
   </div>
 
+  <!-- MODALS CONTAINER -->
+  <div id="md-patient" class="modal-overlay">
+    <div class="modal-container" style="max-width: 500px;">
+      <div class="modal-header"><h3>Register Patient</h3><button class="modal-close" onclick="closeModal('md-patient')">✕</button></div>
+      <form onsubmit="savePatient(event)">
+        <input type="hidden" id="p-id" />
+        <div class="form-group" style="margin-bottom:0.75rem;"><label>FULL NAME *</label><input type="text" id="p-name" class="form-control" required /></div>
+        <div class="form-group" style="margin-bottom:0.75rem;"><label>MOBILE NO *</label><input type="text" id="p-mobile" maxlength="10" class="form-control" required /></div>
+        <div class="form-grid grid-2" style="margin-bottom:0.75rem;">
+          <div class="form-group"><label>AGE *</label><input type="number" id="p-age" class="form-control" required /></div>
+          <div class="form-group"><label>GENDER</label><select id="p-gender" class="form-control"><option>Male</option><option>Female</option></select></div>
+        </div>
+        <button type="submit" class="btn btn-orange" style="width:100%;">Save Patient Record</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-allocate-ipd" class="modal-overlay">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header"><h3>Allocate IPD Bed</h3><button class="modal-close" onclick="closeAllocateModal()">✕</button></div>
+      <div class="form-group" style="margin-bottom:0.8rem;">
+        <label>BED NO *</label>
+        <input type="text" id="ipd-field-bed-no" value="BED-101" class="form-control" />
+      </div>
+      <div class="form-group" style="margin-bottom:0.8rem;">
+        <label>WARD TYPE *</label>
+        <select id="ipd-field-ward" class="form-control">
+          <option value="General Ward">General Ward</option>
+          <option value="Panchakarma Special">Panchakarma Special</option>
+          <option value="Deluxe Suite">Deluxe Suite</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:0.8rem;">
+        <label>PATIENT NAME (AUTOPULL REGISTERED PATIENT)</label>
+        <input type="text" id="ipd-field-patient" list="dl-ipd-patients" placeholder="Type to search patient..." class="form-control" />
+        <datalist id="dl-ipd-patients"></datalist>
+      </div>
+      <div class="form-group" style="margin-bottom:0.8rem;">
+        <label>ATTENDING VAIDYA / DOCTOR</label>
+        <input type="text" id="ipd-field-doctor" placeholder="Dr. / Vaidya Name" class="form-control" />
+      </div>
+      <div class="form-group" style="margin-bottom:1.2rem;">
+        <label>DAILY CHARGE (₹)</label>
+        <input type="number" id="ipd-field-rate" value="1500" class="form-control" />
+      </div>
+      <button type="button" onclick="submitIpdAllocation()" class="btn btn-orange" style="width:100%; justify-content:center;">Allocate Bed & Post Invoice</button>
+    </div>
+  </div>
+
+  <!-- SINGLE MASTER APPLICATION ENGINE -->
   <script>
+    const SUPABASE_URL = "https://apmegpiztygfmltrsgkb.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwbWVncGl6dHlnZm1sdHJzZ2tiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTA5OTksImV4cCI6MjEwNDY4Njk5OX0.kutc4qsOtMgN-7ggRS6ObclwmZWhgihf5snkxbIzlmA";
+    let sbClient = null;
+
+    if (window.supabase && window.supabase.createClient) {
+      try { sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) {}
+    }
+
+    function generateUUID() {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    let db = { patients: [], rx: [], emp: [], billing: [], rawMaterials: [], recipes: [], pharmacy: [], therapies: [], payroll: [], accounts: [], ipd: [], reservations: [], documents: [], staffUsers: [] };
+
     function switchTab(id, el) {
       document.querySelectorAll('.module-section').forEach(e => e.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
-      const targetMod = document.getElementById('mod-' + id);
-      if (targetMod) targetMod.classList.add('active');
+      const target = document.getElementById('mod-' + id);
+      if (target) target.classList.add('active');
       if (el) el.classList.add('active');
     }
+
+    function openModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'flex'; }
+    function closeModal(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+    function openAllocateModal() { populateIpdPatientDatalist(); openModal('modal-allocate-ipd'); }
+    function closeAllocateModal() { closeModal('modal-allocate-ipd'); }
 
     function toggleLightDarkMode() {
       const html = document.documentElement;
@@ -375,10 +455,92 @@
     }
 
     function changeTheme(v) { document.documentElement.setAttribute('data-theme', v); }
-  </script>
 
-  <script src="aushadhi_nirman.js?v=1789372630"></script>
-  <script src="accounts_vendor.js"></script>
-  <script src="ipd_ward.js"></script>
+    function populateIpdPatientDatalist() {
+      const datalist = document.getElementById('dl-ipd-patients');
+      if (!datalist) return;
+      datalist.innerHTML = (db.patients || []).map(p => 
+        `<option value="${p.full_name}">${p.uhid || 'AA-P'} | Mobile: ${p.mobile_no || 'N/A'}</option>`
+      ).join('');
+    }
+
+    function renderPatients() {
+      const tbl = document.getElementById('tbl-patients');
+      if (!tbl) return;
+      tbl.innerHTML = (db.patients || []).map(p => `
+        <tr><td><b>${p.uhid || 'AA-P'}</b></td><td><b>${p.full_name}</b></td><td>${p.mobile_no}</td><td>${p.age} Y / ${p.gender}</td><td>${p.prakriti || 'N/A'}</td><td>${p.weight || 'N/A'}</td><td><button class="btn btn-danger" onclick="delPatient('${p.id}')">Delete</button></td></tr>
+      `).join('') || '<tr><td colspan="7" style="text-align:center;">No patients registered.</td></tr>';
+    }
+
+    async function savePatient(e) {
+      e.preventDefault();
+      const payload = { id: generateUUID(), full_name: document.getElementById('p-name').value, mobile_no: document.getElementById('p-mobile').value, age: document.getElementById('p-age').value, gender: document.getElementById('p-gender').value, uhid: 'AA-P-' + Math.floor(1000 + Math.random() * 9000) };
+      if (sbClient) await sbClient.from('patients').insert([payload]);
+      db.patients.unshift(payload);
+      closeModal('md-patient');
+      renderPatients();
+      populateIpdPatientDatalist();
+    }
+
+    async function delPatient(id) {
+      if (!confirm('Delete patient record?')) return;
+      if (sbClient) await sbClient.from('patients').delete().eq('id', id);
+      db.patients = db.patients.filter(p => p.id !== id);
+      renderPatients();
+    }
+
+    function renderIPD() {
+      const tbl = document.getElementById('tbl-ipd');
+      if (!tbl) return;
+      tbl.innerHTML = (db.ipd || []).map(b => `
+        <tr><td><b>${b.bed_no || b.room_no}</b></td><td>${b.ward_type || 'General Ward'}</td><td><b>${b.patient_name || '—'}</b></td><td>${new Date(b.created_at || Date.now()).toLocaleDateString()}</td><td>₹${parseFloat(b.daily_rate || 1500).toFixed(2)}</td><td><span style="color:${b.status === 'Occupied' ? '#ef4444' : '#10b981'}; font-weight:bold;">${b.status || 'Available'}</span></td></tr>
+      `).join('') || '<tr><td colspan="6" style="text-align:center;">No IPD beds allocated.</td></tr>';
+    }
+
+    async function submitIpdAllocation() {
+      if (!sbClient) return alert("Database client offline.");
+      const bedNo = document.getElementById('ipd-field-bed-no').value.trim();
+      const ward = document.getElementById('ipd-field-ward').value;
+      const patient = document.getElementById('ipd-field-patient').value.trim();
+      const doctor = document.getElementById('ipd-field-doctor').value.trim();
+      const rate = parseFloat(document.getElementById('ipd-field-rate').value || 1500);
+
+      const bedId = generateUUID();
+      const isOccupied = patient.length > 0;
+
+      const bedPayload = { id: bedId, bed_no: bedNo, room_no: bedNo, ward_type: ward, daily_rate: rate, status: isOccupied ? 'Occupied' : 'Available' };
+      const { error: bedErr } = await sbClient.from('ipd_beds').insert([bedPayload]);
+      if (bedErr) return alert("Error allocating bed: " + bedErr.message);
+
+      if (isOccupied) {
+        await sbClient.from('ipd_admissions').insert([{ id: generateUUID(), patient_name: patient, doctor_name: doctor, bed_id: bedId, status: 'Admitted' }]);
+        
+        const billNo = 'BILL-IPD-' + Math.floor(100000 + Math.random() * 900000);
+        await sbClient.from('billing').insert([{ id: generateUUID(), bill_no: billNo, rx_no: bedNo, patient_name: patient, bill_type: 'IPD Admission', subtotal: rate, total_amount: rate, paid_amount: 0, balance_due: rate, payment_status: 'Unpaid' }]);
+      }
+
+      closeAllocateModal();
+      alert("IPD Bed Allocated & Posted to Central Billing!");
+      init();
+    }
+
+    async function init() {
+      if (sbClient) {
+        try {
+          const [pRes, ipdRes] = await Promise.all([
+            sbClient.from('patients').select('*'),
+            sbClient.from('ipd_beds').select('*').order('created_at', { ascending: false })
+          ]);
+          db.patients = pRes.data || [];
+          db.ipd = ipdRes.data || [];
+        } catch(err) { console.error("Data Boot Error:", err); }
+      }
+      renderPatients();
+      renderIPD();
+      populateIpdPatientDatalist();
+    }
+
+    window.onload = init;
+  </script>
 </body>
 </html>
